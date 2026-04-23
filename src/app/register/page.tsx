@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Logo } from "@/components/Logo";
@@ -33,14 +33,15 @@ const autopilotFeatures = [
 function RegisterForm() {
   const { signUp } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Step 1: account details. Step 2: plan selection.
   const [step, setStep] = useState<1 | 2>(1);
 
-  // Account fields
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  // Account fields — pre-fill from modal if passed via URL
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [password, setPassword] = useState(searchParams.get("password") ?? "");
+  const [confirm, setConfirm] = useState(searchParams.get("password") ?? "");
   const [fullName, setFullName] = useState("");
   const [dob, setDob] = useState("");
   const [address, setAddress] = useState("");

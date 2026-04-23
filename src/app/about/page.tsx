@@ -61,7 +61,7 @@ const stats = [
   { value: "22+", label: "Tools included" },
   { value: "7", label: "Letter types" },
   { value: "FCRA", label: "Legally grounded" },
-  { value: "1", label: "Flat monthly price" },
+  { value: "Free", label: "To get started" },
 ];
 
 export default function AboutPage() {

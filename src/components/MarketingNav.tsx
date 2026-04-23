@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { useAuthModal } from "@/components/AuthModal";
 
 const navLinks = [
   { href: "/learn", label: "Learn" },
@@ -14,6 +15,7 @@ const navLinks = [
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const { openModal } = useAuthModal();
 
   return (
     <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-7xl mx-auto">
@@ -28,19 +30,19 @@ export function MarketingNav() {
 
       {/* Desktop right buttons */}
       <div className="hidden md:flex gap-4">
-        <Link href="/login" className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
+        <button onClick={() => openModal("login")} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
           Log In
-        </Link>
-        <Link href="/register" className="px-4 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-lg transition whitespace-nowrap font-medium">
+        </button>
+        <button onClick={() => openModal("register")} className="px-4 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-lg transition whitespace-nowrap font-medium">
           Get Started
-        </Link>
+        </button>
       </div>
 
       {/* Mobile: Get Started + hamburger */}
       <div className="flex md:hidden items-center gap-2">
-        <Link href="/register" className="px-3 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg transition whitespace-nowrap font-medium">
+        <button onClick={() => openModal("register")} className="px-3 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg transition whitespace-nowrap font-medium">
           Get Started
-        </Link>
+        </button>
         <button
           onClick={() => setOpen(true)}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
@@ -77,13 +79,12 @@ export function MarketingNav() {
                 </Link>
               ))}
               <div className="border-t border-slate-100 mt-3 pt-3">
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
+                <button
+                  onClick={() => { setOpen(false); openModal("login"); }}
+                  className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
                 >
                   Log In
-                </Link>
+                </button>
               </div>
             </nav>
           </div>
