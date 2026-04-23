@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
+import { GetStartedButton } from "@/components/AuthModalButtons";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -183,9 +184,9 @@ export default function FAQPage() {
             <Link href="/support" className="px-6 py-2.5 border border-white/30 text-white hover:border-white rounded-lg font-medium transition text-sm">
               Contact Support
             </Link>
-            <Link href="/register" className="px-6 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition text-sm">
+            <GetStartedButton className="px-6 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition text-sm">
               Get Started — Free
-            </Link>
+            </GetStartedButton>
           </div>
         </div>
       </main>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
+import { GetStartedButton } from "@/components/AuthModalButtons";
 import { AutopilotNotify } from "@/components/AutopilotNotify";
 import type { Metadata } from "next";
 
@@ -149,9 +150,9 @@ export default function PlansPage() {
                 </li>
               ))}
             </ul>
-            <Link href="/register" className="block text-center px-4 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 hover:from-lime-400 hover:to-teal-500 text-white rounded-xl font-medium transition text-sm">
+            <GetStartedButton className="block w-full text-center px-4 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 hover:from-lime-400 hover:to-teal-500 text-white rounded-xl font-medium transition text-sm">
               Get Started — Free
-            </Link>
+            </GetStartedButton>
           </div>
 
           {/* Autopilot */}

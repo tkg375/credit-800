@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingNav } from "@/components/MarketingNav";
 import { MarketingFooter } from "@/components/MarketingFooter";
+import { GetStartedButton } from "@/components/AuthModalButtons";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -377,9 +378,9 @@ export default function GlossaryPage() {
           <p className="text-lime-100 text-sm mb-6 max-w-md mx-auto">
             Upload your credit report and get a personalized analysis, dispute letters, and action plan — all the terms above, applied to your specific situation.
           </p>
-          <Link href="/register" className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
+          <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
             Get Started Free
-          </Link>
+          </GetStartedButton>
         </div>
       </main>
 
