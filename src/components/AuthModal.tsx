@@ -228,7 +228,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
 
             <div className="p-6 pb-0">
               {/* Tab toggle */}
-              <div className="flex rounded-xl border border-slate-200 p-1 mb-5 bg-slate-50">
+              <div className="flex rounded-xl border border-slate-200 p-1 mb-5 bg-slate-50 mr-8">
                 {(["login", "register"] as const).map(m => (
                   <button
                     key={m}
