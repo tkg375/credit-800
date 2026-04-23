@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ScoreChart } from "@/components/ScoreChart";
 import { MarketingNav } from "@/components/MarketingNav";
 import { MarketingFooter } from "@/components/MarketingFooter";
+import { GetStartedButton } from "@/components/AuthModalButtons";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -125,12 +126,9 @@ export default function Home() {
               </h1>
 
               <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link
-                  href="/register"
-                  className="px-6 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition text-center"
-                >
+                <GetStartedButton className="px-6 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition text-center">
                   Get Started
-                </Link>
+                </GetStartedButton>
                 <Link
                   href="/plans"
                   className="px-6 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition text-center"
@@ -291,12 +289,9 @@ export default function Home() {
           <p className="text-lime-100 mb-6 sm:mb-8 max-w-2xl mx-auto text-sm sm:text-base">
             Debt validation letters, pay-for-delete templates, statute of limitations calculator, goodwill letters, and more — all included with your subscription.
           </p>
-          <Link
-            href="/register"
-            className="inline-block px-6 sm:px-8 py-3 bg-white text-teal-600 hover:bg-slate-100 rounded-lg font-medium transition"
-          >
+          <GetStartedButton className="inline-block px-6 sm:px-8 py-3 bg-white text-teal-600 hover:bg-slate-100 rounded-lg font-medium transition">
             Get Started
-          </Link>
+          </GetStartedButton>
         </div>
       </section>
 

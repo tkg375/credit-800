@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { GetStartedButton } from "@/components/AuthModalButtons";
 
 const SAMPLE_LETTER = `[Your Name]
 [Your Address]
@@ -117,12 +117,9 @@ export function SampleLetterModal() {
               <p className="text-sm text-slate-600 mb-3">
                 Your personalized letters include specific account numbers, exact FCRA citations, and bureau mailing addresses — ready to send.
               </p>
-              <Link
-                href="/register"
-                className="block text-center px-6 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:from-lime-400 hover:to-teal-500 transition"
-              >
+              <GetStartedButton className="block w-full text-center px-6 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:from-lime-400 hover:to-teal-500 transition">
                 Get Your Letters Free
-              </Link>
+              </GetStartedButton>
             </div>
           </div>
         </div>

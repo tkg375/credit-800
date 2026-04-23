@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { GetStartedButton, LogInButton } from "@/components/AuthModalButtons";
 
 const resources = [
   { href: "/sample-letters", label: "Sample Dispute Letters" },
@@ -72,17 +75,14 @@ export function MarketingFooter() {
             <p className="text-xs text-slate-500 leading-relaxed mb-4">
               Upload your credit report and get personalized dispute letters and an action plan.
             </p>
-            <Link
-              href="/register"
-              className="inline-block px-4 py-2 text-xs font-medium bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg hover:from-lime-400 hover:to-teal-400 transition"
-            >
+            <GetStartedButton className="inline-block px-4 py-2 text-xs font-medium bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg hover:from-lime-400 hover:to-teal-400 transition">
               Start for Free
-            </Link>
+            </GetStartedButton>
             <div className="mt-6">
               <p className="text-xs text-slate-400 mb-2">Already have an account?</p>
-              <Link href="/login" className="text-xs text-teal-600 hover:text-teal-700 font-medium transition">
+              <LogInButton className="text-xs text-teal-600 hover:text-teal-700 font-medium transition">
                 Log in →
-              </Link>
+              </LogInButton>
             </div>
           </div>
         </div>

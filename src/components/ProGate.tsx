@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { useSubscription } from "@/lib/use-subscription";
+import { GetStartedButton, LogInButton } from "@/components/AuthModalButtons";
 
 const features = [
   "Unlimited dispute letters",
@@ -66,13 +66,10 @@ export function ProGate({ children, feature }: { children: ReactNode; feature?: 
           <span className="text-3xl font-bold text-slate-900">Free</span>
         </div>
 
-        <Link
-          href="/register"
-          className="block w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-sm"
-        >
+        <GetStartedButton className="block w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-sm">
           Get Started — Free
-        </Link>
-        <p className="text-xs text-slate-400 mt-3">Already have an account? <a href="/login" className="text-teal-600 hover:underline">Sign in</a></p>
+        </GetStartedButton>
+        <p className="text-xs text-slate-400 mt-3">Already have an account? <LogInButton className="text-teal-600 hover:underline">Sign in</LogInButton></p>
       </div>
     </div>
   );
