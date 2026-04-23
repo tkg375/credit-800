@@ -154,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearUser();
     setUser(null);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    window.location.href = "/";
   };
 
   return (
