@@ -49,14 +49,6 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { signIn, signUp } = useAuth();
 
-  const openModal = useCallback((m: "login" | "register" = "login") => {
-    setMode(m);
-    setRegStep(1);
-    setIsOpen(true);
-  }, []);
-
-  const closeModal = useCallback(() => setIsOpen(false), []);
-
   // ── Login state ──
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -86,6 +78,20 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
 
   const [regError, setRegError] = useState<string | null>(null);
   const [regLoading, setRegLoading] = useState(false);
+
+  const openModal = useCallback((m: "login" | "register" = "login") => {
+    setMode(m);
+    setRegStep(1);
+    setIsOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
+    setRegLoading(false);
+    setLoginLoading(false);
+    setRegError(null);
+    setLoginError(null);
+  }, []);
 
   // ZIP auto-fill
   useEffect(() => {
