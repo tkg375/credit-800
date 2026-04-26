@@ -21,28 +21,24 @@ export function MarketingNav() {
     <nav className="flex items-center justify-between px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
       <Link href="/"><Logo className="h-14 sm:h-20 w-auto" /></Link>
 
-      {/* Desktop links */}
-      <div className="hidden md:flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
-        {navLinks.map((l) => (
-          <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
-        ))}
-      </div>
-
-      {/* Desktop right buttons */}
-      <div className="hidden md:flex gap-4">
-        <button onClick={() => openModal("login")} className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition whitespace-nowrap">
-          Log In
-        </button>
+      {/* Desktop: pill + Get Started, pushed to the right */}
+      <div className="hidden md:flex items-center gap-3">
+        <div className="flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
+          {navLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
+          ))}
+          <div className="w-px h-4 bg-teal-200 mx-1" />
+          <button onClick={() => openModal("login")} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition whitespace-nowrap">
+            Log In
+          </button>
+        </div>
         <button onClick={() => openModal("register")} className="px-4 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-lg transition whitespace-nowrap font-medium">
           Get Started
         </button>
       </div>
 
-      {/* Mobile: Get Started + hamburger */}
-      <div className="flex md:hidden items-center gap-2">
-        <button onClick={() => openModal("register")} className="px-3 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg transition whitespace-nowrap font-medium">
-          Get Started
-        </button>
+      {/* Mobile: hamburger only */}
+      <div className="flex md:hidden items-center">
         <button
           onClick={() => setOpen(true)}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
@@ -78,12 +74,18 @@ export function MarketingNav() {
                   {l.label}
                 </Link>
               ))}
-              <div className="border-t border-slate-100 mt-3 pt-3">
+              <div className="border-t border-slate-100 mt-3 pt-3 space-y-2">
                 <button
                   onClick={() => { setOpen(false); openModal("login"); }}
                   className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
                 >
                   Log In
+                </button>
+                <button
+                  onClick={() => { setOpen(false); openModal("register"); }}
+                  className="w-full px-4 py-2.5 rounded-lg text-sm font-medium bg-gradient-to-r from-lime-500 to-teal-500 text-white transition"
+                >
+                  Get Started
                 </button>
               </div>
             </nav>

@@ -125,13 +125,13 @@ export default function Home() {
                 <span className="hero-glisten">Free.</span>
               </h1>
 
-              <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <GetStartedButton className="px-6 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition text-center">
+              <div className="mt-6 sm:mt-10 flex flex-row flex-wrap gap-3 sm:gap-4">
+                <GetStartedButton className="px-6 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
                   Get Started
                 </GetStartedButton>
                 <Link
                   href="/faq"
-                  className="px-6 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition text-center"
+                  className="px-6 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition"
                 >
                   FAQs
                 </Link>
