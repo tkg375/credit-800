@@ -64,15 +64,12 @@ export default function HowItWorksPage() {
 
       {/* Hero */}
       <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
-            How Credit 800 Works
-          </h1>
-          <div className="mx-auto mb-6" style={{ width: 60, height: 3, background: "rgba(255,255,255,0.4)", borderRadius: 99 }} />
-          <p className="text-white/85 text-lg max-w-xl mx-auto leading-relaxed">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">How Credit 800 Works</h1>
+          <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
             Fix your credit, manage your finances, and build toward your goals — one platform, three simple steps.
           </p>
-        </section>
+        </div>
       </div>
 
       {/* 3-Step process */}
