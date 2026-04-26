@@ -13,7 +13,7 @@ export function Logo({ className = "" }: { className?: string }) {
           width: "auto",
           top: "50%",
           left: "50%",
-          transform: "translate(-50%, -58%)",
+          transform: "translate(-50%, -53%)",
         }}
       />
     </div>
