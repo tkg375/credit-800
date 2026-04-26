@@ -147,7 +147,7 @@ export default function HeroDemoAnimation() {
         </div>
 
         {/* Body */}
-        <div className="bg-white px-5 pt-5 pb-4" style={{ minHeight: 380 }}>
+        <div className="bg-white px-5 pt-5 pb-4" style={{ height: 470, overflow: "hidden" }}>
 
           {/* Score section */}
           <div className="mb-5">
