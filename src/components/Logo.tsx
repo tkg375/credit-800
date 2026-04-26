@@ -135,7 +135,7 @@ export function Logo({ className = "" }: { className?: string }) {
           fontFamily="AmericanCaptain, system-ui, sans-serif"
           fontSize="30"
           fill="#0f172a"
-          letterSpacing="1"
+          letterSpacing="0"
         >
           CREDIT
         </text>
@@ -148,7 +148,7 @@ export function Logo({ className = "" }: { className?: string }) {
           fontSize="32"
           fill="#ffffff"
           textAnchor="middle"
-          letterSpacing="1"
+          letterSpacing="0"
         >
           800
         </text>
