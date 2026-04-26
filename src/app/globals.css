@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  font-family: var(--font-exo2), sans-serif;
+}
+
 @font-face {
   font-family: "AmericanCaptain";
   src: url("/AmericanCaptain.otf") format("opentype");
