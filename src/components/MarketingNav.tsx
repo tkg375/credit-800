@@ -18,8 +18,8 @@ export function MarketingNav() {
   const { openModal } = useAuthModal();
 
   return (
-    <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-7xl mx-auto">
-      <Link href="/"><Logo className="h-10 sm:h-14 w-auto" /></Link>
+    <nav className="flex items-center justify-between px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
+      <Link href="/"><Logo className="h-14 sm:h-20 w-auto" /></Link>
 
       {/* Desktop links */}
       <div className="hidden md:flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
