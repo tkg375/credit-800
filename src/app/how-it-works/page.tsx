@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { MarketingNav } from "@/components/MarketingNav";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { GetStartedButton } from "@/components/AuthModalButtons";
@@ -163,17 +162,9 @@ export default function HowItWorksPage() {
           <p className="text-lime-100 mb-8 text-sm sm:text-base leading-relaxed">
             Create your free account and start disputing inaccuracies, tracking your budget, and building toward your goals today.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <GetStartedButton className="px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-semibold transition">
-              Get Started Free
-            </GetStartedButton>
-            <Link
-              href="/plans"
-              className="px-8 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition text-center"
-            >
-              View Plans
-            </Link>
-          </div>
+          <GetStartedButton className="px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-semibold transition">
+            Get Started Free
+          </GetStartedButton>
         </div>
       </section>
 
