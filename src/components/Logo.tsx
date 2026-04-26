@@ -130,7 +130,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
         {/* CREDIT text */}
         <text
-          x="24"
+          x="18"
           y="39"
           fontFamily="AmericanCaptain, system-ui, sans-serif"
           fontSize="30"
@@ -142,7 +142,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
         {/* 800 text */}
         <text
-          x="168"
+          x="155"
           y="39"
           fontFamily="AmericanCaptain, system-ui, sans-serif"
           fontSize="32"
