@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "ScienceGothic";
+  src: url("/ScienceGothic.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: oblique -12deg 0deg;
+  font-display: swap;
+}
+
 :root {
-  font-family: var(--font-exo2), sans-serif;
+  font-family: "ScienceGothic", sans-serif;
 }
 
 @font-face {
