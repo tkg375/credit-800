@@ -6,11 +6,11 @@ import { Logo } from "@/components/Logo";
 import { useAuthModal } from "@/components/AuthModal";
 
 const navLinks = [
+  { href: "/how-it-works", label: "How It Works" },
   { href: "/learn", label: "Learn" },
   { href: "/sample-letters", label: "Sample Letters" },
   { href: "/faq", label: "FAQ" },
   { href: "/about", label: "About" },
-  { href: "/support", label: "Support" },
 ];
 
 export function MarketingNav() {
