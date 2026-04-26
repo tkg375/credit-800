@@ -4,7 +4,7 @@ export function Logo({ className = "" }: { className?: string }) {
       src="/logo.png"
       alt="Credit 800"
       className={className}
-      style={{ objectFit: "contain", mixBlendMode: "multiply" }}
+      style={{ objectFit: "contain" }}
     />
   );
 }
