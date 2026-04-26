@@ -378,8 +378,8 @@ export function AuthenticatedLayout({
 
       {/* Top navigation bar */}
       <header className="fixed top-0 left-0 right-0 z-30 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3">
-        {/* Logo */}
-        <Link href="/dashboard" className="shrink-0 mr-2">
+        {/* Logo: centered on mobile, left-aligned on desktop */}
+        <Link href="/dashboard" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 shrink-0 md:mr-2">
           <Logo className="h-7 w-auto" />
         </Link>
 

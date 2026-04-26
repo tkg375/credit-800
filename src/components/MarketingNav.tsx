@@ -18,11 +18,16 @@ export function MarketingNav() {
   const { openModal } = useAuthModal();
 
   return (
-    <nav className="flex items-center justify-between px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
-      <Link href="/"><Logo className="h-14 sm:h-20 w-auto" /></Link>
+    <nav className="flex items-center px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
+      {/* Balances the hamburger on mobile so the logo appears centered */}
+      <div className="w-10 md:hidden shrink-0" />
+
+      <div className="flex-1 flex justify-center md:flex-none">
+        <Link href="/"><Logo className="h-14 sm:h-20 w-auto" /></Link>
+      </div>
 
       {/* Desktop: pill + Get Started, pushed to the right */}
-      <div className="hidden md:flex items-center gap-3">
+      <div className="hidden md:flex items-center gap-3 ml-auto">
         <div className="flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
           {navLinks.map((l) => (
             <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
@@ -38,7 +43,7 @@ export function MarketingNav() {
       </div>
 
       {/* Mobile: hamburger only */}
-      <div className="flex md:hidden items-center">
+      <div className="flex md:hidden items-center shrink-0">
         <button
           onClick={() => setOpen(true)}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
