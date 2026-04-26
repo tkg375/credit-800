@@ -142,7 +142,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
         {/* 800 text */}
         <text
-          x="155"
+          x="128"
           y="39"
           fontFamily="AmericanCaptain, system-ui, sans-serif"
           fontSize="32"
