@@ -183,7 +183,7 @@ export default function AboutPage() {
             Upload your credit report, get your personalized dispute letters and action plan, and take control of your credit.
           </p>
           <GetStartedButton className="px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
-            Get Started Free
+            Get Started
           </GetStartedButton>
         </div>
       </main>

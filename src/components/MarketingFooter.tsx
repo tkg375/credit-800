@@ -76,7 +76,7 @@ export function MarketingFooter() {
               Upload your credit report and get personalized dispute letters and an action plan.
             </p>
             <GetStartedButton className="inline-block px-4 py-2 text-xs font-medium bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg hover:from-lime-400 hover:to-teal-400 transition">
-              Start for Free
+              Get Started
             </GetStartedButton>
             <div className="mt-6">
               <p className="text-xs text-slate-400 mb-2">Already have an account?</p>

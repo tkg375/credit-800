@@ -210,7 +210,7 @@ export default async function LearnArticlePage({ params }: Props) {
             Upload your credit report and get personalized FCRA dispute letters, a score improvement plan, and all the tools you need — in one place.
           </p>
           <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
-            Get Started Free
+            Get Started
           </GetStartedButton>
         </div>
 

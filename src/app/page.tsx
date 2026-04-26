@@ -122,19 +122,13 @@ export default function Home() {
                 <br />
                 <span className="text-slate-900">One Platform.</span>
                 <br />
-                <span className="text-slate-900">Start for Free.</span>
+                <span className="text-slate-900">Free.</span>
               </h1>
 
               <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <GetStartedButton className="px-6 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition text-center">
                   Get Started
                 </GetStartedButton>
-                <Link
-                  href="/plans"
-                  className="px-6 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition text-center"
-                >
-                  Our Plans
-                </Link>
                 <Link
                   href="/faq"
                   className="px-6 py-3 border border-white/50 hover:border-white text-white rounded-lg font-medium transition text-center"

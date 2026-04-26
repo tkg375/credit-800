@@ -163,7 +163,7 @@ export default function HowItWorksPage() {
             Create your free account and start disputing inaccuracies, tracking your budget, and building toward your goals today.
           </p>
           <GetStartedButton className="px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-semibold transition">
-            Get Started Free
+            Get Started
           </GetStartedButton>
         </div>
       </section>

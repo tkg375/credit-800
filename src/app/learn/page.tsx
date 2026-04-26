@@ -125,7 +125,7 @@ export default function LearnPage() {
             Upload your credit report and let Credit 800 identify every disputable item, generate personalized FCRA-compliant letters, and build your action plan.
           </p>
           <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
-            Get Started Free
+            Get Started
           </GetStartedButton>
         </div>
       </main>

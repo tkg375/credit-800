@@ -611,7 +611,7 @@ export default function SampleLettersPage() {
             Your letters include specific account numbers, exact legal citations, and bureau/collector mailing addresses — personalized and ready to send.
           </p>
           <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
-            Get Started Free
+            Get Started
           </GetStartedButton>
         </div>
       </main>
