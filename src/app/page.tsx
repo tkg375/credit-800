@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ScoreChart } from "@/components/ScoreChart";
+import HeroDemoAnimation from "@/components/HeroDemoAnimation";
 import { MarketingNav } from "@/components/MarketingNav";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { GetStartedButton } from "@/components/AuthModalButtons";
@@ -154,7 +154,7 @@ export default function Home() {
               </div>
             </div>
             <div className="hidden lg:block">
-              <ScoreChart className="w-full max-w-md mx-auto" />
+              <HeroDemoAnimation />
             </div>
           </div>
         </section>
