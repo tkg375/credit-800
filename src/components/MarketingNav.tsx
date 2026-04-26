@@ -24,8 +24,8 @@ export function MarketingNav() {
         <Link href="/" className="pointer-events-auto"><Logo className="h-14 sm:h-20 w-auto" /></Link>
       </div>
 
-      {/* Desktop: pill + Get Started, pushed to the right */}
-      <div className="hidden md:flex items-center gap-3 ml-auto">
+      {/* Desktop: pill with all links + Get Started inside, pushed to the right */}
+      <div className="hidden md:flex items-center ml-auto">
         <div className="flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
           {navLinks.map((l) => (
             <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
@@ -34,10 +34,10 @@ export function MarketingNav() {
           <button onClick={() => openModal("login")} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition whitespace-nowrap">
             Log In
           </button>
+          <button onClick={() => openModal("register")} className="px-4 py-1.5 bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-full transition whitespace-nowrap font-extrabold shadow-md shadow-teal-200 uppercase tracking-wide">
+            Get Started
+          </button>
         </div>
-        <button onClick={() => openModal("register")} className="px-5 py-2.5 text-sm bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-xl transition whitespace-nowrap font-extrabold shadow-lg shadow-teal-200 uppercase tracking-wide">
-          Get Started
-        </button>
       </div>
 
       {/* Mobile: Get Started + hamburger */}
