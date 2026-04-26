@@ -117,12 +117,15 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-16 pb-12 sm:pb-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-white">
+<h1
+                className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-white"
+                style={{ fontFamily: "'AmericanCaptain', sans-serif", letterSpacing: "0.02em" }}
+              >
                 Your Credit &amp; Finances.
                 <br />
                 <span className="text-slate-900">One Platform.</span>
                 <br />
-                <span className="text-slate-900">Free.</span>
+                <span className="hero-glisten">Free.</span>
               </h1>
 
               <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">

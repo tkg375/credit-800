@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "AmericanCaptain";
+  src: url("/AmericanCaptain.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@keyframes glisten {
+  0%   { background-position: -300% center; }
+  100% { background-position: 300% center; }
+}
+
+.hero-glisten {
+  background: linear-gradient(
+    105deg,
+    #f0fdf4 0%,
+    #bbf7d0 20%,
+    #ffffff 38%,
+    #fef9c3 45%,
+    #ffffff 52%,
+    #bbf7d0 70%,
+    #f0fdf4 100%
+  );
+  background-size: 300% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: glisten 3s linear infinite;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
