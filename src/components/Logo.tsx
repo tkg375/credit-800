@@ -128,28 +128,27 @@ export function Logo({ className = "" }: { className?: string }) {
           />
         </rect>
 
-        {/* CREDIT text in white */}
+        {/* CREDIT text */}
         <text
           x="24"
-          y="38"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize="28"
-          fontWeight="800"
+          y="39"
+          fontFamily="AmericanCaptain, system-ui, sans-serif"
+          fontSize="30"
           fill="#0f172a"
-          letterSpacing="-0.5"
+          letterSpacing="1"
         >
           CREDIT
         </text>
 
-        {/* 800 text in white */}
+        {/* 800 text */}
         <text
           x="168"
-          y="38"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize="30"
-          fontWeight="900"
+          y="39"
+          fontFamily="AmericanCaptain, system-ui, sans-serif"
+          fontSize="32"
           fill="#ffffff"
           textAnchor="middle"
+          letterSpacing="1"
         >
           800
         </text>
@@ -272,13 +271,13 @@ export function LogoIcon({ className = "" }: { className?: string }) {
       {/* 800 text */}
       <text
         x="28"
-        y="35"
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize="18"
-        fontWeight="900"
+        y="36"
+        fontFamily="AmericanCaptain, system-ui, sans-serif"
+        fontSize="20"
         fill={`url(#${ids.gradient})`}
         textAnchor="middle"
         filter={`url(#${ids.glow})`}
+        letterSpacing="1"
       >
         800
       </text>
