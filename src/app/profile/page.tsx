@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
+import { loadStripe } from "@stripe/stripe-js";
+import type { Stripe, StripeCardElement } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -25,6 +29,18 @@ export default function ProfilePage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zip, setZip] = useState("");
+  const [ssnLast4, setSsnLast4] = useState("");
+
+  // Payment method state
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string; expMonth: number; expYear: number; pmId: string } | null>(null);
+  const [cardLoading, setCardLoading] = useState(true);
+  const [showAddCard, setShowAddCard] = useState(false);
+  const [cardSaving, setCardSaving] = useState(false);
+  const [cardError, setCardError] = useState("");
+  const [cardSuccess, setCardSuccess] = useState(false);
+  const cardElementRef = useRef<StripeCardElement | null>(null);
+  const cardMountRef = useRef<HTMLDivElement | null>(null);
+  const stripeRef = useRef<Stripe | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,11 +64,98 @@ export default function ProfilePage() {
           setCity(p.city || "");
           setState(p.state || "");
           setZip(p.zip || "");
+          setSsnLast4(p.ssnLast4 || "");
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user, authLoading, router]);
+
+  // Load card on file
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/billing/card", { headers: { Authorization: `Bearer ${user.idToken}` } })
+      .then((r) => r.json())
+      .then((d) => setCardInfo(d.card || null))
+      .catch(() => {})
+      .finally(() => setCardLoading(false));
+  }, [user]);
+
+  // Mount Stripe card element when add-card panel opens
+  useEffect(() => {
+    if (!showAddCard || !cardMountRef.current) return;
+    let mounted = true;
+    stripePromise.then((s) => {
+      if (!s || !mounted || !cardMountRef.current) return;
+      stripeRef.current = s;
+      const elements = s.elements();
+      const el = elements.create("card", {
+        style: { base: { fontSize: "15px", color: "#0f172a", "::placeholder": { color: "#94a3b8" } } },
+      });
+      el.mount(cardMountRef.current);
+      cardElementRef.current = el;
+    });
+    return () => {
+      mounted = false;
+      cardElementRef.current?.destroy();
+      cardElementRef.current = null;
+    };
+  }, [showAddCard]);
+
+  const handleSaveCard = async () => {
+    if (!user || !stripeRef.current || !cardElementRef.current) return;
+    setCardSaving(true);
+    setCardError("");
+    try {
+      const siRes = await fetch("/api/billing/setup-intent", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${user.idToken}` },
+      });
+      const siData = await siRes.json();
+      if (!siRes.ok) throw new Error(siData.error || "Failed to create setup");
+
+      const { error: stripeError, setupIntent } = await stripeRef.current.confirmCardSetup(siData.clientSecret, {
+        payment_method: { card: cardElementRef.current },
+      });
+      if (stripeError) throw new Error(stripeError.message);
+      if (!setupIntent?.payment_method) throw new Error("Setup failed");
+
+      const pmId = typeof setupIntent.payment_method === "string"
+        ? setupIntent.payment_method
+        : setupIntent.payment_method.id;
+
+      await fetch("/api/billing/confirm-setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
+        body: JSON.stringify({ paymentMethodId: pmId }),
+      });
+
+      // Refresh card info
+      const cardRes = await fetch("/api/billing/card", { headers: { Authorization: `Bearer ${user.idToken}` } });
+      const cardData = await cardRes.json();
+      setCardInfo(cardData.card || null);
+      setCardSuccess(true);
+      setShowAddCard(false);
+      setTimeout(() => setCardSuccess(false), 3000);
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "Failed to save card");
+    } finally {
+      setCardSaving(false);
+    }
+  };
+
+  const handleRemoveCard = async () => {
+    if (!user || !confirm("Remove your saved card?")) return;
+    setCardSaving(true);
+    try {
+      await fetch("/api/billing/card", { method: "DELETE", headers: { Authorization: `Bearer ${user.idToken}` } });
+      setCardInfo(null);
+    } catch {
+      setCardError("Failed to remove card");
+    } finally {
+      setCardSaving(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -66,7 +169,7 @@ export default function ProfilePage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.idToken}`,
         },
-        body: JSON.stringify({ fullName, dateOfBirth, phone, address, address2, city, state, zip }),
+        body: JSON.stringify({ fullName, dateOfBirth, phone, address, address2, city, state, zip, ssnLast4 }),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -156,6 +259,19 @@ export default function ProfilePage() {
                 placeholder="(555) 000-0000"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">SSN Last 4 Digits</label>
+              <input
+                type="password"
+                inputMode="numeric"
+                value={ssnLast4}
+                onChange={(e) => setSsnLast4(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-sm"
+                placeholder="••••"
+                maxLength={4}
+              />
+              <p className="text-xs text-slate-400 mt-1">Used on dispute letters for identity verification. Never stored in plain view.</p>
+            </div>
           </div>
         </div>
 
@@ -222,10 +338,73 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 mb-12"
+          className="w-full py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 mb-6"
         >
           {saving ? "Saving..." : saveSuccess ? "✓ Saved!" : "Save Changes"}
         </button>
+
+        {/* Payment Method */}
+        <div id="payment" className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <h2 className="font-semibold mb-1">Payment Method</h2>
+          <p className="text-sm text-slate-500 mb-4">Used for the $2/letter USPS mailing fee. No charge until you mail.</p>
+
+          {cardLoading ? (
+            <div className="h-10 flex items-center"><div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" /></div>
+          ) : cardInfo ? (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-7 bg-slate-100 border border-slate-200 rounded flex items-center justify-center text-xs font-bold text-slate-600 uppercase">
+                  {cardInfo.brand}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-800">•••• {cardInfo.last4}</p>
+                  <p className="text-xs text-slate-500">Expires {cardInfo.expMonth}/{cardInfo.expYear}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {cardSuccess && <span className="text-teal-600 text-sm">✓ Saved!</span>}
+                <button onClick={() => setShowAddCard(true)} className="text-sm text-teal-600 hover:text-teal-500 font-medium">Replace</button>
+                <button onClick={handleRemoveCard} disabled={cardSaving} className="text-sm text-red-500 hover:text-red-400 font-medium">Remove</button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm text-slate-500">No card on file.</p>
+              <button
+                onClick={() => setShowAddCard(true)}
+                className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition"
+              >
+                Add Card
+              </button>
+            </div>
+          )}
+
+          {showAddCard && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <p className="text-sm font-medium text-slate-700 mb-3">Enter card details</p>
+              <div
+                ref={cardMountRef}
+                className="w-full px-3 py-3 rounded-lg border border-slate-300 bg-white text-sm min-h-[42px]"
+              />
+              {cardError && <p className="mt-2 text-sm text-red-500">{cardError}</p>}
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={handleSaveCard}
+                  disabled={cardSaving}
+                  className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                >
+                  {cardSaving ? "Saving..." : "Save Card"}
+                </button>
+                <button
+                  onClick={() => { setShowAddCard(false); setCardError(""); }}
+                  className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Danger Zone */}
         <div className="bg-white rounded-2xl border border-red-200 p-6">

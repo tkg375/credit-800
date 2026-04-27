@@ -9,13 +9,18 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { fullName, dateOfBirth, address, address2, city, state, zip, phone } = body;
+  const { fullName, dateOfBirth, address, address2, city, state, zip, phone, ssnLast4 } = body;
 
   if (!fullName || !dateOfBirth || !address || !city || !state || !zip) {
     return NextResponse.json(
       { error: "fullName, dateOfBirth, address, city, state, and zip are required" },
       { status: 400 }
     );
+  }
+
+  // Validate SSN last 4 if provided
+  if (ssnLast4 && !/^\d{4}$/.test(ssnLast4)) {
+    return NextResponse.json({ error: "SSN last 4 must be exactly 4 digits" }, { status: 400 });
   }
 
   await firestore.updateDoc(COLLECTIONS.users, user.uid, {
@@ -27,6 +32,7 @@ export async function POST(request: NextRequest) {
     state,
     zip,
     phone: phone || "",
+    ssnLast4: ssnLast4 || "",
     email: user.email || "",
     updatedAt: new Date().toISOString(),
   });

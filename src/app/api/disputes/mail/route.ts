@@ -55,12 +55,9 @@ export async function POST(request: NextRequest) {
   }
 
   const sub = await getUserSubscription(user.uid);
-  if (!sub.isPro) {
-    return NextResponse.json({ error: "An active subscription is required to mail dispute letters." }, { status: 403 });
-  }
 
   if (!sub.stripeCustomerId) {
-    return NextResponse.json({ error: "No billing information on file. Please update your subscription." }, { status: 402 });
+    return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
   }
 
   const body = await request.json();
@@ -163,7 +160,7 @@ export async function POST(request: NextRequest) {
     // Resolve the subscriber's saved payment method for the $2 mailing fee
     const paymentMethodId = await resolvePaymentMethod(sub.stripeCustomerId, sub.stripeSubscriptionId);
     if (!paymentMethodId) {
-      return NextResponse.json({ error: "No payment method on file. Please update your billing in the Subscription page." }, { status: 402 });
+      return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
     }
 
     // Charge $2 mailing fee (off-session, after all validation passes)

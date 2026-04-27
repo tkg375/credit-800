@@ -16,6 +16,7 @@ interface UserProfile {
   city: string;
   state: string;
   zip: string;
+  ssnLast4?: string;
 }
 
 function formatUserAddress(profile: UserProfile): string {
@@ -77,7 +78,7 @@ Sincerely,
 
 ${profile?.fullName || userName}
 ${profile ? formatUserAddress(profile) : "[Your Address]\n[City, State ZIP]"}
-${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}
+${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}${profile?.ssnLast4 ? `\nSSN (last 4): XXX-XX-${profile.ssnLast4}` : ""}
 
 `;
 }
@@ -131,7 +132,7 @@ Sincerely,
 
 ${profile?.fullName || userName}
 ${profile ? formatUserAddress(profile) : "[Your Address]\n[City, State ZIP]"}
-${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}
+${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}${profile?.ssnLast4 ? `\nSSN (last 4): XXX-XX-${profile.ssnLast4}` : ""}
 
 `;
 }
@@ -156,6 +157,7 @@ export async function POST(req: NextRequest) {
         userProfile = {
           fullName: profileDoc.data.fullName as string,
           dateOfBirth: profileDoc.data.dateOfBirth as string,
+          ssnLast4: (profileDoc.data.ssnLast4 as string) || "",
           address: profileDoc.data.address as string,
           address2: (profileDoc.data.address2 as string) || "",
           city: profileDoc.data.city as string,
