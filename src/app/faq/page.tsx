@@ -26,39 +26,19 @@ export const metadata: Metadata = {
 
 const sections = [
   {
-    title: "Plans & Pricing",
+    title: "Getting Started",
     faqs: [
       {
-        q: "Why is Self Service free?",
-        a: "We believe everyone deserves access to the tools that credit repair companies charge $100/month for. Self Service is completely free — create an account and start generating FCRA-compliant dispute letters instantly. The only charge on Self Service is if you choose to mail a dispute via USPS ($2/letter) — and that's entirely optional. For those who want us to handle everything automatically, our Autopilot plan is $49/month — comparable to a traditional credit repair service but with full transparency and no long-term contracts.",
+        q: "Is Credit 800 really free?",
+        a: "Yes — Credit 800 is completely free. Create an account and get instant access to the full platform with no credit card required. The only optional charge is if you choose to mail a dispute via USPS ($2/letter), which you can also do yourself for free.",
       },
       {
-        q: "What's included in the Self Service plan?",
+        q: "What's included in Credit 800?",
         a: "Everything you need to run your own credit repair — completely free. Unlimited dispute letters, budget tracker, debt payoff optimizer, credit score simulator, loan readiness calculator, goals tracker, document vault, CFPB complaint generator, letter templates library (goodwill, pay-for-delete, cease & desist, debt validation, and more), creditor letter analyzer, and smart notifications. No feature gates, no usage limits. You can also mail disputes via USPS for $2/letter.",
       },
       {
-        q: "What is the Autopilot plan?",
-        a: "Autopilot is our fully hands-free credit repair tier — we do everything for you. It includes everything in Self Service plus a monthly soft-pull credit report, auto-generated dispute letters, automatic USPS mailing of up to 10 letters per month, hands-free VantageScore tracking, FCRA-compliant full automation, a compliance audit trail, and priority support. You don't need to log in, upload anything, or write a single letter. We handle the entire dispute cycle on your behalf.",
-      },
-      {
-        q: "What's the difference between Self Service and Autopilot?",
-        a: "Self Service (Free) gives you all the tools to run your own credit repair — you upload your report, generate letters, and send them yourself. Autopilot ($49/mo) is fully automated — we pull your credit report monthly, generate the dispute letters, and mail them to the bureaus on your behalf. You just sit back. Self Service is best if you want full control at no cost. Autopilot is best if you want a true set-it-and-forget-it experience.",
-      },
-      {
-        q: "When will Autopilot be available?",
-        a: "Autopilot is coming soon. We're in the final stages of building and testing the full automation pipeline to ensure it's FCRA-compliant and reliable before we open it up. Sign up for Self Service now and you'll be notified as soon as Autopilot launches — existing subscribers will be able to upgrade with one click.",
-      },
-      {
-        q: "Can I upgrade from Self Service to Autopilot later?",
-        a: "Yes. When Autopilot launches, you'll be able to upgrade directly from your account settings. Your existing data, dispute history, and documents will carry over automatically — no need to start from scratch.",
-      },
-      {
         q: "How is Credit 800 different from hiring a credit repair company?",
-        a: "Traditional credit repair companies charge $79–$149/month and do the same thing you can do yourself — disputing items under the FCRA. Many also require long-term contracts. Credit 800's Self Service plan gives you the same tools for free. Our Autopilot plan ($49/mo) offers full automation comparable to a credit repair service — at a fraction of the cost and with full transparency into every letter sent.",
-      },
-      {
-        q: "Can I cancel Autopilot anytime?",
-        a: "Yes. No contracts, no cancellation fees, no questions asked. Cancel from your account settings at any time. You keep full Autopilot access until the end of your current billing period. Self Service is free and always available.",
+        a: "Traditional credit repair companies charge $79–$149/month and do the same thing you can do yourself — disputing items under the FCRA. Many also require long-term contracts. Credit 800 gives you the same tools for free, with full transparency and no contracts.",
       },
     ],
   },
@@ -67,7 +47,7 @@ const sections = [
     faqs: [
       {
         q: "Is this legit? I've been burned by credit repair scams before.",
-        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different. On the Self Service plan, you're in full control — you generate your own FCRA-compliant dispute letters, send them yourself, and keep 100% of the results. On the Autopilot plan, we handle everything for you transparently — you can see every letter generated and every action taken. Either way, no shady contracts, no per-letter charges, and no promises we can't keep.",
+        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different. You're in full control — you generate your own FCRA-compliant dispute letters, send them yourself, and keep 100% of the results. No shady contracts, no per-letter charges, and no promises we can't keep.",
       },
       {
         q: "How fast will I see results?",
@@ -75,11 +55,11 @@ const sections = [
       },
       {
         q: "Do I need to send letters myself?",
-        a: "On the Self Service plan, you copy the letter and submit it directly on the bureau's website or via certified mail. You can also use our USPS mail service ($2/letter) where we print and mail the dispute with trackable delivery confirmation. On the Autopilot plan, we handle all mailing automatically — up to 10 letters per month included.",
+        a: "You copy the letter and submit it directly on the bureau's website or via certified mail. You can also use our USPS mail service ($2/letter) where we print and mail the dispute with trackable delivery confirmation.",
       },
       {
         q: "What if the bureau doesn't respond or denies my dispute?",
-        a: "If a bureau denies your dispute, the next step is a Method of Verification letter demanding they explain exactly how they verified the item — this forces a more thorough reinvestigation. If they still fail to respond within 30 days, the item must be removed by law. On Self Service, Credit 800 includes escalation letter templates so you can send these yourself. On Autopilot, we detect denials and automatically generate and mail the escalation letter on your behalf.",
+        a: "If a bureau denies your dispute, the next step is a Method of Verification letter demanding they explain exactly how they verified the item — this forces a more thorough reinvestigation. If they still fail to respond within 30 days, the item must be removed by law. Credit 800 includes escalation letter templates so you can send these yourself.",
       },
       {
         q: "Does disputing items hurt my credit score?",
@@ -109,12 +89,9 @@ const sections = [
       },
       {
         q: "Do I need my SSN to use Credit 800?",
-        a: "It depends on your plan. Self Service: no SSN required. You upload your own credit report (available free at AnnualCreditReport.com) and Credit 800 analyzes it — your SSN is never requested or stored. Autopilot: your SSN is required so we can pull your credit report automatically each month on your behalf. It is stored encrypted using 256-bit encryption, never shared with third parties, and used solely to retrieve your credit report.",
+        a: "No SSN required. You upload your own credit report (available free at AnnualCreditReport.com) and Credit 800 analyzes it — your SSN is never requested or stored.",
       },
-      {
-        q: "Does Autopilot store my credit report data?",
-        a: "Yes — Autopilot pulls a soft-pull credit report monthly to generate your dispute letters. This data is encrypted, stored securely, and only used to power your dispute automation. It is never shared with third parties or used for any other purpose. You can request deletion of your data at any time.",
-      },
+
     ],
   },
 ];

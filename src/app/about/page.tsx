@@ -47,9 +47,9 @@ const features = [
       "Credit disputes, budget tracking, debt payoff planning, loan readiness scores, score simulation, and more — tools that used to require separate subscriptions, in a single platform.",
   },
   {
-    title: "Transparent Pricing",
+    title: "Completely Free",
     description:
-      "A single flat subscription with no hidden fees, no per-letter charges beyond optional USPS mailing, and no upsells. You know exactly what you're paying and what you're getting.",
+      "Credit 800 is free for everyone — no subscription, no credit card required, and no hidden fees. The only optional charge is $2/letter if you want us to mail a dispute via USPS.",
   },
   {
     title: "Your Data, Your Control",
@@ -149,10 +149,6 @@ export default function AboutPage() {
               <span>We help you understand every aspect of your credit and what's affecting your score</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-              <span>Our Autopilot plan automates dispute submissions with your explicit written consent</span>
-            </div>
-            <div className="flex items-start gap-2">
               <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span>
               <span>We don't promise specific score increases or guarantee item removals</span>
             </div>
@@ -169,9 +165,6 @@ export default function AboutPage() {
           <div className="space-y-4 text-slate-600 text-sm sm:text-base leading-relaxed">
             <p>
               Credit 800 is built on a modern, secure tech stack. Credit report analysis and dispute letter generation runs on advanced automated processing technology. Your data is stored securely with encryption at rest and in transit. We use Stripe for payment processing — we never see or store your full card number.
-            </p>
-            <p>
-              Our Autopilot feature performs monthly soft credit pulls (which do not affect your score) with your explicit written consent under FCRA § 604(a)(2). Every automated action is logged in an immutable audit trail that you can access at any time.
             </p>
           </div>
         </section>

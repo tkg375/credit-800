@@ -317,25 +317,12 @@ export function AuthenticatedLayout({
   const { user, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { isPro, isAutopilot, loading: subLoading } = useSubscription();
+  const { isPro, loading: subLoading } = useSubscription();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  // Inject Autopilot nav item for autopilot subscribers
-  const effectiveSections = isAutopilot
-    ? sections.map((s) =>
-        s.label === "Dashboard"
-          ? {
-              ...s,
-              items: [
-                s.items[0],
-                { href: "/autopilot", label: "Autopilot", key: "autopilot" as NavItem, icon: <Icon d="M13 10V3L4 14h7v7l9-11h-7z" /> },
-              ],
-            }
-          : s
-      )
-    : sections;
+  const effectiveSections = sections;
 
   // Self-service is free — no redirect needed for unsubscribed users
 

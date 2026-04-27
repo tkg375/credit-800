@@ -32,7 +32,7 @@ export default function CreditMonitoringPage() {
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Credit Monitoring</h1>
           <p className="text-slate-500 text-base max-w-xl">
-            Automated 24/7 credit monitoring powered by Autopilot — get real-time alerts when anything changes on your report.
+            Get real-time alerts when anything changes on your credit report — new accounts, inquiries, derogatory marks, and more.
           </p>
         </div>
 
@@ -46,8 +46,8 @@ export default function CreditMonitoringPage() {
             },
             {
               icon: "🤖",
-              title: "Autopilot Integration",
-              desc: "Autopilot automatically disputes new negative items the moment they're detected — no action needed from you.",
+              title: "Dispute Readiness",
+              desc: "When a new negative item is detected, get a pre-drafted dispute letter ready to send with one click.",
             },
             {
               icon: "📈",
@@ -66,8 +66,8 @@ export default function CreditMonitoringPage() {
             },
             {
               icon: "⚡",
-              title: "Dispute Automation",
-              desc: "When Autopilot spots an error, it generates, sends, and tracks a dispute letter automatically.",
+              title: "Instant Dispute Generation",
+              desc: "When an error is spotted, generate a ready-to-send FCRA-compliant dispute letter instantly.",
             },
           ].map((feature) => (
             <div key={feature.title} className="bg-white border border-slate-200 rounded-xl p-5 flex gap-4">
@@ -87,9 +87,9 @@ export default function CreditMonitoringPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2">Autopilot is on its way</h2>
+          <h2 className="text-xl font-bold mb-2">Credit Monitoring Coming Soon</h2>
           <p className="text-white/80 text-sm max-w-md mx-auto mb-6">
-            Credit Monitoring will be the core of the Autopilot plan — fully hands-free credit repair that works around the clock.
+            Full credit monitoring is coming soon — automated alerts and real-time tracking for your credit profile.
           </p>
         </div>
       </main>

@@ -26,7 +26,7 @@ const steps = [
     number: "3",
     title: "Dispute, Improve & Build",
     description: "Generate FCRA-compliant dispute letters with one click — each citing the exact legal sections relevant to your case. Track deadlines with the dispute calendar, automate follow-up rounds, and watch your score climb.",
-    details: ["FCRA-compliant letters generated instantly", "Dispute calendar tracks every deadline", "Autopilot rounds for hands-free disputes"],
+    details: ["FCRA-compliant letters generated instantly", "Dispute calendar tracks every deadline", "Round 2/3 escalation letters included"],
   },
 ];
 
@@ -49,8 +49,7 @@ const features = [
   { title: "Portfolio Tracker", description: "Track your net worth and asset allocation across bank and investment accounts via Plaid integration." },
   { title: "Secure Document Vault", description: "Upload and organize credit reports, dispute letters, bureau responses, and identity documents by category." },
   { title: "Legal Letter Analyzer", description: "Paste any demand or collection letter and get an instant breakdown of claims, deadlines, your rights, and a response draft." },
-  { title: "Autopilot Disputes", description: "Fully automate your dispute workflow — scheduled dispute rounds run automatically and bulk-generate mailing-ready letters for you." },
-  { title: "Bureau Report Viewer", description: "See all accounts across all three bureaus with balances, statuses, and one-click dispute flagging." },
+{ title: "Bureau Report Viewer", description: "See all accounts across all three bureaus with balances, statuses, and one-click dispute flagging." },
   { title: "Credit Score Tracker", description: "Log and visualize your score trends over time from multiple sources and bureaus, with CSV export." },
   { title: "Sample Letter Library", description: "Browse FCRA-compliant example letters for collections, charge-offs, late payments, and a dozen other dispute strategies." },
 ];
@@ -112,7 +111,7 @@ export default function HowItWorksPage() {
             Credit 800 is not just a dispute tool — it&apos;s a complete financial platform. Your disputes feed your score tracker. Your score tracker feeds your loan readiness. Your budget feeds your goals. Every tool shares context so you always know exactly where you stand and what to do next.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {["Credit Repair", "Budget Tracking", "Loan Readiness", "Debt Payoff", "Goals", "Autopilot"].map((tag) => (
+            {["Credit Repair", "Budget Tracking", "Loan Readiness", "Debt Payoff", "Goals", "Score Tracking"].map((tag) => (
               <span
                 key={tag}
                 className="text-xs font-semibold px-3 py-1.5 rounded-full"

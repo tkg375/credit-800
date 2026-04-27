@@ -89,7 +89,7 @@ export default function MonitoringPage() {
           </div>
           <h2 className="text-xl font-bold mb-2">Full identity protection is coming</h2>
           <p className="text-white/80 text-sm max-w-md mx-auto mb-6">
-            Identity Monitoring will be part of the Autopilot plan — 24/7 protection working in the background so you never have to worry.
+            Full identity monitoring is coming soon.
           </p>
         </div>
       </main>

@@ -19,16 +19,6 @@ const proFeatures = [
   "Mail disputes via USPS ($2/letter)",
 ];
 
-const autopilotFeatures = [
-  "Everything in Self Service",
-  "Monthly soft-pull credit report",
-  "Auto-generated dispute letters",
-  "Automatic USPS mailing (up to 10/mo)",
-  "VantageScore tracking — hands-free",
-  "FCRA-compliant full automation",
-  "Priority support",
-  "Compliance audit trail",
-];
 
 function RegisterForm() {
   const { signUp } = useAuth();
@@ -310,7 +300,7 @@ function RegisterForm() {
           <div>
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl mb-4">
               <h1 className="text-xl font-bold mb-1 text-center">Choose Your Plan</h1>
-              <p className="text-slate-500 text-sm text-center mb-6">Self Service is free. Autopilot coming soon.</p>
+              <p className="text-slate-500 text-sm text-center mb-6">Free to use — no credit card required.</p>
 
               {error && (
                 <p className="text-red-500 text-sm text-center mb-4 bg-red-50 py-2 px-4 rounded-lg">{error}</p>
@@ -358,32 +348,6 @@ function RegisterForm() {
                   </ul>
                 </button>
 
-                {/* Autopilot — Coming Soon */}
-                <div className="relative w-full text-left rounded-xl border-2 border-slate-200 p-4 opacity-60 cursor-not-allowed overflow-hidden">
-                  <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-white/40 flex items-center justify-center rounded-xl">
-                    <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full">Coming Soon</span>
-                  </div>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-slate-900">Autopilot</p>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
-                        $49 <span className="text-sm font-normal text-slate-400">/ month</span>
-                      </p>
-                      <p className="text-xs text-slate-500 mt-0.5">Fully automated — we do everything</p>
-                    </div>
-                    <div className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0 mt-1" />
-                  </div>
-                  <ul className="space-y-1">
-                    {autopilotFeatures.slice(0, 5).map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-xs text-slate-600">
-                        <svg className="w-3 h-3 text-cyan-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </div>
             </div>
 

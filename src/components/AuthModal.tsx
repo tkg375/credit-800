@@ -32,16 +32,6 @@ const proFeatures = [
   "Mail disputes via USPS ($2/letter)",
 ];
 
-const autopilotFeatures = [
-  "Everything in Self Service",
-  "Monthly soft-pull credit report",
-  "Auto-generated dispute letters",
-  "Automatic USPS mailing (up to 10/mo)",
-  "VantageScore tracking — hands-free",
-  "FCRA-compliant full automation",
-  "Priority support",
-  "Compliance audit trail",
-];
 
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -365,7 +355,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
 
                   {regStep === 3 && (
                     <div className="space-y-3">
-                      <p className="text-sm text-slate-500 text-center mb-1">Self Service is free. Autopilot coming soon.</p>
+                      <p className="text-sm text-slate-500 text-center mb-1">Free to use.</p>
 
                       {/* Self Service */}
                       <div className="rounded-xl border-2 border-teal-500 ring-1 ring-teal-500 bg-teal-50 p-4">
@@ -391,27 +381,6 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
                             </li>
                           ))}
                           <li className="text-xs text-slate-400 pl-5">+{proFeatures.length - 4} more</li>
-                        </ul>
-                      </div>
-
-                      {/* Autopilot coming soon */}
-                      <div className="relative rounded-xl border-2 border-slate-200 p-4 opacity-60 cursor-not-allowed overflow-hidden">
-                        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-white/40 flex items-center justify-center rounded-xl">
-                          <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full">Coming Soon</span>
-                        </div>
-                        <p className="font-semibold text-slate-900">Autopilot</p>
-                        <p className="text-xl font-bold bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
-                          $49 <span className="text-sm font-normal text-slate-400">/ month</span>
-                        </p>
-                        <ul className="space-y-1 mt-2">
-                          {autopilotFeatures.slice(0, 3).map(f => (
-                            <li key={f} className="flex items-center gap-2 text-xs text-slate-600">
-                              <svg className="w-3 h-3 text-cyan-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                              </svg>
-                              {f}
-                            </li>
-                          ))}
                         </ul>
                       </div>
 

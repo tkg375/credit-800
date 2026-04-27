@@ -25,24 +25,18 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-xl font-semibold mb-3">2. Description of Service</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Credit 800 is an automated financial platform offering two tiers:
+              Credit 800 is a free automated financial platform including:
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4 mb-3">
               <li>
-                <strong>Self Service (Free):</strong> A DIY credit repair toolkit including automated credit report analysis,
-                FCRA-compliant dispute letter generation, credit score tracking, debt payoff planning, budget management,
-                credit score simulator, CFPB complaint generator, document vault, identity monitoring, credit builder
-                product recommendations, and optional physical USPS mailing of dispute letters ($2/letter).
+                Automated credit report analysis and FCRA-compliant dispute letter generation
               </li>
-              <li>
-                <strong>Autopilot ($49/month):</strong> A fully automated credit repair service that, with your written
-                FCRA authorization, pulls your credit report monthly via a soft inquiry, auto-generates dispute letters
-                for eligible items, and automatically mails them via USPS (up to 10 letters/month included). Includes
-                everything in Self Service plus hands-free VantageScore tracking, a compliance audit trail, and priority support.
-              </li>
+              <li>Credit score tracking, debt payoff planning, budget management, credit score simulator</li>
+              <li>CFPB complaint generator, document vault, identity monitoring, credit builder product recommendations</li>
+              <li>Optional physical USPS mailing of dispute letters ($2/letter)</li>
             </ul>
             <p className="text-slate-600 leading-relaxed">
-              Self Service is free and available to all registered users. Autopilot is a paid upgrade.
+              Credit 800 is free and available to all registered users.
             </p>
           </section>
 
@@ -63,43 +57,18 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">4. Autopilot Plan — Automated Credit Repair</h2>
+            <h2 className="text-xl font-semibold mb-3">4. Billing</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              The Autopilot plan is a fully automated service. By activating Autopilot, you grant Credit 800 written
-              authorization under FCRA § 604(a)(2) to access your credit file via a soft inquiry for the purpose of
-              dispute identification and letter generation. Specifically, you agree that:
-            </p>
-            <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4 mb-3">
-              <li>Credit 800 may pull your credit report no more than once every 30 days using a soft inquiry that does not affect your credit score</li>
-              <li>Credit 800 may generate and mail FCRA § 611-compliant dispute letters to credit bureaus on your behalf as your authorized agent</li>
-              <li>Physical mailing costs for up to 10 letters per month are included; your Stripe payment method on file may be charged $2 per additional letter</li>
-              <li>You may revoke this authorization at any time via the Autopilot dashboard, which will stop future automated runs</li>
-              <li>An immutable audit trail of all actions taken on your behalf is maintained and available to you</li>
-            </ul>
-            <p className="text-slate-600 leading-relaxed">
-              Credit 800 does not guarantee any specific improvement to your credit score. Results depend on the accuracy of
-              information on your credit report, the responsiveness of bureaus and creditors, and applicable law.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">5. Subscription and Billing</h2>
-            <p className="text-slate-600 leading-relaxed mb-3">
-              Self Service is free for all registered users. Autopilot is a paid plan at $49/month.
+              Credit 800 is free for all registered users.
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li>Autopilot subscriptions automatically renew each month unless cancelled</li>
-              <li>You may cancel Autopilot at any time; access continues through the end of the current billing period</li>
-              <li>No refunds are issued for partial Autopilot billing periods</li>
-              <li>USPS physical mailing of dispute letters incurs an additional $2 per letter charged at time of mailing</li>
-              <li>Autopilot includes up to 10 mailed letters per month; additional letters are $2 each, charged to your payment method on file</li>
+              <li>USPS physical mailing of dispute letters incurs a $2 per letter charge at time of mailing</li>
               <li>Payments are processed securely by Stripe. Credit 800 does not store your payment card information</li>
-              <li>We reserve the right to change Autopilot pricing with 30 days&apos; notice</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">6. Account Security and Two-Factor Authentication</h2>
+            <h2 className="text-xl font-semibold mb-3">5. Account Security and Two-Factor Authentication</h2>
             <p className="text-slate-600 leading-relaxed">
               Two-factor authentication (2FA) via email is mandatory for all accounts and cannot be disabled.
               A one-time verification code is sent to your registered email address each time you log in.
@@ -109,7 +78,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">7. User Responsibilities</h2>
+            <h2 className="text-xl font-semibold mb-3">6. User Responsibilities</h2>
             <p className="text-slate-600 leading-relaxed mb-3">You agree to:</p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
               <li>Provide accurate information when creating your account and using the Service</li>
@@ -118,24 +87,21 @@ export default function TermsOfService() {
               <li>Not rely solely on the Service for credit-related decisions</li>
               <li>Comply with all applicable laws when submitting disputes</li>
               <li>Not use the Service to file false or fraudulent disputes</li>
-              <li>Maintain a valid payment method on file if subscribed to Autopilot</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">8. Automated Content Disclaimer</h2>
+            <h2 className="text-xl font-semibold mb-3">7. Automated Content Disclaimer</h2>
             <p className="text-slate-600 leading-relaxed">
               The Service uses automated technology to analyze credit reports and generate dispute letters.
               Generated content may contain errors or inaccuracies and may not be appropriate for your specific
-              situation. Under the Self Service plan, you should always review, verify, and customize any
-              generated content before use. Under the Autopilot plan, letters are generated automatically;
-              you may review your audit trail at any time. Credit 800 is not responsible for any consequences
-              resulting from the use of generated content.
+              situation. You should always review, verify, and customize any generated content before use.
+              Credit 800 is not responsible for any consequences resulting from the use of generated content.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">9. Credit Builder Product Recommendations</h2>
+            <h2 className="text-xl font-semibold mb-3">8. Credit Builder Product Recommendations</h2>
             <p className="text-slate-600 leading-relaxed">
               The Service may display curated secured credit cards, credit-builder loans, and similar financial
               products. Credit 800 may receive referral compensation if you apply for or open an account with a
@@ -146,7 +112,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">10. Privacy and Data Security</h2>
+            <h2 className="text-xl font-semibold mb-3">9. Privacy and Data Security</h2>
             <p className="text-slate-600 leading-relaxed">
               Your use of the Service is also governed by our <Link href="/privacy" className="text-teal-600 hover:text-teal-500">Privacy Policy</Link>.
               We take reasonable measures to protect your personal information, but no method of transmission
@@ -155,7 +121,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">11. Limitation of Liability</h2>
+            <h2 className="text-xl font-semibold mb-3">10. Limitation of Liability</h2>
             <p className="text-slate-600 leading-relaxed">
               TO THE MAXIMUM EXTENT PERMITTED BY LAW, CREDIT 800 SHALL NOT BE LIABLE FOR ANY INDIRECT,
               INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES,
@@ -165,7 +131,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">12. Modifications to Terms</h2>
+            <h2 className="text-xl font-semibold mb-3">11. Modifications to Terms</h2>
             <p className="text-slate-600 leading-relaxed">
               We reserve the right to modify these Terms of Service at any time. We will notify users of
               any material changes by email or by posting the updated terms on the Service. Your continued
@@ -174,7 +140,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">13. Governing Law</h2>
+            <h2 className="text-xl font-semibold mb-3">12. Governing Law</h2>
             <p className="text-slate-600 leading-relaxed">
               These Terms are governed by the laws of the United States. Any disputes arising from these
               Terms or your use of the Service shall be resolved through binding arbitration, except where
@@ -183,7 +149,7 @@ export default function TermsOfService() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">14. Contact Information</h2>
+            <h2 className="text-xl font-semibold mb-3">13. Contact Information</h2>
             <p className="text-slate-600 leading-relaxed">
               If you have any questions about these Terms of Service, please contact us at{" "}
               <a href="mailto:support@credit-800.com" className="text-teal-600 hover:text-teal-500">support@credit-800.com</a>.

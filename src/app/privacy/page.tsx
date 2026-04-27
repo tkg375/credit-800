@@ -35,23 +35,13 @@ export default function PrivacyPolicy() {
             </ul>
 
             <h3 className="text-lg font-medium mt-4 mb-2">Credit Report Data</h3>
-            <p className="text-slate-600 leading-relaxed mb-3">When you upload a credit report (Self Service) or authorize an automated pull (Autopilot), we process:</p>
+            <p className="text-slate-600 leading-relaxed mb-3">When you upload a credit report, we process:</p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
               <li>Account information (creditor names, account numbers, balances)</li>
               <li>Payment history and derogatory marks</li>
               <li>Public records and collections</li>
               <li>Hard and soft inquiries</li>
               <li>Personal identifying information contained in the report</li>
-            </ul>
-
-            <h3 className="text-lg font-medium mt-4 mb-2">Autopilot — Credit Bureau Data</h3>
-            <p className="text-slate-600 leading-relaxed mb-3">
-              If you subscribe to the Autopilot plan and provide written FCRA authorization, we collect:
-            </p>
-            <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li>Social Security Number (SSN) — used only in-memory during the credit pull API call to authenticate with the credit bureau; never stored, logged, or written to disk</li>
-              <li>Soft-pull credit report data from our bureau data provider (Array) including tradelines, balances, payment history, and VantageScore</li>
-              <li>FCRA consent records including timestamp, IP address, user agent, and consent version — stored permanently as an immutable compliance record</li>
             </ul>
 
             <h3 className="text-lg font-medium mt-4 mb-2">Financial &amp; Budget Data</h3>
@@ -100,8 +90,7 @@ export default function PrivacyPolicy() {
               <li>Provide and maintain the Service</li>
               <li>Analyze your credit report and identify potential disputes</li>
               <li>Generate personalized dispute letters and action plans</li>
-              <li>Automatically pull your credit report and mail dispute letters on your behalf (Autopilot subscribers only, with FCRA authorization)</li>
-              <li>Process subscription payments and manage billing</li>
+              <li>Process payments for optional USPS mailing</li>
               <li>Send transactional emails (analysis complete, dispute mailed, subscription receipts, two-factor authentication codes, weekly progress summaries)</li>
               <li>Maintain compliance audit trails as required by FCRA and applicable law</li>
               <li>Improve and optimize the Service</li>
@@ -114,9 +103,8 @@ export default function PrivacyPolicy() {
             <p className="text-slate-600 leading-relaxed">
               We use automated document processing technology to analyze your credit report data, generate dispute letters,
               and parse bureau response documents. This processing occurs on secure servers.
-              We do not use your credit report data to train models. Under the Self Service plan, generated content is always
-              presented for your review before any action is taken. Under the Autopilot plan, processing occurs automatically
-              and is logged in your audit trail.
+              We do not use your credit report data to train models. Generated content is always
+              presented for your review before any action is taken.
             </p>
           </section>
 
@@ -154,7 +142,6 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
               <li><strong>Stripe:</strong> For payment processing and subscription management</li>
-              <li><strong>Array:</strong> For soft-pull credit bureau data access (Autopilot subscribers only, with FCRA authorization) — name, date of birth, SSN, and address are transmitted to Array solely to authenticate the credit pull request</li>
               <li><strong>PostGrid:</strong> For physical USPS mailing and mail tracking of dispute letters (name and mailing address only)</li>
               <li><strong>AWS:</strong> For cloud infrastructure, file storage, and email delivery (SES)</li>
               <li><strong>Google Firebase:</strong> For authentication and data storage</li>
@@ -175,8 +162,6 @@ export default function PrivacyPolicy() {
               <li>Export your disputes, scores, and budget data as CSV from within the app</li>
               <li>Opt out of non-transactional email communications</li>
               <li>Cancel your subscription at any time</li>
-              <li>Revoke Autopilot FCRA authorization at any time via the Autopilot dashboard, stopping all future automated credit pulls and mailings</li>
-              <li>View your full compliance audit trail from the Autopilot dashboard</li>
             </ul>
             <p className="text-slate-600 leading-relaxed mt-3">
               To exercise any of these rights, contact us at{" "}
