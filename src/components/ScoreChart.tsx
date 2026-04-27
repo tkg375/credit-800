@@ -76,7 +76,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
           </svg>
         </div>
         <div>
-          <p className="text-[10px] font-medium text-slate-400 leading-none">Disputes Won</p>
+          <p className="text-xs font-medium text-slate-400 leading-none">Disputes Won</p>
           <p className="text-base font-bold text-slate-800 mt-1">3 of 5</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
         className="absolute top-1/2 -right-4 -translate-y-1/2 bg-white rounded-2xl shadow-2xl px-4 py-3 z-10"
         style={{ minWidth: 145 }}
       >
-        <p className="text-[10px] font-medium text-slate-400 leading-none">Loan Readiness</p>
+        <p className="text-xs font-medium text-slate-400 leading-none">Loan Readiness</p>
         <p className="text-base font-bold text-slate-800 mt-1">78%</p>
         <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
@@ -107,7 +107,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
           </svg>
         </div>
         <div>
-          <p className="text-[10px] font-medium text-slate-400 leading-none">Saved This Month</p>
+          <p className="text-xs font-medium text-slate-400 leading-none">Saved This Month</p>
           <p className="text-base font-bold text-slate-800 mt-1">$1,240</p>
         </div>
       </div>
@@ -125,7 +125,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
         {/* AI badge */}
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse" />
-          <span className="text-[10px] text-slate-400 font-medium">Actively monitoring</span>
+          <span className="text-xs text-slate-400 font-medium">Actively monitoring</span>
         </div>
 
         {/* ── Gauge SVG ── */}
@@ -209,7 +209,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
           <text
             x={CX}
             y={CY + 18}
-            fontFamily="system-ui, -apple-system, sans-serif"
+            fontFamily="ScienceGothic, sans-serif"
             fontSize="54"
             fontWeight="800"
             fill="#0f172a"
@@ -223,7 +223,7 @@ export function ScoreChart({ className = "" }: { className?: string }) {
           <text
             x={CX}
             y={CY + 42}
-            fontFamily="system-ui, -apple-system, sans-serif"
+            fontFamily="ScienceGothic, sans-serif"
             fontSize="13"
             fill="#64748b"
             textAnchor="middle"
@@ -233,23 +233,23 @@ export function ScoreChart({ className = "" }: { className?: string }) {
           </text>
 
           {/* Bottom arc labels */}
-          <text x="44" y="185" fontFamily="system-ui" fontSize="10" fill="#94a3b8" textAnchor="middle">Poor</text>
-          <text x="130" y="30" fontFamily="system-ui" fontSize="10" fill="#94a3b8" textAnchor="middle">Good</text>
-          <text x="216" y="185" fontFamily="system-ui" fontSize="10" fill="#94a3b8" textAnchor="middle">Excellent</text>
+          <text x="44" y="185" fontFamily="ScienceGothic, sans-serif" fontSize="12" fill="#94a3b8" textAnchor="middle">Poor</text>
+          <text x="130" y="30" fontFamily="ScienceGothic, sans-serif" fontSize="12" fill="#94a3b8" textAnchor="middle">Good</text>
+          <text x="216" y="185" fontFamily="ScienceGothic, sans-serif" fontSize="12" fill="#94a3b8" textAnchor="middle">Excellent</text>
         </svg>
 
         {/* ── Bottom stats row ── */}
         <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 mt-1 pt-3 pb-1">
           <div className="text-center">
-            <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">Start</p>
+            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Start</p>
             <p className="text-sm font-bold text-slate-500 mt-0.5">{INITIAL_SCORE}</p>
           </div>
           <div className="text-center">
-            <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">Gained</p>
+            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Gained</p>
             <p className="text-sm font-bold text-emerald-500 mt-0.5">+{score - INITIAL_SCORE}</p>
           </div>
           <div className="text-center">
-            <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wide">Current</p>
+            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Current</p>
             <p className="text-sm font-bold text-slate-800 mt-0.5">{score}</p>
           </div>
         </div>
