@@ -18,10 +18,13 @@ export function MarketingNav() {
   const { openModal } = useAuthModal();
 
   return (
-    <nav className="relative flex items-center px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
-      {/* Logo: centered on mobile via absolute, left on desktop */}
-      <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 pointer-events-none md:pointer-events-auto">
-        <Link href="/" className="pointer-events-auto"><Logo className="h-14 sm:h-20 w-auto" /></Link>
+    <nav className="flex items-center px-4 sm:px-6 py-1 sm:py-1 max-w-7xl mx-auto">
+      {/* Mobile: spacer balances hamburger so logo is centered */}
+      <div className="w-10 shrink-0 md:hidden" />
+
+      {/* Logo */}
+      <div className="flex-1 flex justify-center md:flex-none">
+        <Link href="/"><Logo className="h-14 sm:h-20 w-auto" /></Link>
       </div>
 
       {/* Desktop: pill with all links + Get Started inside, pushed to the right */}
@@ -40,14 +43,8 @@ export function MarketingNav() {
         </div>
       </div>
 
-      {/* Mobile: Get Started + hamburger */}
-      <div className="flex md:hidden items-center gap-2 ml-auto shrink-0">
-        <button
-          onClick={() => openModal("register")}
-          className="px-3 py-1.5 text-xs bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-lg font-extrabold shadow-md shadow-teal-200 uppercase tracking-wide whitespace-nowrap"
-        >
-          Get Started
-        </button>
+      {/* Mobile: hamburger only */}
+      <div className="flex md:hidden items-center shrink-0">
         <button
           onClick={() => setOpen(true)}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
