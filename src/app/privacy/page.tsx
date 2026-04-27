@@ -68,8 +68,8 @@ export default function PrivacyPolicy() {
             <h3 className="text-lg font-medium mt-4 mb-2">Audit Log Data</h3>
             <p className="text-slate-600 leading-relaxed">
               For compliance purposes, we maintain an immutable audit log of all significant account actions including
-              FCRA consent grants and revocations, credit pulls, dispute letter generation, USPS mailings, subscription
-              changes, and two-factor authentication events. These records are retained as required by applicable law.
+              FCRA consent grants and revocations, credit pulls, dispute letter generation, USPS mailings,
+              and two-factor authentication events. These records are retained as required by applicable law.
             </p>
 
             <h3 className="text-lg font-medium mt-4 mb-2">Usage Data</h3>
@@ -91,7 +91,7 @@ export default function PrivacyPolicy() {
               <li>Analyze your credit report and identify potential disputes</li>
               <li>Generate personalized dispute letters and action plans</li>
               <li>Process payments for optional USPS mailing</li>
-              <li>Send transactional emails (analysis complete, dispute mailed, subscription receipts, two-factor authentication codes, weekly progress summaries)</li>
+              <li>Send transactional emails (analysis complete, dispute mailed, USPS mailing receipts, two-factor authentication codes, weekly progress summaries)</li>
               <li>Maintain compliance audit trails as required by FCRA and applicable law</li>
               <li>Improve and optimize the Service</li>
               <li>Detect and prevent fraud or abuse</li>
@@ -141,7 +141,7 @@ export default function PrivacyPolicy() {
               We do not sell your personal information. We may share your information with:
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li><strong>Stripe:</strong> For payment processing and subscription management</li>
+              <li><strong>Stripe:</strong> For payment processing of optional USPS mailing charges</li>
               <li><strong>PostGrid:</strong> For physical USPS mailing and mail tracking of dispute letters (name and mailing address only)</li>
               <li><strong>AWS:</strong> For cloud infrastructure, file storage, and email delivery (SES)</li>
               <li><strong>Google Firebase:</strong> For authentication and data storage</li>
@@ -161,7 +161,7 @@ export default function PrivacyPolicy() {
               <li>Request deletion of your account and data</li>
               <li>Export your disputes, scores, and budget data as CSV from within the app</li>
               <li>Opt out of non-transactional email communications</li>
-              <li>Cancel your subscription at any time</li>
+              <li>Opt out of optional USPS mailing charges at any time</li>
             </ul>
             <p className="text-slate-600 leading-relaxed mt-3">
               To exercise any of these rights, contact us at{" "}
