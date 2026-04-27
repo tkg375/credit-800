@@ -91,12 +91,6 @@ export default function MonitoringPage() {
           <p className="text-white/80 text-sm max-w-md mx-auto mb-6">
             Identity Monitoring will be part of the Autopilot plan — 24/7 protection working in the background so you never have to worry.
           </p>
-          <a
-            href="/plans"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-teal-700 rounded-xl font-semibold text-sm hover:bg-teal-50 transition"
-          >
-            View Plans
-          </a>
         </div>
       </main>
     </AuthenticatedLayout>

@@ -91,12 +91,6 @@ export default function CreditMonitoringPage() {
           <p className="text-white/80 text-sm max-w-md mx-auto mb-6">
             Credit Monitoring will be the core of the Autopilot plan — fully hands-free credit repair that works around the clock.
           </p>
-          <a
-            href="/plans"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-teal-700 rounded-xl font-semibold text-sm hover:bg-teal-50 transition"
-          >
-            View Plans
-          </a>
         </div>
       </main>
     </AuthenticatedLayout>

@@ -8,7 +8,6 @@ const resources = [
   { href: "/sample-letters", label: "Sample Dispute Letters" },
   { href: "/glossary", label: "Credit Glossary" },
   { href: "/faq", label: "FAQ" },
-  { href: "/plans", label: "Plans & Pricing" },
 ];
 
 const company = [
