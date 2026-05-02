@@ -28,19 +28,17 @@ export function MarketingNav() {
       </div>
 
       {/* Desktop: pill with all links + Get Started inside, pushed to the right */}
-      <div className="hidden md:flex items-center ml-auto">
-        <div className="flex items-center gap-1 bg-teal-50 border border-teal-200 rounded-full px-2 py-1 text-sm text-slate-700">
-          {navLinks.map((l) => (
-            <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
-          ))}
-          <div className="w-px h-4 bg-teal-200 mx-1" />
-          <button onClick={() => openModal("login")} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition whitespace-nowrap">
-            Log In
-          </button>
-          <button onClick={() => openModal("register")} className="px-4 py-1.5 bg-gradient-to-r from-lime-500 to-teal-500 hover:from-lime-400 hover:to-teal-400 text-white rounded-full transition whitespace-nowrap font-extrabold shadow-md shadow-teal-200 uppercase tracking-wide">
-            Get Started
-          </button>
-        </div>
+      <div className="hidden md:flex items-center gap-1 ml-auto text-sm text-slate-700">
+        {navLinks.map((l) => (
+          <Link key={l.href} href={l.href} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition">{l.label}</Link>
+        ))}
+        <div className="w-px h-4 bg-teal-200 mx-1" />
+        <button onClick={() => openModal("login")} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition whitespace-nowrap">
+          Log In
+        </button>
+        <button onClick={() => openModal("register")} className="px-4 py-1.5 rounded-full hover:bg-teal-100 hover:text-teal-800 transition whitespace-nowrap">
+          Get Started
+        </button>
       </div>
 
       {/* Mobile: hamburger only */}
