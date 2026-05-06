@@ -12,11 +12,28 @@ function getSesClient() {
   return new SESv2Client({ region, credentials: { accessKeyId, secretAccessKey } });
 }
 
+async function verifyRecaptcha(token: string): Promise<boolean> {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret || !token) return true; // skip if not configured
+  const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `secret=${secret}&response=${token}`,
+  });
+  const data = await res.json();
+  return data.success && (data.score ?? 1) >= 0.5;
+}
+
 export async function POST(req: NextRequest) {
-  const { name, email, subject, message } = await req.json();
+  const { name, email, subject, message, recaptchaToken } = await req.json();
 
   if (!name?.trim() || !email?.trim() || !message?.trim()) {
     return NextResponse.json({ error: "Name, email, and message are required." }, { status: 400 });
+  }
+
+  const captchaOk = await verifyRecaptcha(recaptchaToken ?? "");
+  if (!captchaOk) {
+    return NextResponse.json({ error: "reCAPTCHA verification failed. Please try again." }, { status: 400 });
   }
 
   const safeSubject = subject?.trim() || "General Inquiry";

@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
+
+const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      ready: (cb: () => void) => void;
+      execute: (siteKey: string, opts: { action: string }) => Promise<string>;
+    };
+  }
+}
 
 export default function SupportPage() {
   const [name, setName] = useState("");
@@ -14,15 +24,33 @@ export default function SupportPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!SITE_KEY || document.querySelector("#recaptcha-script")) return;
+    const script = document.createElement("script");
+    script.id = "recaptcha-script";
+    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
+      let recaptchaToken = "";
+      if (SITE_KEY && window.grecaptcha) {
+        recaptchaToken = await new Promise<string>((resolve) => {
+          window.grecaptcha!.ready(async () => {
+            const token = await window.grecaptcha!.execute(SITE_KEY, { action: "contact" });
+            resolve(token);
+          });
+        });
+      }
       const res = await fetch("/api/support/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({ name, email, subject, message, recaptchaToken }),
       });
       const data = await res.json();
       if (data.ok) {
