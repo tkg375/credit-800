@@ -7,6 +7,17 @@ export const metadata: Metadata = {
   title: "How It Works — Credit 800",
   description: "See how Credit 800 works — from signing up free to disputing inaccuracies, managing your finances, and reaching an 800 credit score.",
   alternates: { canonical: "https://credit-800.com/how-it-works" },
+  openGraph: {
+    title: "How It Works — Credit 800",
+    description: "See how Credit 800 works — from signing up free to disputing inaccuracies, managing your finances, and reaching an 800 credit score.",
+    url: "https://credit-800.com/how-it-works",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "How Credit 800 Works" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How It Works — Credit 800",
+    description: "See how Credit 800 works — upload your report, get dispute letters, and reach an 800 credit score.",
+  },
 };
 
 const steps = [

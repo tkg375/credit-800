@@ -59,7 +59,7 @@ export const metadata: Metadata = {
       "Analyze your credit report, dispute inaccuracies automatically, and get a personalized plan to reach an 800 credit score.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "Credit 800 — Smarter Credit Repair",
@@ -71,8 +71,11 @@ export const metadata: Metadata = {
     title: "Credit 800 — Smarter Credit Repair",
     description:
       "Dispute letters, score analysis, and a personalized plan to reach 800.",
-    images: ["/og-image.png"],
+    images: ["/opengraph-image"],
     creator: "@credit800",
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
   robots: {
     index: true,
