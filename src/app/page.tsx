@@ -136,16 +136,6 @@ export default function Home() {
                   FAQs
                 </Link>
               </div>
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-                {["Credit Disputes", "Budget Tracker", "Loan Readiness", "Goals", "Debt Payoff", "Letter Templates"].map((t) => (
-                  <span key={t} className="text-xs text-lime-200 flex items-center gap-1.5">
-                    <svg className="w-3 h-3 text-lime-300" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {t}
-                  </span>
-                ))}
-              </div>
             </div>
             <div className="hidden lg:block">
               <HeroDemoAnimation />
@@ -153,6 +143,77 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="bg-white py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-teal-700 bg-teal-50">
+              How It Works
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+              From report to results in minutes
+            </h2>
+            <p className="text-slate-500 text-lg max-w-xl mx-auto">
+              No credit counselor needed. Just upload, analyze, and act.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "01",
+                icon: (
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4M6 20h12"/>
+                  </svg>
+                ),
+                title: "Upload Your Credit Report",
+                desc: "Import your credit report from any bureau. Our AI scans every account, inquiry, and derogatory mark in seconds.",
+              },
+              {
+                step: "02",
+                icon: (
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                  </svg>
+                ),
+                title: "Get Your Action Plan",
+                desc: "Receive FCRA-compliant dispute letters, a personalized score roadmap, and specific steps ranked by impact.",
+              },
+              {
+                step: "03",
+                icon: (
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                  </svg>
+                ),
+                title: "Watch Your Score Climb",
+                desc: "Track disputes, monitor progress, and use our financial tools to stay on course to 800.",
+              },
+            ].map((item) => (
+              <div
+                key={item.step}
+                className="rounded-2xl p-8 border border-slate-100 bg-slate-50"
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 text-teal-600 bg-teal-50">
+                  {item.icon}
+                </div>
+                <span className="text-xs font-bold tracking-widest text-slate-400">{item.step}</span>
+                <h3 className="text-xl font-bold text-slate-900 mt-1 mb-3">{item.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <GetStartedButton className="px-8 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-lime-500 to-teal-600 hover:opacity-90 transition">
+              Start for Free →
+            </GetStartedButton>
+            <p className="mt-3 text-sm text-slate-400">No credit card required</p>
+          </div>
+        </div>
+      </section>
 
       <MarketingFooter />
     </div>
