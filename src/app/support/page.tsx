@@ -39,12 +39,21 @@ export default function SupportPage() {
     setLoading(true);
     try {
       let recaptchaToken = "";
-      if (SITE_KEY && window.grecaptcha) {
-        recaptchaToken = await new Promise<string>((resolve) => {
-          window.grecaptcha!.ready(async () => {
-            const token = await window.grecaptcha!.execute(SITE_KEY, { action: "contact" });
-            resolve(token);
-          });
+      if (SITE_KEY) {
+        recaptchaToken = await new Promise<string>((resolve, reject) => {
+          const run = () => {
+            if (window.grecaptcha) {
+              window.grecaptcha.ready(() => {
+                window.grecaptcha!.execute(SITE_KEY, { action: "contact" })
+                  .then(resolve)
+                  .catch(reject);
+              });
+            } else {
+              // Script still loading — poll until ready
+              setTimeout(run, 100);
+            }
+          };
+          run();
         });
       }
       const res = await fetch("/api/support/contact", {
