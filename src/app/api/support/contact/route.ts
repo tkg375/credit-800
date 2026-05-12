@@ -42,6 +42,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name, email, and message are required." }, { status: 400 });
   }
 
+  if (name.length > 200 || email.length > 254 || message.length > 5000 || (subject && subject.length > 300)) {
+    return NextResponse.json({ error: "Input exceeds maximum length." }, { status: 400 });
+  }
+
   const captchaOk = await verifyRecaptcha(recaptchaToken ?? "");
   if (!captchaOk) {
     return NextResponse.json({ error: "reCAPTCHA verification failed. Please try again." }, { status: 400 });

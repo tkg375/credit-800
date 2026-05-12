@@ -21,10 +21,16 @@ export async function PATCH(
     const { current, isCompleted, title, target, deadline } = body;
 
     const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
-    if (typeof current === "number") updates.current = current;
+    if (typeof current === "number") {
+      if (!isFinite(current) || current < 0 || current > 9_999_999) return NextResponse.json({ error: "Invalid current value" }, { status: 400 });
+      updates.current = current;
+    }
     if (typeof isCompleted === "boolean") updates.isCompleted = isCompleted;
-    if (typeof title === "string") updates.title = title;
-    if (typeof target === "number") updates.target = target;
+    if (typeof title === "string") updates.title = title.slice(0, 200);
+    if (typeof target === "number") {
+      if (!isFinite(target) || target <= 0 || target > 9_999_999) return NextResponse.json({ error: "Invalid target value" }, { status: 400 });
+      updates.target = target;
+    }
     if (deadline !== undefined) updates.deadline = deadline;
 
     // Auto-complete if current >= target

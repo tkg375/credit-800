@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
+import { getLimiters } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success: rlOk } = await getLimiters().planGenerate.limit(user.uid);
+  if (!rlOk) return NextResponse.json({ error: "Daily plan generation limit reached. Try again tomorrow." }, { status: 429 });
 
   try {
     const { reportId } = await request.json();

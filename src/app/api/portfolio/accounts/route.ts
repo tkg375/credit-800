@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid account type" }, { status: 400 });
   }
 
-  if (typeof balance !== "number") {
-    return NextResponse.json({ error: "balance must be a number" }, { status: 400 });
+  if (typeof balance !== "number" || !isFinite(balance) || balance < -999_999_999 || balance > 999_999_999) {
+    return NextResponse.json({ error: "balance must be a finite number between -999,999,999 and 999,999,999" }, { status: 400 });
   }
 
   const now = new Date().toISOString();
