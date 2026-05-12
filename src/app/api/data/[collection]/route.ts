@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const ALLOWED_COLLECTIONS: Record<string, Set<string>> = {
   disputes:          new Set(["status", "bureau", "creditorName", "createdAt", "updatedAt", "letterMailed"]),
   creditReports:     new Set(["status", "bureau", "createdAt", "fileName"]),
-  reportItems:       new Set(["status", "bureau", "createdAt", "creditorName", "creditReportId", "disputable"]),
+  reportItems:       new Set(["status", "bureau", "createdAt", "creditorName", "creditReportId", "isDisputable", "disputeStatus", "disputeId"]),
   creditScores:      new Set(["bureau", "source", "recordedAt", "createdAt"]),
   actionPlans:       new Set(["status", "createdAt"]),
   reportChanges:     new Set(["bureau", "createdAt", "changeType"]),

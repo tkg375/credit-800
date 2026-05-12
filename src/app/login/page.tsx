@@ -22,31 +22,20 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
 
-      // 2FA is mandatory — always send a code and redirect to verify
-      let idToken: string | null = null;
-      try {
-        const stored = localStorage.getItem("creditai_auth");
-        if (stored) idToken = JSON.parse(stored).idToken || null;
-      } catch { /* ignore */ }
-
-      if (idToken) {
-        const sendRes = await fetch("/api/auth/2fa/send", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        if (!sendRes.ok) {
-          const data = await sendRes.json();
-          // Throttled — a code was already sent recently, still redirect to verify
-          if (!data.throttled) {
-            setError(data.error || "Failed to send verification code. Please try again.");
-            return;
-          }
+      // 2FA is mandatory — send code via cookie auth and redirect to verify
+      const sendRes = await fetch("/api/auth/2fa/send", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!sendRes.ok) {
+        const data = await sendRes.json();
+        // Throttled — a code was already sent recently, still redirect to verify
+        if (!data.throttled) {
+          setError(data.error || "Failed to send verification code. Please try again.");
+          return;
         }
-        router.push("/verify-2fa");
-      } else {
-        // Fallback — should not happen, but don't leave user stuck
-        router.push("/dashboard");
       }
+      router.push("/verify-2fa");
     } catch {
       setError("Invalid email or password.");
     } finally {

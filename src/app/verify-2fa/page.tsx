@@ -39,21 +39,14 @@ export default function Verify2FAPage() {
     try {
       const res = await fetch("/api/auth/2fa/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ code: code.trim() }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Invalid code.");
         return;
-      }
-
-      // Mark 2FA as verified in localStorage session
-      const stored = localStorage.getItem("creditai_auth");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        parsed.twoFactorVerified = true;
-        localStorage.setItem("creditai_auth", JSON.stringify(parsed));
       }
 
       router.push("/dashboard");
@@ -73,7 +66,7 @@ export default function Verify2FAPage() {
     try {
       const res = await fetch("/api/auth/2fa/send", {
         method: "POST",
-        headers: { Authorization: `Bearer ${user.idToken}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) {
