@@ -176,23 +176,21 @@ export default function ReadinessPage() {
                 </div>
                 <div>
                   <label className="block text-xs text-slate-500 font-medium mb-1">Gross Monthly Income ($)</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="e.g. 5000"
-                      value={monthlyIncome}
-                      onChange={(e) => setMonthlyIncome(e.target.value)}
-                      className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                    <button
-                      onClick={saveIncome}
-                      disabled={savingIncome || !monthlyIncome}
-                      className="px-3 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 5000"
+                    value={monthlyIncome}
+                    onChange={(e) => setMonthlyIncome(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <button
+                    onClick={saveIncome}
+                    disabled={savingIncome || !monthlyIncome}
+                    className="mt-2 w-full px-3 py-2 bg-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                  >
+                    {savingIncome ? "Saving…" : "Save"}
+                  </button>
                 </div>
                 <div>
                   <label className="block text-xs text-slate-500 font-medium mb-1">Monthly Debt Payments ($)</label>
