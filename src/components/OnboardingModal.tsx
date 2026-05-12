@@ -56,12 +56,37 @@ export function OnboardingModal() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const done = localStorage.getItem(STORAGE_KEY);
-    if (!done) {
-      // Short delay so the dashboard loads before the modal appears
-      const t = setTimeout(() => setVisible(true), 800);
-      return () => clearTimeout(t);
+    // If already dismissed this session, skip the API check
+    if (localStorage.getItem(STORAGE_KEY)) return;
+
+    let cancelled = false;
+
+    async function checkReports() {
+      try {
+        const res = await fetch("/api/data/creditReports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ limit: 1 }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const hasReports = Array.isArray(data.documents) && data.documents.length > 0;
+        if (hasReports) {
+          // User has reports — permanently suppress the modal
+          localStorage.setItem(STORAGE_KEY, "true");
+          return;
+        }
+        // No reports yet — show onboarding after a short delay
+        setTimeout(() => {
+          if (!cancelled) setVisible(true);
+        }, 800);
+      } catch {
+        // Network error — don't show the modal
+      }
     }
+
+    checkReports();
+    return () => { cancelled = true; };
   }, []);
 
   const dismiss = () => {
