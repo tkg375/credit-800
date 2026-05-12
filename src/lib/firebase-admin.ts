@@ -72,13 +72,6 @@ export async function verifyIdToken(
       return null;
     }
 
-    const payload = JSON.parse(new TextDecoder().decode(base64urlDecode(parts[1])));
-
-    if (payload.exp * 1000 < Date.now()) {
-      lastVerifyError = "token expired";
-      return null;
-    }
-
     const key = await getHmacKey(secret);
     const signing = `${parts[0]}.${parts[1]}`;
     const valid = await crypto.subtle.verify(
@@ -90,6 +83,13 @@ export async function verifyIdToken(
 
     if (!valid) {
       lastVerifyError = "signature verification failed";
+      return null;
+    }
+
+    const payload = JSON.parse(new TextDecoder().decode(base64urlDecode(parts[1])));
+
+    if (payload.exp * 1000 < Date.now()) {
+      lastVerifyError = "token expired";
       return null;
     }
 

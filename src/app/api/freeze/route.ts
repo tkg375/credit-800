@@ -61,12 +61,19 @@ export async function PATCH(req: NextRequest) {
       transunion: { ...DEFAULT_BUREAU },
     };
 
+    if (pin !== undefined && pin !== "" && !/^\d{1,10}$/.test(String(pin))) {
+      return NextResponse.json({ error: "pin must be numeric and at most 10 digits" }, { status: 400 });
+    }
+    if (notes !== undefined && typeof notes === "string" && notes.length > 500) {
+      return NextResponse.json({ error: "notes must be 500 characters or fewer" }, { status: 400 });
+    }
+
     const bureauData = (existingData[bureau] as Record<string, unknown>) || { ...DEFAULT_BUREAU };
     const updatedBureau = {
       ...bureauData,
       status,
-      pin: pin !== undefined ? pin : bureauData.pin,
-      notes: notes !== undefined ? notes : bureauData.notes,
+      pin: pin !== undefined ? String(pin) : bureauData.pin,
+      notes: notes !== undefined ? String(notes).slice(0, 500) : bureauData.notes,
       frozenAt: status === "frozen" && bureauData.status !== "frozen"
         ? new Date().toISOString()
         : status !== "frozen"

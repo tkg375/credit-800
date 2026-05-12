@@ -61,6 +61,10 @@ export async function POST(req: NextRequest) {
     if (!category) {
       return NextResponse.json({ error: "category is required" }, { status: 400 });
     }
+    const validCategories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    if (!validCategories.includes(category)) {
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    }
     if (typeof amount !== "number" || !isFinite(amount) || amount <= 0 || amount > 999_999) {
       return NextResponse.json({ error: "amount must be a positive number up to 999,999" }, { status: 400 });
     }
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
       category,
       amount: roundedAmount,
       date,
-      note: note || "",
+      note: typeof note === "string" ? note.slice(0, 500) : "",
       createdAt: new Date().toISOString(),
     });
 

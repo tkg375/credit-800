@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
   if (!file) return NextResponse.json({ error: "file is required" }, { status: 400 });
   if (!disputeId) return NextResponse.json({ error: "disputeId is required" }, { status: 400 });
 
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 });
+  }
+
   // Verify ownership
   const dispute = await firestore.getDoc(COLLECTIONS.disputes, disputeId);
   if (!dispute.exists) return NextResponse.json({ error: "Dispute not found" }, { status: 404 });

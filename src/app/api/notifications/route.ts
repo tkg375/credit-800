@@ -36,11 +36,21 @@ export async function POST(req: NextRequest) {
     const VALID_TYPES = new Set(["info", "success", "warning", "error"]);
     const safeType = VALID_TYPES.has(type) ? type : "info";
 
+    if (!title || typeof title !== "string" || title.length > 200) {
+      return NextResponse.json({ error: "title must be 1–200 characters" }, { status: 400 });
+    }
+    if (!message || typeof message !== "string" || message.length > 1000) {
+      return NextResponse.json({ error: "message must be 1–1000 characters" }, { status: 400 });
+    }
+    if (actionUrl !== undefined && actionUrl !== null && (typeof actionUrl !== "string" || !actionUrl.startsWith("/"))) {
+      return NextResponse.json({ error: "actionUrl must be a relative path starting with /" }, { status: 400 });
+    }
+
     const docId = await firestore.addDoc("notifications", {
       userId: user.uid,
       type: safeType,
-      title,
-      message,
+      title: title.trim(),
+      message: message.trim(),
       read: false,
       createdAt: new Date().toISOString(),
       actionUrl: actionUrl || null,

@@ -44,6 +44,10 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   }
 }
 
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export async function sendOTPEmail(to: string, name: string, code: string) {
   await sendEmail(
     to,
@@ -53,7 +57,7 @@ export async function sendOTPEmail(to: string, name: string, code: string) {
         <h1 style="color:white;margin:0;font-size:24px">Two-Factor Verification</h1>
         <p style="color:rgba(255,255,255,0.9);margin:8px 0 0">Your Credit 800 sign-in code</p>
       </div>
-      <p>Hi ${name || "there"},</p>
+      <p>Hi ${escHtml(name || "there")},</p>
       <p>Use the code below to complete your sign-in. This code expires in <strong>10 minutes</strong>.</p>
       <div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:24px;margin:24px 0;text-align:center">
         <p style="margin:0;font-size:40px;font-weight:bold;letter-spacing:12px;font-family:monospace;color:#0f172a">${code}</p>

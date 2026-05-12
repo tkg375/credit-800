@@ -14,7 +14,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const body = await request.json();
-    const fileName = body.fileName || "upload.pdf";
+    const rawName = typeof body.fileName === "string" ? body.fileName : "upload.pdf";
+    const fileName = rawName.replace(/[^a-zA-Z0-9._\-]/g, "_").slice(0, 200);
     const timestamp = Date.now();
     const s3Key = `reports/${user.uid}/${timestamp}-${fileName}`;
     const uploadUrl = await getUploadUrl(s3Key);

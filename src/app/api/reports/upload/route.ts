@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
 
     // Upload to S3
     const timestamp = Date.now();
-    const s3Key = `reports/${user.uid}/${timestamp}-${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._\-]/g, "_").slice(0, 200);
+    const s3Key = `reports/${user.uid}/${timestamp}-${safeName}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
     await putObject(s3Key, bytes, "application/pdf");
 

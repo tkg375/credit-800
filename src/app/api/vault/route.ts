@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to S3
-    const s3Key = `vault/${user.uid}/${Date.now()}-${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._\-]/g, "_").slice(0, 200);
+    const s3Key = `vault/${user.uid}/${Date.now()}-${safeName}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
     await putObject(s3Key, bytes, file.type || "application/octet-stream");
 

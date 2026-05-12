@@ -3,11 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 // Legacy session sync route — kept for backward compatibility.
 // New auth uses /api/auth/login and /api/auth/register which set the cookie directly.
 
+import { verifyIdToken } from "@/lib/firebase-admin";
+
 export async function POST(req: NextRequest) {
   try {
     const { token } = await req.json() as { token?: string };
     if (!token) {
       return NextResponse.json({ error: "Token required" }, { status: 400 });
+    }
+    const verified = await verifyIdToken(token);
+    if (!verified) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
     const response = NextResponse.json({ success: true });
     response.cookies.set("auth-token", token, {

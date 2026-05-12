@@ -55,6 +55,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Verify reportId ownership before any reads/writes
+    if (reportId) {
+      const reportDoc = await firestore.getDoc(COLLECTIONS.creditReports, reportId);
+      if (reportDoc.exists && reportDoc.data.userId !== user.uid) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     // If simulating, create sample report items with full removal analysis
     if (simulateData) {
       const sampleItems = [

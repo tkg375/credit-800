@@ -20,7 +20,11 @@ export async function POST(req: NextRequest) {
   // Enforce 30-day minimum before escalation
   const sentDate = (dispute.data.mailedAt as string) || (dispute.data.createdAt as string);
   if (sentDate) {
-    const daysSinceSent = Math.floor((Date.now() - new Date(sentDate).getTime()) / (1000 * 60 * 60 * 24));
+    const sentMs = new Date(sentDate).getTime();
+    if (isNaN(sentMs)) {
+      return NextResponse.json({ error: "Dispute has an invalid date — cannot determine escalation eligibility" }, { status: 400 });
+    }
+    const daysSinceSent = Math.floor((Date.now() - sentMs) / (1000 * 60 * 60 * 24));
     if (daysSinceSent < 30) {
       return NextResponse.json(
         { error: `Escalation not available yet. You must wait at least 30 days after sending. ${30 - daysSinceSent} day(s) remaining.` },

@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
   const { s3Key, fileName, mimeType } = body;
   if (!s3Key || !fileName) return NextResponse.json({ error: "s3Key and fileName are required" }, { status: 400 });
 
+  if (!s3Key.startsWith(`reports/${user.uid}/`) && !s3Key.startsWith(`vault/${user.uid}/`)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const bytes = await getObject(s3Key);
     const base64 = Buffer.from(bytes).toString("base64");

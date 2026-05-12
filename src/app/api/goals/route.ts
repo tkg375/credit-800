@@ -33,10 +33,19 @@ export async function POST(req: NextRequest) {
     if (!type || !validTypes.includes(type)) {
       return NextResponse.json({ error: "Invalid goal type" }, { status: 400 });
     }
-    if (!title) return NextResponse.json({ error: "title is required" }, { status: 400 });
-    if (typeof target !== "number") return NextResponse.json({ error: "target must be a number" }, { status: 400 });
-    if (typeof current !== "number") return NextResponse.json({ error: "current must be a number" }, { status: 400 });
+    if (!title || typeof title !== "string" || title.trim().length > 200) {
+      return NextResponse.json({ error: "title must be 1–200 characters" }, { status: 400 });
+    }
+    if (typeof target !== "number" || !isFinite(target)) {
+      return NextResponse.json({ error: "target must be a finite number" }, { status: 400 });
+    }
+    if (typeof current !== "number" || !isFinite(current)) {
+      return NextResponse.json({ error: "current must be a finite number" }, { status: 400 });
+    }
     if (!unit) return NextResponse.json({ error: "unit is required" }, { status: 400 });
+    if (deadline && (typeof deadline !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(deadline))) {
+      return NextResponse.json({ error: "deadline must be YYYY-MM-DD" }, { status: 400 });
+    }
 
     const now = new Date().toISOString();
     const docId = await firestore.addDoc("goals", {

@@ -18,6 +18,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (typeof fullName !== "string" || fullName.trim().length > 100) {
+    return NextResponse.json({ error: "fullName must be 100 characters or fewer" }, { status: 400 });
+  }
+  if (typeof address !== "string" || address.trim().length > 200) {
+    return NextResponse.json({ error: "address must be 200 characters or fewer" }, { status: 400 });
+  }
+  if (typeof city !== "string" || city.trim().length > 100) {
+    return NextResponse.json({ error: "city must be 100 characters or fewer" }, { status: 400 });
+  }
+  if (typeof state !== "string" || !/^[A-Z]{2}$/.test(state.trim().toUpperCase())) {
+    return NextResponse.json({ error: "state must be a 2-letter abbreviation" }, { status: 400 });
+  }
+  if (typeof zip !== "string" || !/^\d{5}(-\d{4})?$/.test(zip.trim())) {
+    return NextResponse.json({ error: "zip must be a valid ZIP code" }, { status: 400 });
+  }
+  if (typeof dateOfBirth !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+    return NextResponse.json({ error: "dateOfBirth must be YYYY-MM-DD" }, { status: 400 });
+  }
+
   // Validate SSN last 4 if provided
   if (ssnLast4 && !/^\d{4}$/.test(ssnLast4)) {
     return NextResponse.json({ error: "SSN last 4 must be exactly 4 digits" }, { status: 400 });

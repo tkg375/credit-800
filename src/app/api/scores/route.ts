@@ -30,10 +30,24 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
+    const VALID_BUREAUS = ["Equifax", "Experian", "TransUnion"];
     const { score, source, bureau, recordedAt, factors } = await req.json();
 
     if (!score || score < 300 || score > 850) {
       return NextResponse.json({ error: "Score must be between 300 and 850" }, { status: 400 });
+    }
+    if (bureau !== undefined && bureau !== null && !VALID_BUREAUS.includes(bureau)) {
+      return NextResponse.json({ error: "bureau must be Equifax, Experian, or TransUnion" }, { status: 400 });
+    }
+    let safeRecordedAt: string;
+    if (recordedAt) {
+      const d = new Date(recordedAt);
+      if (isNaN(d.getTime()) || d > new Date()) {
+        return NextResponse.json({ error: "recordedAt must be a valid past date" }, { status: 400 });
+      }
+      safeRecordedAt = d.toISOString();
+    } else {
+      safeRecordedAt = new Date().toISOString();
     }
 
     // Fetch previous scores to detect significant change
@@ -52,7 +66,7 @@ export async function POST(req: NextRequest) {
       score,
       source: source || "Manual Entry",
       bureau: bureau || null,
-      recordedAt: recordedAt || new Date().toISOString(),
+      recordedAt: safeRecordedAt,
       factors: factors || null,
       createdAt: new Date().toISOString(),
     });
