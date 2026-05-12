@@ -53,7 +53,7 @@ export async function getUserSubscription(userId: string): Promise<SubscriptionI
       stripeCustomerId: (userDoc.data.stripeCustomerId as string) || null,
       stripeSubscriptionId: (userDoc.data.stripeSubscriptionId as string) || null,
       currentPeriodEnd: periodEnd || null,
-      status: isActive ? status : "active",
+      status,
     };
   } catch {
     return { plan: "none", isPro: false, isAutopilot: false, stripeCustomerId: null, stripeSubscriptionId: null, currentPeriodEnd: null, status: "error" };

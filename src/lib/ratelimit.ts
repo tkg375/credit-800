@@ -77,9 +77,11 @@ function createLimiters() {
     register:        makeLimiter("rl:register",     10, HOUR),
     login:           makeLimiter("rl:login",        20, 15 * MINUTE),
     contact:         makeLimiter("rl:contact",      5,  HOUR),
+    autopilotNotify: makeLimiter("rl:apnotify",     5,  HOUR),
     twoFactorVerify: makeLimiter("rl:2fa",          5,  10 * MINUTE),
     autopilotLock:   makeLimiter("rl:autopilot",    1,  5 * MINUTE),
     letterAnalyze:   makeLimiter("rl:letter",       10, DAY),
+    scoreImport:     makeLimiter("rl:scoreimport",  10, DAY),
     simulateData:    makeLimiter("rl:simulate",     5,  DAY),
   };
 }

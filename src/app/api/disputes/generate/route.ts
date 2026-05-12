@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
       ? (raw.bureau as string)
       : "";
     const reason = typeof raw.reason === "string"
-      ? raw.reason.trim().slice(0, 1000)
+      ? raw.reason.trim().replace(/[\x00-\x1f\x7f]/g, " ").slice(0, 1000)
       : undefined;
     const balance =
       typeof raw.balance === "number" && isFinite(raw.balance) && raw.balance >= 0 && raw.balance <= 9_999_999

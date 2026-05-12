@@ -6,7 +6,7 @@ import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
-  const { success: rateLimitOk } = await getLimiters().contact.limit(getRateLimitKey(req));
+  const { success: rateLimitOk } = await getLimiters().autopilotNotify.limit(getRateLimitKey(req));
   if (!rateLimitOk) {
     return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
