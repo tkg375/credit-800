@@ -55,7 +55,8 @@ Return only the raw JSON, no markdown.`;
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    return NextResponse.json({ error: `Gemini error: ${JSON.stringify(err)}` }, { status: 500 });
+    console.error("[scores/import] Gemini error:", JSON.stringify(err));
+    return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
   }
 
   const data = await res.json();

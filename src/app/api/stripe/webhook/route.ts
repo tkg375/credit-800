@@ -88,8 +88,10 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.userId;
-        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
+        const uid = customer.metadata?.userId;
+        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uid)) {
+          const userDoc = await firestore.getDoc("users", uid);
+          if (!userDoc?.exists) { console.error("subscription.updated: user not found", uid); break; }
           const periodEnd = subscription.items.data[0]?.current_period_end;
           const priceId = subscription.items.data[0]?.price?.id;
           const autopilotPriceId = process.env.STRIPE_AUTOPILOT_PRICE_ID;
@@ -106,8 +108,10 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.userId;
-        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
+        const uid = customer.metadata?.userId;
+        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uid)) {
+          const userDoc = await firestore.getDoc("users", uid);
+          if (!userDoc?.exists) { console.error("subscription.deleted: user not found", uid); break; }
           await firestore.updateDoc("users", uid, {
             subscriptionStatus: "canceled",
             stripeSubscriptionId: null,
@@ -119,19 +123,18 @@ export async function POST(req: NextRequest) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customer = await stripe.customers.retrieve(invoice.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.userId;
-        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
-          // Get current plan tier before marking past_due so we can label the email correctly
+        const uid = customer.metadata?.userId;
+        if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uid)) {
           const userDoc = await firestore.getDoc("users", uid);
-          const planTier = (userDoc?.data?.planTier as string) || "pro";
+          if (!userDoc?.exists) { console.error("invoice.payment_failed: user not found", uid); break; }
+          const planTier = (userDoc.data?.planTier as string) || "pro";
           const planLabel = planTier === "autopilot" ? "Autopilot" : "Self Service";
 
           await firestore.updateDoc("users", uid, {
             subscriptionStatus: "past_due",
           });
 
-          // Email the user so they know why access was paused
-          const userEmail = customer.email || (userDoc?.data?.email as string | undefined);
+          const userEmail = customer.email || (userDoc.data?.email as string | undefined);
           if (userEmail) {
             await sendPaymentFailedEmail(userEmail, planLabel);
           }

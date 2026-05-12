@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { sendLetter, letterToHtml, type PostGridAddress } from "@/lib/postgrid";
 import { getUserSubscription } from "@/lib/subscription";
 import { stripe, resolvePaymentMethod } from "@/lib/stripe";
+import { getLimiters } from "@/lib/ratelimit";
 
 // CFPB mailing address
 const CFPB_ADDRESS: PostGridAddress = {
@@ -17,6 +18,11 @@ const CFPB_ADDRESS: PostGridAddress = {
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success: rlOk } = await getLimiters().mailLetter.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Daily mailing limit reached (10/day). Try again tomorrow." }, { status: 429 });
+  }
 
   const sub = await getUserSubscription(user.uid);
 

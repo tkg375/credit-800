@@ -5,11 +5,17 @@ import { sendLetter, letterToHtml, type PostGridAddress } from "@/lib/postgrid";
 import { sendDisputeMailedEmail } from "@/lib/email";
 import { getUserSubscription } from "@/lib/subscription";
 import { stripe, resolvePaymentMethod } from "@/lib/stripe";
+import { getLimiters } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { success: rlOk } = await getLimiters().mailLetter.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Daily mailing limit reached (10/day). Try again tomorrow." }, { status: 429 });
   }
 
   const sub = await getUserSubscription(user.uid);

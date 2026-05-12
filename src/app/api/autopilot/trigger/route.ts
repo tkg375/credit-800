@@ -367,7 +367,7 @@ ${senderAddress}${profile?.dateOfBirth ? "\nDOB: " + profile.dateOfBirth : ""}
           off_session: true,
           description: `Autopilot mailing — ${creditorName}`,
           metadata: { userId: user.uid, disputeId, autopilotRunId: runId },
-        });
+        }, { idempotencyKey: `autopilot-mail-${runId}-${disputeId}` });
 
         if (pi.status !== "succeeded") {
           errors.push(`Payment failed for ${creditorName} — letter saved as draft`);
