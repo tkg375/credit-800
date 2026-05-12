@@ -35,7 +35,7 @@ async function getHmacKey(secret: string): Promise<CryptoKey> {
   );
 }
 
-export async function signToken(payload: { uid: string; email: string }): Promise<string> {
+export async function signToken(payload: { uid: string; email: string; tokenVersion?: number }): Promise<string> {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET env var is not set");
 
@@ -57,7 +57,7 @@ export async function signToken(payload: { uid: string; email: string }): Promis
 
 export async function verifyIdToken(
   token: string
-): Promise<{ uid: string; email: string } | null> {
+): Promise<{ uid: string; email: string; tokenVersion?: number } | null> {
   lastVerifyError = "";
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -93,7 +93,7 @@ export async function verifyIdToken(
       return null;
     }
 
-    return { uid: payload.uid, email: payload.email };
+    return { uid: payload.uid, email: payload.email, tokenVersion: payload.tokenVersion };
   } catch (err) {
     lastVerifyError = `exception: ${err instanceof Error ? err.message : String(err)}`;
     return null;

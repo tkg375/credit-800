@@ -27,7 +27,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "INVALID_LOGIN_CREDENTIALS" }, { status: 401 });
     }
 
-    const token = await signToken({ uid: user.uid, email: user.email });
+    // Fetch tokenVersion so sessions can be invalidated on password change
+    const { firestore } = await import("@/lib/firebase-admin");
+    const userDoc = await firestore.getDoc("users", user.uid);
+    const tokenVersion = (userDoc.data.tokenVersion as number | undefined) ?? 0;
+
+    const token = await signToken({ uid: user.uid, email: user.email, tokenVersion });
 
     const response = NextResponse.json({ uid: user.uid, email: user.email, token });
     response.cookies.set("auth-token", token, {

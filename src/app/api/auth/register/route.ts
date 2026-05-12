@@ -34,11 +34,12 @@ export async function POST(request: NextRequest) {
     await firestore.setDoc("users", uid, {
       email: email.toLowerCase().trim(),
       passwordHash,
+      tokenVersion: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
-    const token = await signToken({ uid, email: email.toLowerCase().trim() });
+    const token = await signToken({ uid, email: email.toLowerCase().trim(), tokenVersion: 0 });
 
     const response = NextResponse.json({ uid, email: email.toLowerCase().trim(), token });
     response.cookies.set("auth-token", token, {

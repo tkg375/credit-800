@@ -44,6 +44,18 @@ function createLimiters() {
       limiter: Ratelimit.slidingWindow(5, "1 h"),
       prefix: "rl:contact",
     }),
+    // 2FA verify — lock after 5 attempts per OTP window
+    twoFactorVerify: new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "10 m"),
+      prefix: "rl:2fa-verify",
+    }),
+    // Autopilot — one concurrent run per user enforced via Redis lock
+    autopilotLock: new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(1, "5 m"),
+      prefix: "rl:autopilot",
+    }),
   };
 }
 

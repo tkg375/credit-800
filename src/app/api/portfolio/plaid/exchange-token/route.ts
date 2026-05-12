@@ -64,15 +64,16 @@ export async function POST(request: NextRequest) {
     // Create portfolio account docs for each Plaid account
     const createdAccounts = [];
     for (const acct of accounts) {
-      const balance = acct.balances?.current ?? 0;
+      const rawBalance = acct.balances?.current ?? 0;
+      const balance = typeof rawBalance === "number" && isFinite(rawBalance) ? rawBalance : 0;
       const accountType = mapPlaidType(acct.type ?? "", acct.subtype ?? null);
       const docData = {
         userId: user.uid,
-        name: acct.name ?? "Account",
-        institution: institutionName ?? "Unknown",
+        name: typeof acct.name === "string" ? acct.name.slice(0, 100) : "Account",
+        institution: typeof institutionName === "string" ? institutionName.slice(0, 100) : "Unknown",
         type: accountType,
         source: "plaid",
-        balance: Math.abs(balance),
+        balance, // preserve sign — negative = liability
         currency: "USD",
         plaidItemId: plaidItemDocId,
         plaidAccountId: acct.id,

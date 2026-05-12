@@ -4,7 +4,10 @@ import { firestore, COLLECTIONS } from "@/lib/db";
 import { sendOTPEmail } from "@/lib/email";
 
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // CSPRNG-based 6-digit OTP — Math.random() is not cryptographically safe
+  const bytes = crypto.getRandomValues(new Uint8Array(4));
+  const value = (new DataView(bytes.buffer).getUint32(0) % 900000) + 100000;
+  return value.toString();
 }
 
 export async function POST() {

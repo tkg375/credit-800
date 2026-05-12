@@ -31,10 +31,14 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Increment tokenVersion to invalidate all existing JWT sessions
+    const currentVersion = (doc.data.tokenVersion as number | undefined) ?? 0;
+
     await firestore.updateDoc("users", uid, {
       passwordHash,
       resetToken: null,
       resetTokenExpiry: null,
+      tokenVersion: currentVersion + 1,
       updatedAt: new Date().toISOString(),
     });
 

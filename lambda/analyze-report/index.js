@@ -297,25 +297,50 @@ function parseAnalysisJson(text, fallbackBureau) {
     : detectedBureau.toLowerCase().includes('transunion') ? 'TransUnion'
     : detectedBureau;
 
-  const items = (parsed.items || []).map(item => {
-    const status = String(item.status || 'UNKNOWN').toUpperCase();
-    const balance = Number(item.balance) || 0;
-    const accountType = String(item.accountType || 'Unknown');
+  const ALLOWED_STATUSES = new Set([
+    'COLLECTION', 'CHARGE_OFF', 'LATE', 'DELINQUENT', 'CURRENT',
+    'CLOSED', 'PAID', 'SETTLED', 'UNKNOWN', 'WRITTEN_OFF', 'PAST_DUE',
+  ]);
+
+  const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+  function safeStr(val, maxLen, fallback = '') {
+    if (typeof val !== 'string') return fallback;
+    return val.trim().slice(0, maxLen) || fallback;
+  }
+
+  function safeMoney(val) {
+    const n = Number(val);
+    if (!isFinite(n) || n < 0 || n > 9_999_999) return 0;
+    return Math.round(n * 100) / 100;
+  }
+
+  function safeDate(val) {
+    if (!val) return null;
+    const s = String(val).trim();
+    return ISO_DATE_RE.test(s) ? s : null;
+  }
+
+  const items = (Array.isArray(parsed.items) ? parsed.items : []).map(item => {
+    const rawStatus = String(item.status || 'UNKNOWN').toUpperCase().replace(/\s+/g, '_');
+    const status = ALLOWED_STATUSES.has(rawStatus) ? rawStatus : 'UNKNOWN';
+    const balance = safeMoney(item.balance);
+    const accountType = safeStr(item.accountType, 100, 'Unknown');
     return {
-      creditorName: item.creditorName || 'Unknown',
-      originalCreditor: item.originalCreditor || null,
-      accountNumber: item.accountNumber || '****',
+      creditorName: safeStr(item.creditorName, 256, 'Unknown'),
+      originalCreditor: item.originalCreditor ? safeStr(item.originalCreditor, 256) : null,
+      accountNumber: safeStr(item.accountNumber, 50, '****').replace(/[^a-zA-Z0-9\-*#\s]/g, ''),
       accountType,
       balance,
-      originalBalance: item.originalBalance != null ? Number(item.originalBalance) : null,
-      creditLimit: item.creditLimit != null ? Number(item.creditLimit) : null,
+      originalBalance: item.originalBalance != null ? safeMoney(item.originalBalance) : null,
+      creditLimit: item.creditLimit != null ? safeMoney(item.creditLimit) : null,
       status,
-      dateOpened: item.dateOpened || null,
-      dateOfFirstDelinquency: item.dateOfFirstDelinquency || null,
-      lastActivityDate: item.lastActivityDate || null,
-      latePayments: item.latePayments || [],
+      dateOpened: safeDate(item.dateOpened),
+      dateOfFirstDelinquency: safeDate(item.dateOfFirstDelinquency),
+      lastActivityDate: safeDate(item.lastActivityDate),
+      latePayments: Array.isArray(item.latePayments) ? item.latePayments.slice(0, 24) : [],
       isDisputable: item.isDisputable !== undefined ? Boolean(item.isDisputable) : true,
-      disputeReason: item.disputeReason || 'Request validation of debt',
+      disputeReason: safeStr(item.disputeReason, 500, 'Request validation of debt'),
       removalStrategies: item.removalStrategies || generateRemovalStrategies(status, accountType, balance),
       bureau: item.bureau || bureau,
     };

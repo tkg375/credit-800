@@ -8,6 +8,7 @@ import { resolveCreditorAddress, formatAddress } from "@/lib/creditor-addresses"
 import { sendLetter, letterToHtml } from "@/lib/postgrid";
 import { stripe } from "@/lib/stripe";
 import { logAuditEvent } from "@/lib/audit-log";
+import { getLimiters } from "@/lib/ratelimit";
 import Stripe from "stripe";
 
 export const maxDuration = 60;
@@ -67,6 +68,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Valid FCRA consent is required before running autopilot. Please complete the authorization step." },
       { status: 403 }
+    );
+  }
+
+  // --- Distributed lock: prevent concurrent runs from the same user ---
+  // Uses Upstash sliding window as an atomic lock (1 request per 5-min window).
+  // This closes the race condition between cooldown-check and run-record creation.
+  const { success: lockAcquired } = await getLimiters().autopilotLock.limit(user.uid);
+  if (!lockAcquired) {
+    return NextResponse.json(
+      { error: "An autopilot run is already starting. Please wait a moment." },
+      { status: 409 }
     );
   }
 

@@ -56,6 +56,10 @@ export async function POST(request: NextRequest) {
 
   const sub = await getUserSubscription(user.uid);
 
+  if (!sub.isPro) {
+    return NextResponse.json({ error: "An active subscription is required to mail letters." }, { status: 403 });
+  }
+
   if (!sub.stripeCustomerId) {
     return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
   }
@@ -164,16 +168,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Charge $2 mailing fee (off-session, after all validation passes)
-    const pi = await stripe.paymentIntents.create({
-      amount: 200, // $2.00
-      currency: "usd",
-      customer: sub.stripeCustomerId,
-      payment_method: paymentMethodId,
-      confirm: true,
-      off_session: true,
-      description: `USPS mailing fee — dispute letter (${creditorName})`,
-      metadata: { userId: user.uid, disputeId },
-    });
+    // Idempotency key prevents double-charging on retries or timeouts
+    const pi = await stripe.paymentIntents.create(
+      {
+        amount: 200, // $2.00
+        currency: "usd",
+        customer: sub.stripeCustomerId,
+        payment_method: paymentMethodId,
+        confirm: true,
+        off_session: true,
+        description: `USPS mailing fee — dispute letter (${creditorName})`,
+        metadata: { userId: user.uid, disputeId },
+      },
+      { idempotencyKey: `letter-${user.uid}-${disputeId}` }
+    );
 
     if (pi.status !== "succeeded") {
       return NextResponse.json({ error: "Payment of $2.00 mailing fee failed. Please update your payment method." }, { status: 402 });

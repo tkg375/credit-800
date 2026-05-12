@@ -144,7 +144,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { itemId, creditorName, accountNumber, bureau, reason, balance } = await req.json();
+    const raw = await req.json();
+    const { itemId } = raw;
+
+    // Validate and sanitize user-supplied letter fields
+    const creditorName = typeof raw.creditorName === "string"
+      ? raw.creditorName.trim().slice(0, 256)
+      : "Unknown";
+    const accountNumber = typeof raw.accountNumber === "string"
+      ? raw.accountNumber.replace(/[^a-zA-Z0-9\-*#\s]/g, "").slice(0, 50)
+      : "****";
+    const bureau: string = ["Equifax", "Experian", "TransUnion"].includes(raw.bureau)
+      ? (raw.bureau as string)
+      : "";
+    const reason = typeof raw.reason === "string"
+      ? raw.reason.trim().slice(0, 1000)
+      : undefined;
+    const balance =
+      typeof raw.balance === "number" && isFinite(raw.balance) && raw.balance >= 0 && raw.balance <= 9_999_999
+        ? raw.balance
+        : undefined;
 
     const disputeReason = reason || "Information is inaccurate or unverifiable";
     const bureauDispute = isBureauDispute(disputeReason);

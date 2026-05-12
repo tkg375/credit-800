@@ -61,9 +61,10 @@ export async function POST(req: NextRequest) {
     if (!category) {
       return NextResponse.json({ error: "category is required" }, { status: 400 });
     }
-    if (typeof amount !== "number" || amount <= 0) {
-      return NextResponse.json({ error: "amount must be a positive number" }, { status: 400 });
+    if (typeof amount !== "number" || !isFinite(amount) || amount <= 0 || amount > 999_999) {
+      return NextResponse.json({ error: "amount must be a positive number up to 999,999" }, { status: 400 });
     }
+    const roundedAmount = Math.round(amount * 100) / 100;
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json({ error: "date must be YYYY-MM-DD" }, { status: 400 });
     }
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       userId: user.uid,
       type,
       category,
-      amount,
+      amount: roundedAmount,
       date,
       note: note || "",
       createdAt: new Date().toISOString(),
