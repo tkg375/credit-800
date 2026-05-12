@@ -1,15 +1,27 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-function getRedis() {
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-  });
+function getRedis(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  return new Redis({ url, token });
 }
+
+/** A no-op limiter used when Redis is not configured — always allows. */
+const noopLimiter = {
+  limit: async (_key: string) => ({ success: true, limit: 0, remaining: 0, reset: 0, pending: Promise.resolve() }),
+};
 
 function createLimiters() {
   const redis = getRedis();
+  if (!redis) {
+    return {
+      free: noopLimiter, pro: noopLimiter, forgotPassword: noopLimiter,
+      register: noopLimiter, login: noopLimiter, contact: noopLimiter,
+      twoFactorVerify: noopLimiter, autopilotLock: noopLimiter,
+    };
+  }
   return {
     // Upload quotas
     free: new Ratelimit({
