@@ -22,20 +22,7 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
 
-      // 2FA is mandatory — send code via cookie auth and redirect to verify
-      const sendRes = await fetch("/api/auth/2fa/send", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!sendRes.ok) {
-        const data = await sendRes.json();
-        // Throttled — a code was already sent recently, still redirect to verify
-        if (!data.throttled) {
-          setError(data.error || "Failed to send verification code. Please try again.");
-          return;
-        }
-      }
-      router.push("/verify-2fa");
+      router.push("/dashboard");
     } catch {
       setError("Invalid email or password.");
     } finally {
@@ -53,7 +40,7 @@ export default function LoginPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl">
           <h1 className="text-2xl font-bold mb-2 text-center">Welcome Back</h1>
           <p className="text-xs text-slate-500 text-center mb-6">
-            A verification code will be sent to your email each time you log in.
+            Sign in to your account to continue.
           </p>
 
           {error && (
