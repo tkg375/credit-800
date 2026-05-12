@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, getLastAuthError } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
