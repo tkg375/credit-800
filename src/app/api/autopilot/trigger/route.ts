@@ -6,37 +6,14 @@ import { pullCreditReport, tradelineToDisputeReason, type CreditPullIdentity } f
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { resolveCreditorAddress, formatAddress } from "@/lib/creditor-addresses";
 import { sendLetter, letterToHtml } from "@/lib/postgrid";
-import { stripe } from "@/lib/stripe";
+import { stripe, resolvePaymentMethod } from "@/lib/stripe";
 import { logAuditEvent } from "@/lib/audit-log";
 import { getLimiters } from "@/lib/ratelimit";
-import Stripe from "stripe";
 
 export const maxDuration = 60;
 
 interface AutopilotRunRecord {
   runId: string;
-}
-
-async function resolvePaymentMethod(customerId: string, subscriptionId: string | null): Promise<string | null> {
-  if (subscriptionId) {
-    try {
-      const sub = await stripe.subscriptions.retrieve(subscriptionId, { expand: ["default_payment_method"] });
-      const pm = sub.default_payment_method as Stripe.PaymentMethod | string | null;
-      if (pm) return typeof pm === "string" ? pm : pm.id;
-    } catch { /* fall through */ }
-  }
-  try {
-    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-    if (!customer.deleted) {
-      const pm = customer.invoice_settings?.default_payment_method;
-      if (pm) return typeof pm === "string" ? pm : (pm as Stripe.PaymentMethod).id;
-    }
-  } catch { /* fall through */ }
-  try {
-    const pms = await stripe.paymentMethods.list({ customer: customerId, type: "card", limit: 1 });
-    if (pms.data.length > 0) return pms.data[0].id;
-  } catch { /* fall through */ }
-  return null;
 }
 
 /**

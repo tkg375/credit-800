@@ -252,12 +252,20 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    // Update the report item to mark it's been disputed
-    await firestore.updateDoc(COLLECTIONS.reportItems, itemId, {
-      isDisputable: false,
-      disputeStatus: "DRAFT",
-      disputeId,
-    });
+    // Update the report item to mark it's been disputed (only if it belongs to this user)
+    if (itemId) {
+      const reportItem = await firestore.getDoc(COLLECTIONS.reportItems, itemId);
+      if (reportItem.exists && reportItem.data.userId !== user.uid) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      if (reportItem.exists) {
+        await firestore.updateDoc(COLLECTIONS.reportItems, itemId, {
+          isDisputable: false,
+          disputeStatus: "DRAFT",
+          disputeId,
+        });
+      }
+    }
 
     return NextResponse.json({
       disputeId,

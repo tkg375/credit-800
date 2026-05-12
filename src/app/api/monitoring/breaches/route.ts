@@ -43,10 +43,11 @@ export async function GET() {
 
     const now = new Date().toISOString();
 
-    // Cache in Firestore
-    await firestore.updateDoc(COLLECTIONS.users, user.uid, {
-      lastBreachCheck: breaches,
-      lastBreachCheckAt: now,
+    // Cache breach results in a dedicated document (not in the user doc to avoid leaking to admin queries)
+    await firestore.setDoc("breachReports", user.uid, {
+      userId: user.uid,
+      breaches,
+      checkedAt: now,
     });
 
     return NextResponse.json({

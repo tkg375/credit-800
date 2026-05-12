@@ -9,6 +9,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
+    if (body.confirm !== true) {
+      return NextResponse.json({ error: "confirm: true is required to reset data" }, { status: 400 });
+    }
+
     // Get all items to delete (we'll delete in small batches to avoid subrequest limits)
     const items = await firestore.query(COLLECTIONS.reportItems, [
       { field: "userId", op: "EQUAL", value: user.uid },

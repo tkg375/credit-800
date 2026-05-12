@@ -49,6 +49,9 @@ export async function POST(req: NextRequest) {
 
   const safeSubject = subject?.trim() || "General Inquiry";
 
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
       <h2 style="color:#0d9488;margin-bottom:4px">New Support Request</h2>
@@ -56,18 +59,18 @@ export async function POST(req: NextRequest) {
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
         <tr>
           <td style="padding:8px 0;color:#64748b;font-size:13px;width:80px">From</td>
-          <td style="padding:8px 0;font-weight:600">${name.trim()}</td>
+          <td style="padding:8px 0;font-weight:600">${esc(name.trim())}</td>
         </tr>
         <tr>
           <td style="padding:8px 0;color:#64748b;font-size:13px">Email</td>
-          <td style="padding:8px 0"><a href="mailto:${email.trim()}" style="color:#0d9488">${email.trim()}</a></td>
+          <td style="padding:8px 0"><a href="mailto:${esc(email.trim())}" style="color:#0d9488">${esc(email.trim())}</a></td>
         </tr>
         <tr>
           <td style="padding:8px 0;color:#64748b;font-size:13px">Subject</td>
-          <td style="padding:8px 0">${safeSubject}</td>
+          <td style="padding:8px 0">${esc(safeSubject)}</td>
         </tr>
       </table>
-      <div style="background:#f8fafc;border-radius:12px;padding:20px;color:#1e293b;line-height:1.6;white-space:pre-wrap">${message.trim()}</div>
+      <div style="background:#f8fafc;border-radius:12px;padding:20px;color:#1e293b;line-height:1.6;white-space:pre-wrap">${esc(message.trim())}</div>
     </div>
   `;
 

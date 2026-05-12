@@ -9,17 +9,17 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json() as { email: string; password: string };
 
-    const { success } = await getLimiters().register.limit(getRateLimitKey(request));
-    if (!success) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
-    }
-
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
     if (password.length < 6) {
       return NextResponse.json({ error: "WEAK_PASSWORD" }, { status: 400 });
+    }
+
+    const { success } = await getLimiters().register.limit(getRateLimitKey(request));
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const existing = await getUserForAuth(email);

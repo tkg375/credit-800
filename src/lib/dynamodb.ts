@@ -62,10 +62,10 @@ export interface FirestoreFilter {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Strip passwordHash so it's never accidentally returned to API callers */
+/** Strip sensitive fields so they're never accidentally returned to API callers */
 function stripSensitive(item: Record<string, unknown>): Record<string, unknown> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id: _id, passwordHash: _ph, ...rest } = item as Record<string, unknown>;
+  const { id: _id, passwordHash: _ph, lastBreachCheck: _lbc, ...rest } = item as Record<string, unknown>;
   return rest;
 }
 

@@ -11,8 +11,15 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "Gemini not configured" }, { status: 503 });
 
+  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_BASE64_LENGTH = 1_400_000; // ~1MB decoded
+
   const { imageBase64, mimeType } = await req.json();
   if (!imageBase64) return NextResponse.json({ error: "imageBase64 is required" }, { status: 400 });
+  if (typeof imageBase64 !== "string" || imageBase64.length > MAX_BASE64_LENGTH) {
+    return NextResponse.json({ error: "Image too large" }, { status: 400 });
+  }
+  const safeMime = ALLOWED_MIME_TYPES.includes(mimeType) ? mimeType : "image/jpeg";
 
   const prompt = `Look at this credit score screenshot or document. Extract:
 1. The credit score number (300-850)
@@ -32,7 +39,7 @@ Return only the raw JSON, no markdown.`;
     body: JSON.stringify({
       contents: [{
         parts: [
-          { inline_data: { mime_type: mimeType || "image/jpeg", data: imageBase64 } },
+          { inline_data: { mime_type: safeMime, data: imageBase64 } },
           { text: prompt },
         ],
       }],

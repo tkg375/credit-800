@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "publicToken and accounts are required" }, { status: 400 });
   }
 
+  if (accounts.length > 50) {
+    return NextResponse.json({ error: "Too many accounts" }, { status: 400 });
+  }
+
   try {
     const plaid = getPlaidClient();
 

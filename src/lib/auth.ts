@@ -24,8 +24,9 @@ async function verifyAndCheckVersion(token: string): Promise<{ uid: string; emai
         lastAuthError = "token version mismatch — session invalidated";
         return null;
       }
-    } catch {
-      // If DB check fails, fail open to avoid locking users out due to DB errors
+    } catch (dbErr) {
+      // Fail open to avoid locking users out during DB outages, but always log
+      console.error("[auth] tokenVersion DB check failed — failing open:", dbErr);
     }
   }
 

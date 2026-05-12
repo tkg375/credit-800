@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
+import { stripe } from "@/lib/stripe";
 
 export async function DELETE() {
   const user = await getAuthUser();
@@ -11,6 +12,17 @@ export async function DELETE() {
   const uid = user.uid;
 
   try {
+    // Cancel Stripe subscription so the user isn't charged after account deletion
+    const userDoc = await firestore.getDoc(COLLECTIONS.users, uid);
+    const stripeSubscriptionId = userDoc.data.stripeSubscriptionId as string | undefined;
+    if (stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(stripeSubscriptionId);
+      } catch (stripeErr) {
+        console.error("Failed to cancel Stripe subscription on delete:", stripeErr);
+      }
+    }
+
     // Delete all user documents from every collection
     const collections = [
       COLLECTIONS.creditReports,

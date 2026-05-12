@@ -54,8 +54,9 @@ function makeLimiter(prefix: string, maxRequests: number, windowMs: number) {
         const count = (result.Attributes?.count as number) ?? 1;
         const success = count <= maxRequests;
         return { success, limit: maxRequests, remaining: Math.max(0, maxRequests - count), reset: resetTs };
-      } catch {
+      } catch (err) {
         // Fail open — if DynamoDB is unreachable, don't block users
+        console.error("[ratelimit] DynamoDB unavailable — failing open:", err);
         return { success: true, limit: maxRequests, remaining: maxRequests, reset: resetTs };
       }
     },

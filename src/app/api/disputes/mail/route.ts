@@ -1,52 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { sendLetter, letterToHtml, type PostGridAddress } from "@/lib/postgrid";
 import { sendDisputeMailedEmail } from "@/lib/email";
 import { getUserSubscription } from "@/lib/subscription";
-import { stripe } from "@/lib/stripe";
-
-/** Resolve the best payment method ID for an off-session charge.
- *  Priority: subscription.default_payment_method
- *         → customer.invoice_settings.default_payment_method
- *         → first card on file
- */
-async function resolvePaymentMethod(customerId: string, subscriptionId: string | null): Promise<string | null> {
-  // 1. Subscription's default payment method (most reliable for subscription customers)
-  if (subscriptionId) {
-    try {
-      const sub = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ["default_payment_method"],
-      });
-      const pm = sub.default_payment_method as Stripe.PaymentMethod | string | null;
-      if (pm) return typeof pm === "string" ? pm : pm.id;
-    } catch {
-      // fall through
-    }
-  }
-
-  // 2. Customer invoice_settings default
-  try {
-    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-    if (!customer.deleted) {
-      const pm = customer.invoice_settings?.default_payment_method;
-      if (pm) return typeof pm === "string" ? pm : (pm as Stripe.PaymentMethod).id;
-    }
-  } catch {
-    // fall through
-  }
-
-  // 3. First card attached to the customer
-  try {
-    const pms = await stripe.paymentMethods.list({ customer: customerId, type: "card", limit: 1 });
-    if (pms.data.length > 0) return pms.data[0].id;
-  } catch {
-    // fall through
-  }
-
-  return null;
-}
+import { stripe, resolvePaymentMethod } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -55,10 +13,6 @@ export async function POST(request: NextRequest) {
   }
 
   const sub = await getUserSubscription(user.uid);
-
-  if (!sub.isPro) {
-    return NextResponse.json({ error: "An active subscription is required to mail letters." }, { status: 403 });
-  }
 
   if (!sub.stripeCustomerId) {
     return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });

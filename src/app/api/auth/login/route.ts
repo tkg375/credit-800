@@ -44,8 +44,7 @@ export async function POST(request: NextRequest) {
     });
     return response;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[auth/login] FATAL:", msg, err);
-    return NextResponse.json({ error: "Internal server error", detail: msg }, { status: 500 });
+    console.error("[auth/login] FATAL:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

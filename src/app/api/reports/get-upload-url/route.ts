@@ -10,8 +10,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const { fileName } = await req.json();
+    if (!fileName || typeof fileName !== "string") {
+      return NextResponse.json({ error: "fileName is required" }, { status: 400 });
+    }
+    const safeName = fileName.replace(/[^a-zA-Z0-9._\-]/g, "_").slice(0, 200);
     const timestamp = Date.now();
-    const s3Key = `reports/${user.uid}/${timestamp}-${fileName}`;
+    const s3Key = `reports/${user.uid}/${timestamp}-${safeName}`;
     const uploadUrl = await getUploadUrl(s3Key);
     return NextResponse.json({ uploadUrl, s3Key });
   } catch (error) {

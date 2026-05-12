@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { sendAutopilotNotifyEmail } from "@/lib/email";
+import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  const { success: rateLimitOk } = await getLimiters().contact.limit(getRateLimitKey(req));
+  if (!rateLimitOk) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
+
   try {
     const { email } = await req.json();
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !EMAIL_RE.test(email)) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
 

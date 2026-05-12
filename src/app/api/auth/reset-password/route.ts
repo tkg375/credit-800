@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { firestore } from "@/lib/firebase-admin";
+import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   try {
     const { uid, token, password } = await request.json() as { uid: string; token: string; password: string };
+
+    const { success } = await getLimiters().forgotPassword.limit(getRateLimitKey(request, uid));
+    if (!success) {
+      return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 });
+    }
 
     if (!uid || !token || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
