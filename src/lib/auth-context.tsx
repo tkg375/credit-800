@@ -28,18 +28,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const STORAGE_KEY = "creditai_auth";
+// We store only non-sensitive identity fields (uid + email) in localStorage for
+// fast hydration on page load. The actual JWT lives exclusively in an httpOnly
+// cookie set by the server — it is never written to localStorage.
+const STORAGE_KEY = "creditai_user";
+
+interface StoredUser { uid: string; email: string | null; displayName: string | null }
 
 function saveUser(user: User) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  const safe: StoredUser = { uid: user.uid, email: user.email, displayName: user.displayName };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
 }
 
-function loadUser(): User | null {
+function loadStoredUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return null;
   try {
-    return JSON.parse(stored) as User;
+    return JSON.parse(stored) as StoredUser;
   } catch {
     return null;
   }
@@ -47,37 +53,33 @@ function loadUser(): User | null {
 
 function clearUser() {
   localStorage.removeItem(STORAGE_KEY);
+  // Also clear legacy key if present
+  localStorage.removeItem("creditai_auth");
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session on mount — verify stored token is still valid
+  // Restore session on mount — the JWT lives in an httpOnly cookie so we just
+  // hit /api/auth/me with credentials and let the server validate it.
   useEffect(() => {
     async function restoreSession() {
-      const stored = loadUser();
-      if (!stored?.idToken) {
-        setLoading(false);
-        return;
-      }
+      const stored = loadStoredUser();
 
       try {
-        const res = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${stored.idToken}` },
-        });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
         if (!res.ok) {
           clearUser();
           setLoading(false);
           return;
         }
         const data = await res.json() as { uid: string; email: string; token: string };
-        // Use possibly-refreshed token
         const refreshed: User = {
           uid: data.uid,
           email: data.email,
-          displayName: stored.displayName,
-          idToken: data.token,
+          displayName: stored?.displayName ?? null,
+          idToken: data.token, // kept in memory only for Authorization headers
           refreshToken: "",
         };
         saveUser(refreshed);

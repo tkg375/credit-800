@@ -151,8 +151,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-xl font-semibold mb-3">13. Contact Information</h2>
             <p className="text-slate-600 leading-relaxed">
-              If you have any questions about these Terms of Service, please contact us at{" "}
-              <a href="mailto:support@credit-800.com" className="text-teal-600 hover:text-teal-500">support@credit-800.com</a>.
+              If you have any questions about these Terms of Service, please <a href="/support" className="text-teal-600 hover:text-teal-500">contact us here</a>.
             </p>
           </section>
         </div>

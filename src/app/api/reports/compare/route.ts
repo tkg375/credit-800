@@ -38,7 +38,10 @@ export async function POST(req: NextRequest) {
 
     // Find current report and previous report
     const currentIndex = sorted.findIndex(r => r.id === reportId);
-    const previousReport = currentIndex >= 0 ? sorted[currentIndex + 1] : sorted[1];
+    if (currentIndex === -1) {
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    }
+    const previousReport = sorted[currentIndex + 1];
 
     // If this is the first report, record it and return early
     if (!previousReport) {

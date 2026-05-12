@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
-const SUPPORT_EMAIL = "support@credit-800.com";
+const SUPPORT_EMAIL = "tgordo03@gmail.com";
 const FROM_EMAIL = "Credit 800 <noreply@credit-800.com>";
 
 function getSesClient() {

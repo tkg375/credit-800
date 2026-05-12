@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken, signToken } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/firebase-admin";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -16,14 +17,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Issue a fresh token if the current one is within 24 hours of expiry
+  // Issue a fresh token if the current one is within 24 hours of expiry.
+  // Always fetch tokenVersion from DB so the refreshed token stays in sync
+  // with any password reset that may have incremented it.
   const parts = token.split(".");
   let newToken = token;
   try {
     const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
     const secsLeft = payload.exp - Math.floor(Date.now() / 1000);
     if (secsLeft < 60 * 60 * 24) {
-      newToken = await signToken({ uid: user.uid, email: user.email });
+      const userDoc = await firestore.getDoc("users", user.uid);
+      const tokenVersion = (userDoc.data.tokenVersion as number | undefined) ?? 0;
+      newToken = await signToken({ uid: user.uid, email: user.email, tokenVersion });
     }
   } catch { /* keep original token */ }
 

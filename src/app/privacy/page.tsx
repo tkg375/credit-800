@@ -130,7 +130,7 @@ export default function PrivacyPolicy() {
               We retain your account information and credit report data for as long as your account is active.
               FCRA consent records and audit logs are retained as required by applicable law and may be retained
               beyond account closure. You may request deletion of your account and associated data by contacting
-              us at support@credit-800.com. After account deletion, we may retain certain information as required
+              us via our <a href="/support" className="text-teal-600 hover:text-teal-500">support page</a>. After account deletion, we may retain certain information as required
               by law or for legitimate business purposes for up to 90 days.
             </p>
           </section>
@@ -164,8 +164,7 @@ export default function PrivacyPolicy() {
               <li>Opt out of optional USPS mailing charges at any time</li>
             </ul>
             <p className="text-slate-600 leading-relaxed mt-3">
-              To exercise any of these rights, contact us at{" "}
-              <a href="mailto:support@credit-800.com" className="text-teal-600 hover:text-teal-500">support@credit-800.com</a>.
+              To exercise any of these rights, <a href="/support" className="text-teal-600 hover:text-teal-500">contact us here</a>.
             </p>
           </section>
 
@@ -183,7 +182,7 @@ export default function PrivacyPolicy() {
             <p className="text-slate-600 leading-relaxed">
               The Service is not intended for users under 18 years of age. We do not knowingly collect
               personal information from children under 18. If you believe a minor has created an account,
-              contact us immediately at support@credit-800.com.
+              contact us immediately via our <a href="/support" className="text-teal-600 hover:text-teal-500">support page</a>.
             </p>
           </section>
 
@@ -208,8 +207,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-semibold mb-3">13. Contact Us</h2>
             <p className="text-slate-600 leading-relaxed">
-              If you have any questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:support@credit-800.com" className="text-teal-600 hover:text-teal-500">support@credit-800.com</a>.
+              If you have any questions about this Privacy Policy, please <a href="/support" className="text-teal-600 hover:text-teal-500">contact us here</a>.
             </p>
           </section>
         </div>

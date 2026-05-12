@@ -14,6 +14,12 @@ export async function POST(req: NextRequest) {
   const customerId = (userDoc?.data?.stripeCustomerId as string) || null;
   if (!customerId) return NextResponse.json({ error: "No Stripe customer found" }, { status: 400 });
 
+  // Verify the payment method belongs to this customer before setting it as default
+  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+  if (paymentMethod.customer !== customerId) {
+    return NextResponse.json({ error: "Payment method not found" }, { status: 400 });
+  }
+
   // Set as default payment method on the customer
   await stripe.customers.update(customerId, {
     invoice_settings: { default_payment_method: paymentMethodId },

@@ -6,8 +6,6 @@ frontend:
         - npm ci
     build:
       commands:
-        - echo "DEBUG price id starts with= ${STRIPE_PRO_PRICE_ID:0:8}"
-        - echo "DEBUG JWT_SECRET length= ${#JWT_SECRET}"
         - echo "JWT_SECRET=$JWT_SECRET" >> .env.production.local
         - echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> .env.production.local
         - echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env.production.local

@@ -1,7 +1,7 @@
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
 const FROM_EMAIL = "Credit 800 <noreply@credit-800.com>";
-const REPLY_TO = "support@credit-800.com";
+const REPLY_TO = "tgordo03@gmail.com";
 
 function getSesClient() {
   const region = process.env.S3_REGION || "us-east-1";

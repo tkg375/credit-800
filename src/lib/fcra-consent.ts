@@ -23,7 +23,7 @@ By clicking "I Authorize", you ("Consumer") hereby instruct and authorize Credit
    Your credit report will be used solely to: (a) identify negative, inaccurate, or unverifiable items on your credit file; (b) prepare formal dispute letters under the Fair Credit Reporting Act (FCRA) and/or Fair Debt Collection Practices Act (FDCPA) on your behalf; and (c) mail those letters to the applicable creditors and/or credit bureaus via certified U.S. Mail under your name and signature.
 
 3. RECURRING AUTHORIZATION
-   This authorization covers monthly credit report access for as long as your Autopilot subscription remains active. The Company will pull your report no more than once per 30-day period. You may revoke this authorization at any time by canceling your Autopilot subscription or contacting support@credit-800.com, effective at the end of your current billing period.
+   This authorization covers monthly credit report access for as long as your Autopilot subscription remains active. The Company will pull your report no more than once per 30-day period. You may revoke this authorization at any time by canceling your Autopilot subscription or visiting our support page at credit-800.com/support, effective at the end of your current billing period.
 
 4. DATA HANDLING & SECURITY
    Your full Social Security Number is transmitted directly to the credit bureau via encrypted connection for identity verification only. It is NEVER stored by Credit 800 in any database, log, or file. Only the last four digits of your SSN are retained for record-keeping. All credit data is encrypted at rest and in transit, handled pursuant to the FCRA, the Gramm-Leach-Bliley Act (GLBA), and our Privacy Policy.

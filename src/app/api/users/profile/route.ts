@@ -51,9 +51,25 @@ export async function PATCH(request: NextRequest) {
     if (body[key] !== undefined) updates[key] = body[key];
   }
 
+  // Validate monthlyIncome if provided
+  if (updates.monthlyIncome !== undefined) {
+    const income = Number(updates.monthlyIncome);
+    if (!isFinite(income) || income < 0 || income > 9_999_999) {
+      return NextResponse.json({ error: "monthlyIncome must be between 0 and 9,999,999" }, { status: 400 });
+    }
+    updates.monthlyIncome = Math.round(income * 100) / 100;
+  }
+
   await firestore.updateDoc(COLLECTIONS.users, user.uid, updates);
   return NextResponse.json({ success: true });
 }
+
+// Fields safe to return to the client — never include passwordHash, resetToken,
+// twoFactorCode, stripeCustomerId, tokenVersion, or any internal system fields.
+const PROFILE_PUBLIC_FIELDS = new Set([
+  "fullName", "dateOfBirth", "address", "address2", "city", "state", "zip",
+  "phone", "ssnLast4", "email", "monthlyIncome", "createdAt", "updatedAt",
+]);
 
 export async function GET() {
   const user = await getAuthUser();
@@ -66,5 +82,10 @@ export async function GET() {
     return NextResponse.json({ profile: null });
   }
 
-  return NextResponse.json({ profile: doc.data });
+  const profile: Record<string, unknown> = {};
+  for (const key of PROFILE_PUBLIC_FIELDS) {
+    if (doc.data[key] !== undefined) profile[key] = doc.data[key];
+  }
+
+  return NextResponse.json({ profile });
 }

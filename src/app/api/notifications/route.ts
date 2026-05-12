@@ -33,9 +33,12 @@ export async function POST(req: NextRequest) {
   try {
     const { type, title, message, actionUrl } = await req.json();
 
+    const VALID_TYPES = new Set(["info", "success", "warning", "error"]);
+    const safeType = VALID_TYPES.has(type) ? type : "info";
+
     const docId = await firestore.addDoc("notifications", {
       userId: user.uid,
-      type: type || "info",
+      type: safeType,
       title,
       message,
       read: false,
@@ -62,8 +65,11 @@ export async function PATCH(req: NextRequest) {
     }
 
     const notif = await firestore.getDoc("notifications", notificationId);
-    if (!notif || notif.data?.userId !== user.uid) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!notif || !notif.exists) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    if (notif.data?.userId !== user.uid) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     await firestore.updateDoc("notifications", notificationId, { read: read ?? true });

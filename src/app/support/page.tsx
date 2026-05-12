@@ -68,7 +68,7 @@ export default function SupportPage() {
         setError(data.error || "Something went wrong. Please try again.");
       }
     } catch {
-      setError("Failed to send. Please email us directly at support@credit-800.com.");
+      setError("Failed to send. Please try again or refresh the page.");
     } finally {
       setLoading(false);
     }
