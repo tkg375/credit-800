@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { getObject } from "@/lib/s3";
 import { getUserSubscription } from "@/lib/subscription";
+import { getLimiters } from "@/lib/ratelimit";
 
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
@@ -47,6 +48,11 @@ export async function POST(request: NextRequest) {
   const sub = await getUserSubscription(user.uid);
   if (!sub.isPro) {
     return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
+  }
+
+  const { success: rlOk } = await getLimiters().letterAnalyze.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Daily analysis limit reached (10/day). Try again tomorrow." }, { status: 429 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;

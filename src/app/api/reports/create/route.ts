@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getLastAuthError } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
-    const authError = getLastAuthError();
-    console.error("Auth failed:", authError);
-    return NextResponse.json(
-      { error: "Unauthorized", reason: authError },
-      { status: 401 }
-    );
+    console.error("Auth failed:", getLastAuthError());
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const VALID_BUREAUS = ["EQUIFAX", "EXPERIAN", "TRANSUNION", "UNKNOWN"];

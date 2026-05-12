@@ -58,9 +58,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large (max 50MB)" }, { status: 413 });
     }
 
-    // Reject files with dangerous extensions
-    const dangerousExtensions = /\.(exe|bat|sh|cmd|ps1|msi|dll|js|vbs|jar)$/i;
-    if (dangerousExtensions.test(file.name)) {
+    const ALLOWED_EXTENSIONS = /\.(pdf|doc|docx|xls|xlsx|csv|txt|jpg|jpeg|png|webp|gif|heic|mp4|mov)$/i;
+    if (!ALLOWED_EXTENSIONS.test(file.name)) {
       return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
     }
 

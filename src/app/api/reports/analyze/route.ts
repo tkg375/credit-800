@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getLastAuthError } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { getUserSubscription } from "@/lib/subscription";
@@ -25,20 +25,31 @@ export async function POST(req: NextRequest) {
     user = await getAuthUser();
   } catch (authErr) {
     console.error("Auth error:", authErr);
-    return NextResponse.json({ error: "Auth failed", details: String(authErr) }, { status: 401 });
+    console.error("Auth error:", authErr);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized", details: getLastAuthError() }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { reportId, simulateData } = await req.json();
 
-    // Rate limit real uploads: free=1/day, pro=3/day (skip for simulated data)
-    if (!simulateData) {
+    const sub = await getUserSubscription(user.uid);
+
+    if (simulateData) {
+      // simulateData requires Pro and has its own rate limit (5/day)
+      if (!sub.isPro) {
+        return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
+      }
+      const { success: rlOk } = await getLimiters().simulateData.limit(user.uid);
+      if (!rlOk) {
+        return NextResponse.json({ error: "Daily simulation limit reached (5/day). Try again tomorrow." }, { status: 429 });
+      }
+    } else {
+      // Rate limit real uploads: free=1/day, pro=3/day
       try {
-        const sub = await getUserSubscription(user.uid);
         const { free, pro } = getLimiters();
         const limiter = sub.isPro ? pro : free;
         const { success, reset } = await limiter.limit(user.uid);
@@ -50,7 +61,6 @@ export async function POST(req: NextRequest) {
           );
         }
       } catch (rlErr) {
-        // Fail open — don't block uploads if rate limiter is unavailable
         console.warn("[analyze] Rate limiter unavailable, skipping:", rlErr);
       }
     }

@@ -79,6 +79,8 @@ function createLimiters() {
     contact:         makeLimiter("rl:contact",      5,  HOUR),
     twoFactorVerify: makeLimiter("rl:2fa",          5,  10 * MINUTE),
     autopilotLock:   makeLimiter("rl:autopilot",    1,  5 * MINUTE),
+    letterAnalyze:   makeLimiter("rl:letter",       10, DAY),
+    simulateData:    makeLimiter("rl:simulate",     5,  DAY),
   };
 }
 
