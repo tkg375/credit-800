@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getUserForAuth } from "@/lib/dynamodb";
-import { signToken } from "@/lib/firebase-admin";
+import { signToken, firestore } from "@/lib/db";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch tokenVersion so sessions can be invalidated on password change
-    const { firestore } = await import("@/lib/firebase-admin");
     const userDoc = await firestore.getDoc("users", user.uid);
     const tokenVersion = (userDoc.data.tokenVersion as number | undefined) ?? 0;
 

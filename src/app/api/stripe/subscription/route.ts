@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 import Stripe from "stripe";
 
 export async function GET() {

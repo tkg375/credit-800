@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Legacy session sync route — kept for backward compatibility.
 // New auth uses /api/auth/login and /api/auth/register which set the cookie directly.
 
-import { verifyIdToken } from "@/lib/firebase-admin";
+import { verifyIdToken } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +32,5 @@ export async function POST(req: NextRequest) {
 export async function DELETE() {
   const response = NextResponse.json({ success: true });
   response.cookies.set("auth-token", "", { maxAge: 0, path: "/" });
-  response.cookies.set("firebase-token", "", { maxAge: 0, path: "/" });
   return response;
 }

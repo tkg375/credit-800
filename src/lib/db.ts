@@ -1,4 +1,5 @@
-export { firestore } from "./firebase-admin";
+export { firestore } from "./dynamodb";
+export { signToken, verifyToken as verifyIdToken, getLastVerifyError } from "./jwt";
 
 export const COLLECTIONS = {
   users: "users",

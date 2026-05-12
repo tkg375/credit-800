@@ -1,4 +1,4 @@
-import { firestore } from "./firebase-admin";
+import { firestore } from "./dynamodb";
 
 /**
  * Increment this version whenever the consent text changes.

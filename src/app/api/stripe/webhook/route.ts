@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 import { sendNewSubscriberNotification, sendProUpgradeEmail, sendAutopilotUpgradeEmail, sendPaymentFailedEmail } from "@/lib/email";
 import Stripe from "stripe";
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const uid = session.metadata?.userId || session.metadata?.firebaseUid;
+        const uid = session.metadata?.userId || session.metadata?.userId;
         if (!uid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
           console.error("checkout.session.completed: invalid or missing userId in metadata", session.id);
           break;
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.firebaseUid;
+        const uid = customer.metadata?.userId || customer.metadata?.userId;
         if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
           const periodEnd = subscription.items.data[0]?.current_period_end;
           const priceId = subscription.items.data[0]?.price?.id;
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.firebaseUid;
+        const uid = customer.metadata?.userId || customer.metadata?.userId;
         if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
           await firestore.updateDoc("users", uid, {
             subscriptionStatus: "canceled",
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customer = await stripe.customers.retrieve(invoice.customer as string) as Stripe.Customer;
-        const uid = customer.metadata?.userId || customer.metadata?.firebaseUid;
+        const uid = customer.metadata?.userId || customer.metadata?.userId;
         if (uid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid)) {
           // Get current plan tier before marking past_due so we can label the email correctly
           const userDoc = await firestore.getDoc("users", uid);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserForAuth } from "@/lib/dynamodb";
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 

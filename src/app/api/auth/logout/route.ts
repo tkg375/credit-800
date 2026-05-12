@@ -9,7 +9,5 @@ export async function POST() {
     maxAge: 0,
     path: "/",
   });
-  // Also clear the old firebase-token cookie for users mid-migration
-  response.cookies.set("firebase-token", "", { maxAge: 0, path: "/" });
   return response;
 }

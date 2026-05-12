@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();

@@ -1,4 +1,4 @@
-import { firestore } from "./firebase-admin";
+import { firestore } from "./dynamodb";
 
 export type AuditActionType =
   | "autopilot_consent_given"

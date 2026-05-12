@@ -1,4 +1,4 @@
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 import type { PortfolioAccount, AccountType } from "./portfolio-types";
 
 export const ASSET_TYPES: AccountType[] = [

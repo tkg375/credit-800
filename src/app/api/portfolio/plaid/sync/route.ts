@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 import { getPlaidClient } from "@/lib/plaid";
 import { snapshotNetWorth } from "@/lib/portfolio-calculator";
 

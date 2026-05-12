@@ -1,4 +1,4 @@
-import { firestore } from "@/lib/firebase-admin";
+import { firestore } from "@/lib/db";
 
 export async function createNotification(
   userId: string,

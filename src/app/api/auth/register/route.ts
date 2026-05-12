@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getUserForAuth } from "@/lib/dynamodb";
-import { firestore } from "@/lib/firebase-admin";
-import { signToken } from "@/lib/firebase-admin";
+import { firestore, signToken } from "@/lib/db";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {

@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
-import { verifyIdToken, getLastVerifyError } from "./firebase-admin";
-import { firestore } from "./firebase-admin";
+import { verifyToken, getLastVerifyError } from "./jwt";
+import { firestore } from "./dynamodb";
 
 // Store last auth error for debugging
 let lastAuthError = "";
@@ -10,7 +10,7 @@ export function getLastAuthError(): string {
 }
 
 async function verifyAndCheckVersion(token: string): Promise<{ uid: string; email: string } | null> {
-  const user = await verifyIdToken(token);
+  const user = await verifyToken(token);
   if (!user) return null;
 
   // If the token carries a tokenVersion, verify it matches the DB — this
@@ -51,11 +51,8 @@ export async function getAuthUser(): Promise<{
     return null;
   }
 
-  // Fall back to cookie (check new auth-token first, then legacy firebase-token)
   const cookieStore = await cookies();
-  const token =
-    cookieStore.get("auth-token")?.value ||
-    cookieStore.get("firebase-token")?.value;
+  const token = cookieStore.get("auth-token")?.value;
 
   if (!token) {
     lastAuthError = "no token in header or cookie";

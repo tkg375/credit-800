@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyIdToken, signToken } from "@/lib/firebase-admin";
-import { firestore } from "@/lib/firebase-admin";
+import { verifyIdToken, signToken, firestore } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");

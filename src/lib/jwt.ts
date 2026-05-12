@@ -1,9 +1,4 @@
-// firebase-admin.ts — Firebase replaced by AWS DynamoDB + custom JWT
-// All original exports are preserved so every importer works unchanged.
-
-export { firestore } from "./dynamodb";
-
-// ── Custom JWT (HMAC-SHA256) — replaces Firebase token verification ───────────
+// HMAC-SHA256 JWT implementation — signs and verifies auth tokens
 
 let lastVerifyError = "";
 
@@ -55,7 +50,7 @@ export async function signToken(payload: { uid: string; email: string; tokenVers
   return `${signing}.${base64urlEncode(new Uint8Array(sig))}`;
 }
 
-export async function verifyIdToken(
+export async function verifyToken(
   token: string
 ): Promise<{ uid: string; email: string; tokenVersion?: number } | null> {
   lastVerifyError = "";
