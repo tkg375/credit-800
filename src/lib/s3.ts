@@ -36,10 +36,10 @@ export async function getUploadUrl(
   return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 }
 
-/** Get a pre-signed URL for downloading/viewing an object (1 hour expiry) */
+/** Get a pre-signed URL for downloading/viewing an object (5 min expiry) */
 export async function getDownloadUrl(key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  return getSignedUrl(getS3Client(), command, { expiresIn: 3600 });
+  return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 }
 
 /** Read an object's bytes from S3 server-side */

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getUserForAuth } from "@/lib/dynamodb";
 import { signToken } from "@/lib/firebase-admin";
+import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,11 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
+
+    const { success } = await getLimiters().login.limit(getRateLimitKey(request, email));
+    if (!success) {
+      return NextResponse.json({ error: "Too many login attempts. Please try again later." }, { status: 429 });
     }
 
     const user = await getUserForAuth(email);

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Create report error:", err);
     return NextResponse.json(
-      { error: "Failed to create report", details: String(err) },
+      { error: "Failed to create report" },
       { status: 500 }
     );
   }

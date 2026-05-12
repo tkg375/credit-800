@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("parse-response error:", err);
     return NextResponse.json(
-      { error: "Failed to parse letter", details: err instanceof Error ? err.message : String(err) },
+      { error: "Failed to parse letter" },
       { status: 500 }
     );
   }

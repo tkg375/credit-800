@@ -13,7 +13,7 @@ export async function GET() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const [users, disputes, reportItems, waitlist] = await Promise.all([
-      firestore.query(COLLECTIONS.users, []),
+      firestore.query(COLLECTIONS.users, [], "createdAt", "DESCENDING", 5000),
       firestore.query(COLLECTIONS.disputes, [], "createdAt", "DESCENDING", 200),
       firestore.query(COLLECTIONS.creditReports, [], "createdAt", "DESCENDING", 50),
       firestore.query(COLLECTIONS.autopilotWaitlist, []),
@@ -81,9 +81,6 @@ export async function GET() {
     });
   } catch (err) {
     console.error("admin/stats error:", err);
-    return NextResponse.json(
-      { error: "Failed to load stats", details: err instanceof Error ? err.message : String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
   }
 }

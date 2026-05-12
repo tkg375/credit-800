@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("mail refresh error:", err);
     return NextResponse.json(
-      { error: "Failed to refresh tracking", details: err instanceof Error ? err.message : String(err) },
+      { error: "Failed to refresh tracking" },
       { status: 500 }
     );
   }

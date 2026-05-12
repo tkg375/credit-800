@@ -65,7 +65,7 @@ export async function GET() {
   } catch (err) {
     console.error("breaches check error:", err);
     return NextResponse.json(
-      { error: "Failed to check breaches", details: err instanceof Error ? err.message : String(err) },
+      { error: "Failed to check breaches" },
       { status: 500 }
     );
   }

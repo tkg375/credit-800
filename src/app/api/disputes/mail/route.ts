@@ -183,14 +183,12 @@ export async function POST(request: NextRequest) {
     const html = letterToHtml(letterContent);
 
     // Send via PostGrid
-    console.log(`[mail] Sending letter for dispute ${disputeId} via PostGrid...`);
     const letter = await sendLetter({
       to: toAddress,
       from: senderAddress,
       html,
       description: `Dispute: ${creditorName} (${dispute.data.bureau || "unknown bureau"})`,
     });
-    console.log(`[mail] Letter created: ${letter.id}, expected delivery: ${letter.expected_delivery_date}`);
 
     // Update Firestore with mail metadata
     const now = new Date().toISOString();

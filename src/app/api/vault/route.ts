@@ -58,6 +58,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large (max 50MB)" }, { status: 413 });
     }
 
+    // Reject files with dangerous extensions
+    const dangerousExtensions = /\.(exe|bat|sh|cmd|ps1|msi|dll|js|vbs|jar)$/i;
+    if (dangerousExtensions.test(file.name)) {
+      return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
+    }
+
     // Upload to S3
     const s3Key = `vault/${user.uid}/${Date.now()}-${file.name}`;
     const bytes = new Uint8Array(await file.arrayBuffer());

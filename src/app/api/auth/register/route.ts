@@ -3,10 +3,16 @@ import bcrypt from "bcryptjs";
 import { getUserForAuth } from "@/lib/dynamodb";
 import { firestore } from "@/lib/firebase-admin";
 import { signToken } from "@/lib/firebase-admin";
+import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json() as { email: string; password: string };
+
+    const { success } = await getLimiters().register.limit(getRateLimitKey(request));
+    if (!success) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+    }
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -45,7 +51,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (err) {
     console.error("[auth/register]", err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: "Internal server error", detail: msg }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -118,8 +118,7 @@ export async function POST(req: NextRequest) {
       expectedDelivery: letter.expected_delivery_date,
     });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("CFPB mail error:", msg);
-    return NextResponse.json({ error: "Failed to mail complaint", details: msg }, { status: 500 });
+    console.error("CFPB mail error:", error);
+    return NextResponse.json({ error: "Failed to mail complaint" }, { status: 500 });
   }
 }

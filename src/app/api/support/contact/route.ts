@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 const SUPPORT_EMAIL = "support@credit-800.com";
 const FROM_EMAIL = "Credit 800 <noreply@credit-800.com>";
@@ -14,21 +15,27 @@ function getSesClient() {
 
 async function verifyRecaptcha(token: string): Promise<boolean> {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret || !token) {
-    console.log("[recaptcha] skipping — secret:", !!secret, "token:", !!token);
+  if (!secret) {
+    // Fail closed in production; allow in dev for local testing
+    if (process.env.NODE_ENV === "production") return false;
     return true;
   }
+  if (!token) return false;
   const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `secret=${secret}&response=${token}`,
   });
   const data = await res.json();
-  console.log("[recaptcha] result:", JSON.stringify(data));
   return data.success && (data.score ?? 1) >= 0.5;
 }
 
 export async function POST(req: NextRequest) {
+  const { success: rateLimitOk } = await getLimiters().contact.limit(getRateLimitKey(req));
+  if (!rateLimitOk) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
+
   const { name, email, subject, message, recaptchaToken } = await req.json();
 
   if (!name?.trim() || !email?.trim() || !message?.trim()) {

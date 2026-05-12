@@ -115,7 +115,7 @@ export default function Home() {
       <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-16 pb-12 sm:pb-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-[1fr_1.35fr] gap-12 items-center">
             <div>
 <h1 className="text-4xl sm:text-5xl lg:text-6xl leading-tight text-white">
                 Your Credit &amp; Finances.

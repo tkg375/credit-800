@@ -82,8 +82,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(`Gemini error: ${JSON.stringify(err)}`);
+      const errBody = await res.json().catch(() => ({}));
+      console.error("Gemini API error:", JSON.stringify(errBody));
+      throw new Error("Gemini request failed");
     }
 
     const data = await res.json();
@@ -91,12 +92,16 @@ export async function POST(request: NextRequest) {
 
     if (!text) {
       const finishReason = data.candidates?.[0]?.finishReason;
-      throw new Error(`Empty Gemini response (finishReason: ${finishReason ?? "unknown"}). Raw: ${JSON.stringify(data).slice(0, 300)}`);
+      console.error("Empty Gemini response, finishReason:", finishReason, "raw:", JSON.stringify(data).slice(0, 300));
+      throw new Error("AI service returned empty response");
     }
 
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
-    if (start === -1 || end === -1) throw new Error(`No JSON in Gemini response. Raw text: ${text.slice(0, 500)}`);
+    if (start === -1 || end === -1) {
+      console.error("No JSON in Gemini response, raw text:", text.slice(0, 500));
+      throw new Error("AI service returned unexpected format");
+    }
 
     const analysis = JSON.parse(text.slice(start, end + 1));
 
@@ -119,9 +124,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ letterId, analysis });
   } catch (err) {
     console.error("analyze-letter error:", err);
-    return NextResponse.json(
-      { error: "Failed to analyze letter", details: err instanceof Error ? err.message : String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to analyze letter" }, { status: 500 });
   }
 }

@@ -117,10 +117,11 @@ export default function HeroDemoAnimation() {
       `}</style>
 
       <div
-        className="w-full max-w-md mx-auto rounded-2xl overflow-hidden select-none"
+        className="w-full rounded-2xl overflow-hidden select-none"
         style={{
           boxShadow: "0 32px 72px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.25)",
           animation: "heroFloat 4s ease-in-out infinite",
+          height: 530,
         }}
       >
         {/* Header bar */}

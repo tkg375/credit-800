@@ -22,12 +22,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (!file.type.includes("pdf")) {
-      return NextResponse.json({ error: "File must be a PDF" }, { status: 400 });
-    }
-
     if (file.size > 50 * 1024 * 1024) {
       return NextResponse.json({ error: "File too large (max 50MB)" }, { status: 413 });
+    }
+
+    // Validate PDF magic bytes (%PDF) — MIME type alone is spoofable
+    const header = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    if (header[0] !== 0x25 || header[1] !== 0x50 || header[2] !== 0x44 || header[3] !== 0x46) {
+      return NextResponse.json({ error: "File must be a valid PDF" }, { status: 400 });
     }
 
     // Upload to S3
@@ -55,9 +57,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Upload error:", err);
-    return NextResponse.json(
-      { error: "Failed to upload file", details: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
 }

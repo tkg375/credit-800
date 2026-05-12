@@ -391,14 +391,9 @@ export async function POST(req: NextRequest) {
       Payload: JSON.stringify({ reportId, userId: user.uid, s3Key, bureau }),
     }));
 
-    console.log(`Lambda invoked for report ${reportId}`);
-
     return NextResponse.json({ status: "processing", reportId });
   } catch (err) {
     console.error("Analyze error:", err);
-    return NextResponse.json(
-      { error: "Internal server error", details: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

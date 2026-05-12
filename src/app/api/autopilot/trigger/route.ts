@@ -470,7 +470,7 @@ ${senderAddress}${profile?.dateOfBirth ? "\nDOB: " + profile.dateOfBirth : ""}
       completedAt: new Date().toISOString(),
     });
     await logAuditEvent({ userId: user.uid, action: "autopilot_run_failed", resourceId: runId, metadata: { error: msg } });
-    return NextResponse.json({ error: "Autopilot run failed", details: msg }, { status: 500 });
+    return NextResponse.json({ error: "Autopilot run failed" }, { status: 500 });
   }
 }
 

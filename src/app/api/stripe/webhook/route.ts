@@ -12,9 +12,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not configured");
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+  }
+
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -25,8 +31,12 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const uid = session.metadata?.userId || session.metadata?.firebaseUid;
+        if (!uid) {
+          console.error("checkout.session.completed: missing userId in metadata", session.id);
+          break;
+        }
         let planTier: "pro" | "autopilot" = "pro";
-        if (uid && session.subscription) {
+        if (session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           const periodEnd = subscription.items.data[0]?.current_period_end;
           // Determine plan tier from the price ID on the subscription
