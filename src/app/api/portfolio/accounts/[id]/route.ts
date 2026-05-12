@@ -28,8 +28,8 @@ export async function PATCH(
 
   // Only allow balance update on manual accounts
   if (body.balance !== undefined && existing.data.source === "manual") {
-    if (typeof body.balance !== "number") {
-      return NextResponse.json({ error: "balance must be a number" }, { status: 400 });
+    if (typeof body.balance !== "number" || !isFinite(body.balance) || body.balance < -999_999_999 || body.balance > 999_999_999) {
+      return NextResponse.json({ error: "balance must be a finite number between -999,999,999 and 999,999,999" }, { status: 400 });
     }
     updates.balance = body.balance;
   }

@@ -84,6 +84,7 @@ function createLimiters() {
     scoreImport:     makeLimiter("rl:scoreimport",  10, DAY),
     mailLetter:      makeLimiter("rl:mail",         10, DAY),
     planGenerate:    makeLimiter("rl:plan",         20, DAY),
+    escalationEmail: makeLimiter("rl:escalation",   5,  DAY),
     simulateData:    makeLimiter("rl:simulate",     5,  DAY),
   };
 }

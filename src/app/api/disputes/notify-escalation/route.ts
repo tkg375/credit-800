@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { sendEscalationReadyEmail } from "@/lib/email";
+import { getLimiters } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success: rlOk } = await getLimiters().escalationEmail.limit(user.uid);
+  if (!rlOk) return NextResponse.json({ error: "Too many escalation emails today. Try again tomorrow." }, { status: 429 });
 
   try {
     const { disputeId } = await req.json();
