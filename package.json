@@ -16,8 +16,6 @@
     "@aws-sdk/lib-dynamodb": "^3.1016.0",
     "@aws-sdk/s3-request-presigner": "^3.993.0",
     "@stripe/stripe-js": "^8.7.0",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.36.2",
     "bcryptjs": "^3.0.3",
     "next": "16.1.6",
     "plaid": "^41.3.0",
