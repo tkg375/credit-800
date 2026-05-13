@@ -1,19 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
-
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
-
-declare global {
-  interface Window {
-    grecaptcha?: {
-      ready: (cb: () => void) => void;
-      execute: (siteKey: string, opts: { action: string }) => Promise<string>;
-    };
-  }
-}
 
 export default function SupportPage() {
   const [name, setName] = useState("");
@@ -24,42 +13,15 @@ export default function SupportPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!SITE_KEY || document.querySelector("#recaptcha-script")) return;
-    const script = document.createElement("script");
-    script.id = "recaptcha-script";
-    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
-    script.async = true;
-    document.head.appendChild(script);
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      let recaptchaToken = "";
-      if (SITE_KEY) {
-        recaptchaToken = await new Promise<string>((resolve, reject) => {
-          const run = () => {
-            if (window.grecaptcha) {
-              window.grecaptcha.ready(() => {
-                window.grecaptcha!.execute(SITE_KEY, { action: "contact" })
-                  .then(resolve)
-                  .catch(reject);
-              });
-            } else {
-              // Script still loading — poll until ready
-              setTimeout(run, 100);
-            }
-          };
-          run();
-        });
-      }
       const res = await fetch("/api/support/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message, recaptchaToken }),
+        body: JSON.stringify({ name, email, subject, message }),
       });
       const data = await res.json();
       if (data.ok) {

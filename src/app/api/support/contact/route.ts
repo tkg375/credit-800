@@ -13,30 +13,13 @@ function getSesClient() {
   return new SESv2Client({ region, credentials: { accessKeyId, secretAccessKey } });
 }
 
-async function verifyRecaptcha(token: string): Promise<boolean> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) {
-    // Fail closed in production; allow in dev for local testing
-    if (process.env.NODE_ENV === "production") return false;
-    return true;
-  }
-  if (!token) return false;
-  const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `secret=${secret}&response=${token}`,
-  });
-  const data = await res.json();
-  return data.success && (data.score ?? 1) >= 0.5;
-}
-
 export async function POST(req: NextRequest) {
   const { success: rateLimitOk } = await getLimiters().contact.limit(getRateLimitKey(req));
   if (!rateLimitOk) {
     return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
-  const { name, email, subject, message, recaptchaToken } = await req.json();
+  const { name, email, subject, message } = await req.json();
 
   if (!name?.trim() || !email?.trim() || !message?.trim()) {
     return NextResponse.json({ error: "Name, email, and message are required." }, { status: 400 });
@@ -44,11 +27,6 @@ export async function POST(req: NextRequest) {
 
   if (name.length > 200 || email.length > 254 || message.length > 5000 || (subject && subject.length > 300)) {
     return NextResponse.json({ error: "Input exceeds maximum length." }, { status: 400 });
-  }
-
-  const captchaOk = await verifyRecaptcha(recaptchaToken ?? "");
-  if (!captchaOk) {
-    return NextResponse.json({ error: "reCAPTCHA verification failed. Please try again." }, { status: 400 });
   }
 
   const safeSubject = subject?.trim() || "General Inquiry";
