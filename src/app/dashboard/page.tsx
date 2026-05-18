@@ -100,6 +100,7 @@ function DashboardContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [scoreHistory, setScoreHistory] = useState<{ score: number; recordedAt: string }[]>([]);
   const [latestScore, setLatestScore] = useState<number | null>(null);
+  const [bureauScores, setBureauScores] = useState<Record<string, number | null>>({ Equifax: null, Experian: null, TransUnion: null });
   const [disputableCount, setDisputableCount] = useState(0);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [actionPlan, setActionPlan] = useState<{ steps: ActionStep[] } | null>(null);
@@ -134,8 +135,8 @@ function DashboardContent() {
       };
 
       try {
-        // Load score history (up to 10 entries for chart)
-        const scores = await fetchDocs("creditScores", { limit: 10 });
+        // Load score history (up to 30 entries for chart + bureau breakdown)
+        const scores = await fetchDocs("creditScores", { limit: 30 });
         if (scores.length > 0) {
           const sorted = [...scores].sort(
             (a, b) => new Date(a.recordedAt as string).getTime() - new Date(b.recordedAt as string).getTime()
@@ -147,6 +148,16 @@ function DashboardContent() {
             }))
           );
           setLatestScore(sorted[sorted.length - 1].score as number);
+
+          // Latest score per bureau
+          const bureauMap: Record<string, number | null> = { Equifax: null, Experian: null, TransUnion: null };
+          for (const s of sorted) {
+            const b = String(s.bureau || "");
+            const lower = b.toLowerCase();
+            const key = lower.includes("equifax") ? "Equifax" : lower.includes("experian") ? "Experian" : lower.includes("transunion") || lower.includes("trans union") ? "TransUnion" : null;
+            if (key) bureauMap[key] = s.score as number;
+          }
+          setBureauScores(bureauMap);
         }
 
         // Load disputable items count
@@ -311,13 +322,22 @@ function DashboardContent() {
         )}
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard</h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <Link href="/scores" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition block">
-            <p className="text-sm text-slate-500 mb-1">Latest Score</p>
-            <p className="text-4xl font-bold bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent">
-              {latestScore ?? "---"}
-            </p>
-          </Link>
+        {/* Bureau Score Cards */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
+          {(["Equifax", "Experian", "TransUnion"] as const).map((bureau, i) => {
+            const score = bureauScores[bureau];
+            const colors = ["text-teal-600", "text-lime-600", "text-cyan-600"];
+            const borders = ["border-teal-200", "border-lime-200", "border-cyan-200"];
+            return (
+              <Link key={bureau} href="/scores" className={`bg-white border-2 ${borders[i]} rounded-2xl p-4 shadow-sm hover:shadow-lg transition block`}>
+                <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${colors[i]}`}>{bureau}</p>
+                <p className={`text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
           <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition block">
             <p className="text-sm text-slate-500 mb-1">Disputable Items</p>
             <p className="text-4xl font-bold text-amber-500">
