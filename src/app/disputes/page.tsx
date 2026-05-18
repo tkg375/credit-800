@@ -847,6 +847,8 @@ export default function DisputesPage() {
       case "RE_ROUTED":
       case "ERROR":
         return "bg-red-100 text-red-700";
+      case "CANCELLED":
+        return "bg-orange-100 text-orange-700";
       default:
         return "bg-slate-100 text-slate-700";
     }
@@ -861,6 +863,7 @@ export default function DisputesPage() {
       case "RETURNED": return "Returned to Sender";
       case "RE_ROUTED": return "Re-Routed";
       case "ERROR": return "Error";
+      case "CANCELLED": return "Cancelled by PostGrid";
       default: return status;
     }
   };
@@ -1663,6 +1666,7 @@ export default function DisputesPage() {
                 <div className={`px-6 py-3 border-t flex items-center justify-between shrink-0 ${
                   selectedDispute.mailStatus === "DELIVERED" ? "bg-green-50" :
                   selectedDispute.mailStatus === "ERROR" || selectedDispute.mailStatus === "RETURNED" ? "bg-red-50" :
+                  selectedDispute.mailStatus === "CANCELLED" ? "bg-orange-50" :
                   "bg-blue-50"
                 }`}>
                   <div className="flex items-center gap-2 text-sm">
@@ -1675,12 +1679,16 @@ export default function DisputesPage() {
                         : getMailStatusLabel(selectedDispute.mailStatus)}
                     </span>
                   </div>
-                  {selectedDispute.mailStatus === "ERROR" ? (
+                  {(selectedDispute.mailStatus === "ERROR" || selectedDispute.mailStatus === "CANCELLED") ? (
                     <button
                       onClick={() => handleClearMailError(selectedDispute.id)}
-                      className="text-sm px-3 py-1 border border-red-300 text-red-700 rounded-lg hover:bg-red-100 transition"
+                      className={`text-sm px-3 py-1 border rounded-lg transition ${
+                        selectedDispute.mailStatus === "CANCELLED"
+                          ? "border-orange-300 text-orange-700 hover:bg-orange-100"
+                          : "border-red-300 text-red-700 hover:bg-red-100"
+                      }`}
                     >
-                      Clear & Retry
+                      Reattempt Mailing
                     </button>
                   ) : (
                     <button

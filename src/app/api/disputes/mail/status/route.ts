@@ -10,6 +10,7 @@ function deriveStatus(status: string, trackingEvents: { name: string }[]): strin
   if (status === "re-routed") return "RE_ROUTED";
   if (status === "in_local_area" || status === "processed_for_delivery") return "OUT_FOR_DELIVERY";
   if (status === "in_transit" || status === "printing") return "IN_TRANSIT";
+  if (status === "cancelled" || status === "canceled") return "CANCELLED";
 
   // Fallback to tracking event names
   if (trackingEvents.length > 0) {
