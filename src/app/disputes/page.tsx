@@ -731,15 +731,7 @@ export default function DisputesPage() {
     setMailing(disputeId);
 
     try {
-      // Clear old cancelled job on server first so the mail route won't reject it
-      const clearRes = await fetch(`/api/data/disputes/${disputeId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
-        body: JSON.stringify({ mailJobId: null, mailStatus: null, mailError: null }),
-      });
-      if (!clearRes.ok) throw new Error("Failed to clear previous mail job");
-
-      // Re-send immediately with new formatting
+      // Re-send — server detects mailStatus === "CANCELLED" and skips the charge
       const res = await fetch("/api/disputes/mail", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
@@ -1892,15 +1884,17 @@ export default function DisputesPage() {
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-3 mb-2 text-center">
-                    A <span className="font-semibold text-slate-700">$2.00 mailing fee</span> will be charged to your card on file when you confirm.
-                  </p>
+                  {selectedDispute?.mailStatus !== "CANCELLED" && (
+                    <p className="text-xs text-slate-500 mt-3 mb-2 text-center">
+                      A <span className="font-semibold text-slate-700">$2.00 mailing fee</span> will be charged to your card on file when you confirm.
+                    </p>
+                  )}
                   <div className="flex gap-2">
                     <button
                       onClick={handleConfirmMail}
                       className="flex-1 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium text-sm hover:from-teal-500 hover:to-cyan-500 transition"
                     >
-                      Confirm & Mail — $2.00
+                      {selectedDispute?.mailStatus === "CANCELLED" ? "Confirm & Reattempt Mailing" : "Confirm & Mail — $2.00"}
                     </button>
                     <button
                       onClick={() => setShowMailForm(false)}
