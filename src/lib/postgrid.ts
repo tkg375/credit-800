@@ -172,7 +172,7 @@ export function letterToHtml(text: string): string {
     line-height: 1.4;
     color: #000000;
     margin: 0.5in;
-    margin-top: 2.75in;
+    margin-top: 3.5in;
     padding: 0;
   }
   p {
