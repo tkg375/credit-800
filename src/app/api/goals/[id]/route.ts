@@ -33,9 +33,14 @@ export async function PATCH(
     }
     if (deadline !== undefined) updates.deadline = deadline;
 
-    // Auto-complete if current >= target
+    // Validate current <= target
     const effectiveCurrent = typeof current === "number" ? current : (doc.data.current as number);
     const effectiveTarget = typeof target === "number" ? target : (doc.data.target as number);
+    if (effectiveTarget > 0 && effectiveCurrent > effectiveTarget) {
+      return NextResponse.json({ error: "current value cannot exceed target" }, { status: 400 });
+    }
+
+    // Auto-complete if current >= target
     const wasCompleted = doc.data.isCompleted as boolean;
 
     if (effectiveCurrent >= effectiveTarget && !wasCompleted) {

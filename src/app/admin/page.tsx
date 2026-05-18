@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
 interface AdminStats {
   totalUsers: number;
@@ -48,16 +47,16 @@ export default function AdminPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push("/login"); return; }
-    if (ADMIN_EMAIL && user.email !== ADMIN_EMAIL) {
-      router.push("/dashboard");
-      return;
-    }
 
     fetch("/api/admin/stats", {
       headers: { Authorization: `Bearer ${user.idToken}` },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 403) { router.push("/dashboard"); return null; }
+        return r.json();
+      })
       .then((data) => {
+        if (!data) return;
         if (data.error) { setError(data.error); return; }
         setStats(data);
       })

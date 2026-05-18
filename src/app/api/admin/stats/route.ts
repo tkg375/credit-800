@@ -13,10 +13,10 @@ export async function GET() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const [users, disputes, reportItems, waitlist] = await Promise.all([
-      firestore.query(COLLECTIONS.users, [], "createdAt", "DESCENDING", 1000),
-      firestore.query(COLLECTIONS.disputes, [], "createdAt", "DESCENDING", 200),
-      firestore.query(COLLECTIONS.creditReports, [], "createdAt", "DESCENDING", 50),
-      firestore.query(COLLECTIONS.autopilotWaitlist, []),
+      firestore.query(COLLECTIONS.users, [], "createdAt", "DESCENDING", 500),
+      firestore.query(COLLECTIONS.disputes, [{ field: "createdAt", op: "GREATER_THAN", value: thirtyDaysAgo }], "createdAt", "DESCENDING", 200),
+      firestore.query(COLLECTIONS.creditReports, [{ field: "createdAt", op: "GREATER_THAN", value: sevenDaysAgo }], "createdAt", "DESCENDING", 50),
+      firestore.query(COLLECTIONS.autopilotWaitlist, [], undefined, undefined, 500),
     ]);
 
     const totalUsers = users.length;

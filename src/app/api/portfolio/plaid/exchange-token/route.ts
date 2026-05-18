@@ -65,9 +65,8 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     });
 
-    // Create portfolio account docs for each Plaid account
-    const createdAccounts = [];
-    for (const acct of accounts) {
+    // Create portfolio account docs for each Plaid account (parallel)
+    const createdAccounts = await Promise.all(accounts.map(async (acct) => {
       const rawBalance = acct.balances?.current ?? 0;
       const balance = typeof rawBalance === "number" && isFinite(rawBalance) ? rawBalance : 0;
       const accountType = mapPlaidType(acct.type ?? "", acct.subtype ?? null);
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
         institution: typeof institutionName === "string" ? institutionName.slice(0, 100) : "Unknown",
         type: accountType,
         source: "plaid",
-        balance, // preserve sign — negative = liability
+        balance,
         currency: "USD",
         plaidItemId: plaidItemDocId,
         plaidAccountId: acct.id,
@@ -87,8 +86,8 @@ export async function POST(request: NextRequest) {
         updatedAt: now,
       };
       const docId = await firestore.addDoc("portfolioAccounts", docData);
-      createdAccounts.push({ id: docId, ...docData });
-    }
+      return { id: docId, ...docData };
+    }));
 
     await snapshotNetWorth(user.uid);
 

@@ -63,10 +63,18 @@ export interface FirestoreFilter {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Strip sensitive fields so they're never accidentally returned to API callers */
+const SENSITIVE_FIELDS = new Set([
+  "id", "passwordHash", "lastBreachCheck",
+  "resetToken", "resetTokenExpiry",
+  "twoFactorCode", "twoFactorCodeExpiry", "twoFactorAttempts",
+  "stripeCustomerId", "stripeSubscriptionId",
+  "tokenVersion",
+]);
+
 function stripSensitive(item: Record<string, unknown>): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id: _id, passwordHash: _ph, lastBreachCheck: _lbc, ...rest } = item as Record<string, unknown>;
-  return rest;
+  return Object.fromEntries(
+    Object.entries(item).filter(([k]) => !SENSITIVE_FIELDS.has(k))
+  );
 }
 
 function buildFilterExpression(
@@ -252,12 +260,15 @@ export const firestore = {
         scanParams.ExpressionAttributeValues = expressionAttributeValues;
       }
 
+      // Cap scans at 5000 items to prevent unbounded memory/time usage
+      const scanCap = limitCount ? Math.min(limitCount * 10, 5000) : 5000;
+
       const result = await db().send(new ScanCommand(scanParams));
       items = (result.Items || []) as Record<string, unknown>[];
 
-      // Paginate through all results
+      // Paginate but stop at cap
       let lastKey = result.LastEvaluatedKey;
-      while (lastKey) {
+      while (lastKey && items.length < scanCap) {
         const next = await db().send(
           new ScanCommand({ ...scanParams, ExclusiveStartKey: lastKey })
         );

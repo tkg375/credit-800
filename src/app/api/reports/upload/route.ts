@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { putObject } from "@/lib/s3";
+import { getLimiters } from "@/lib/ratelimit";
+import { getUserSubscription } from "@/lib/subscription";
 
 // Allow larger file uploads and longer execution
 export const runtime = "nodejs";
@@ -11,6 +13,15 @@ export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sub = await getUserSubscription(user.uid).catch(() => null);
+  const limiter = sub?.planTier === "pro" || sub?.planTier === "autopilot"
+    ? getLimiters().pro
+    : getLimiters().free;
+  const { success: rlOk } = await limiter.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Upload limit reached for today. Upgrade or try again tomorrow." }, { status: 429 });
   }
 
   try {

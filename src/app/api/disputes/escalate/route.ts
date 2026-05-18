@@ -83,12 +83,12 @@ export async function POST(req: NextRequest) {
     updatedAt: now,
   });
 
-  // Mark original dispute as escalated
+  // Mark original dispute as escalated — if this fails the new dispute still has originalDisputeId set
   await firestore.updateDoc(COLLECTIONS.disputes, disputeId, {
     escalatedToId: newDisputeId,
     escalationRound: round,
     updatedAt: now,
-  });
+  }).catch(err => console.error("Failed to mark original dispute escalated:", err));
 
   return NextResponse.json({ disputeId: newDisputeId, letterContent });
 }

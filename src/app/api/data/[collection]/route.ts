@@ -54,8 +54,11 @@ export async function POST(
     limit?: number;
   };
 
-  // Validate extra filter fields
+  // Validate extra filter fields — allowedFields never includes userId so it cannot be overridden
   for (const f of body.extraFilters || []) {
+    if (f.field === "userId") {
+      return NextResponse.json({ error: `Filter field 'userId' is not allowed` }, { status: 400 });
+    }
     if (!allowedFields.has(f.field)) {
       return NextResponse.json({ error: `Filter field '${f.field}' is not allowed` }, { status: 400 });
     }
