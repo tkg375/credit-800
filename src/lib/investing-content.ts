@@ -108,7 +108,7 @@ export const fidelityFunds: Fund[] = [
   {
     ticker: "FXAIX",
     name: "Fidelity 500 Index Fund",
-    category: "Large Cap / S&P 500",
+    category: "Large Cap",
     expenseRatio: "0.015%",
     description:
       "Tracks the S&P 500 — the 500 largest US companies. The gold standard benchmark that most active fund managers fail to beat. Highly liquid, battle-tested, and nearly free to hold.",

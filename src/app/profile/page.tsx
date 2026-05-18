@@ -18,6 +18,8 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState("");
   // Form fields
@@ -181,6 +183,30 @@ export default function ProfilePage() {
       setError(err instanceof Error ? err.message : "Failed to save profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!user) return;
+    setResetting(true);
+    setResetMessage("");
+    try {
+      const res = await fetch("/api/reports/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
+        body: JSON.stringify({ confirm: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to reset data");
+      setResetMessage(data.message);
+      if (data.remaining <= 0) {
+        setTimeout(() => { setResetting(false); setResetMessage(""); }, 3000);
+      } else {
+        setResetting(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reset data");
+      setResetting(false);
     }
   };
 
@@ -404,6 +430,38 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Reset All Data */}
+        <div className="bg-white rounded-2xl border border-orange-200 p-6">
+          <h2 className="font-semibold text-orange-600 mb-1">Reset All Data</h2>
+          <p className="text-sm text-slate-500 mb-4">
+            Clear all your credit reports, disputes, scores, and analysis data to start fresh. Your account will remain active.
+          </p>
+          {resetMessage && (
+            <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
+              {resetMessage}
+            </div>
+          )}
+          <button
+            onClick={handleReset}
+            disabled={resetting}
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg font-medium transition disabled:opacity-50 flex items-center gap-2"
+          >
+            {resetting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Reset All Data
+              </>
+            )}
+          </button>
         </div>
 
         {/* Danger Zone */}

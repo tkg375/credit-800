@@ -160,15 +160,27 @@ export default function BureausPage() {
                         const bureauEntry = bureauMap[bureau]?.[0];
                         return (
                           <div key={bureau} className="px-4 py-3 border-l border-slate-100">
-                            {bureauEntry ? (
+                            {bureauEntry && bureauEntry.status && bureauEntry.status.toUpperCase() !== "UNKNOWN" ? (
                               <div>
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                   bureauEntry.status.includes("COLLECTION") ? "bg-red-100 text-red-700" :
                                   bureauEntry.status.includes("CHARGE") ? "bg-orange-100 text-orange-700" :
+                                  bureauEntry.status.includes("OPEN") ? "bg-green-100 text-green-700" :
+                                  bureauEntry.status.includes("CLOSED") ? "bg-slate-100 text-slate-600" :
                                   "bg-amber-100 text-amber-700"
                                 }`}>
                                   {bureauEntry.status.replace(/_/g, " ")}
                                 </span>
+                                {bureauEntry.balance > 0 && (
+                                  <p className="text-xs text-slate-600 mt-1">${bureauEntry.balance.toLocaleString()}</p>
+                                )}
+                                {bureauEntry.isDisputable && (
+                                  <p className="text-xs text-teal-600 font-medium mt-0.5">Disputable</p>
+                                )}
+                              </div>
+                            ) : bureauEntry ? (
+                              <div>
+                                <span className="text-xs text-slate-400">— on file</span>
                                 {bureauEntry.balance > 0 && (
                                   <p className="text-xs text-slate-600 mt-1">${bureauEntry.balance.toLocaleString()}</p>
                                 )}
@@ -206,15 +218,22 @@ export default function BureausPage() {
                         return (
                           <div key={bureau} className="text-center">
                             <p className="text-xs font-medium text-slate-500 mb-1">{bureau.slice(0, 3)}</p>
-                            {entry ? (
+                            {entry && entry.status && entry.status.toUpperCase() !== "UNKNOWN" ? (
                               <div>
                                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                                   entry.status.includes("COLLECTION") ? "bg-red-100 text-red-700" :
                                   entry.status.includes("CHARGE") ? "bg-orange-100 text-orange-700" :
+                                  entry.status.includes("OPEN") ? "bg-green-100 text-green-700" :
+                                  entry.status.includes("CLOSED") ? "bg-slate-100 text-slate-600" :
                                   "bg-amber-100 text-amber-700"
                                 }`}>
                                   {entry.status.replace(/_/g, " ").split(" ")[0]}
                                 </span>
+                                {entry.balance > 0 && <p className="text-xs text-slate-600 mt-0.5">${entry.balance.toLocaleString()}</p>}
+                              </div>
+                            ) : entry ? (
+                              <div>
+                                <span className="text-xs text-slate-400">— on file</span>
                                 {entry.balance > 0 && <p className="text-xs text-slate-600 mt-0.5">${entry.balance.toLocaleString()}</p>}
                               </div>
                             ) : (

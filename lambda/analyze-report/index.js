@@ -314,7 +314,8 @@ function parseAnalysisJson(text, fallbackBureau) {
 
   const ALLOWED_STATUSES = new Set([
     'COLLECTION', 'CHARGE_OFF', 'LATE', 'DELINQUENT', 'CURRENT',
-    'CLOSED', 'PAID', 'SETTLED', 'UNKNOWN', 'WRITTEN_OFF', 'PAST_DUE',
+    'CLOSED', 'PAID', 'SETTLED', 'WRITTEN_OFF', 'PAST_DUE',
+    'OPEN', 'IN_REPAYMENT', 'TRANSFERRED', 'DISPUTE',
   ]);
 
   const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -337,8 +338,8 @@ function parseAnalysisJson(text, fallbackBureau) {
   }
 
   const items = (Array.isArray(parsed.items) ? parsed.items : []).map(item => {
-    const rawStatus = String(item.status || 'UNKNOWN').toUpperCase().replace(/\s+/g, '_');
-    const status = ALLOWED_STATUSES.has(rawStatus) ? rawStatus : 'UNKNOWN';
+    const rawStatus = String(item.status || '').toUpperCase().replace(/\s+/g, '_');
+    const status = ALLOWED_STATUSES.has(rawStatus) ? rawStatus : null;
     const balance = safeMoney(item.balance);
     const accountType = safeStr(item.accountType, 100, 'Unknown');
     return {

@@ -298,7 +298,7 @@ export default function CreditBuilderPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="flex gap-2 mb-6 flex-wrap justify-center">
           {(["all", "secured_card", "credit_builder_loan", "store_card"] as const).map((f) => (
             <button
               key={f}

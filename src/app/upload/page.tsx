@@ -16,8 +16,6 @@ export default function UploadPage() {
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
   const [timedOut, setTimedOut] = useState(false);
-  const [resetting, setResetting] = useState(false);
-  const [resetMessage, setResetMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Redirect if not logged in
@@ -234,45 +232,6 @@ export default function UploadPage() {
     return "UNKNOWN";
   };
 
-  const handleReset = async () => {
-    if (!user) return;
-
-    setResetting(true);
-    setResetMessage("");
-    setError("");
-
-    try {
-      const res = await fetch("/api/reports/reset", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.idToken}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to reset data");
-      }
-
-      setResetMessage(data.message);
-
-      // If there's more to delete, show message to click again
-      if (data.remaining > 0) {
-        setResetting(false);
-      } else {
-        setTimeout(() => {
-          setResetting(false);
-          setResetMessage("");
-        }, 3000);
-      }
-    } catch (err) {
-      console.error("Reset error:", err);
-      setError(err instanceof Error ? err.message : "Failed to reset data");
-      setResetting(false);
-    }
-  };
 
   if (authLoading) {
     return (
@@ -387,37 +346,6 @@ export default function UploadPage() {
               </ul>
             </div>
 
-            {/* Reset Data Section */}
-            <div className="mt-6 p-4 sm:p-6 bg-red-50 border border-red-200 rounded-xl">
-              <h3 className="font-semibold mb-2 text-red-800">Reset All Data</h3>
-              <p className="text-sm text-red-600 mb-4">
-                Clear all your credit reports, disputes, and analysis data to start fresh.
-              </p>
-              {resetMessage && (
-                <div className="mb-4 p-3 bg-white border border-red-200 rounded-lg text-sm text-red-700">
-                  {resetMessage}
-                </div>
-              )}
-              <button
-                onClick={handleReset}
-                disabled={resetting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg font-medium transition disabled:opacity-50 flex items-center gap-2"
-              >
-                {resetting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Reset All Data
-                  </>
-                )}
-              </button>
-            </div>
           </>
         ) : timedOut ? (
           <div className="text-center py-10 sm:py-16">

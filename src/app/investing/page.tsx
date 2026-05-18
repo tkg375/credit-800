@@ -49,7 +49,7 @@ function FundCard({ fund, selected, onClick }: { fund: Fund; selected: boolean; 
       <div className={`h-2 bg-gradient-to-r ${fund.colorClass}`} />
       <div className="p-3">
         <span className="text-base font-bold text-slate-900 block leading-tight">{fund.ticker}</span>
-        <span className="mt-1.5 inline-block text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full leading-snug">
+        <span className="mt-1.5 inline-block text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full leading-snug whitespace-nowrap">
           {fund.category}
         </span>
         <div className={`mt-2 text-sm font-bold ${fund.expenseRatio === "0.00%" ? "text-green-600" : "text-slate-700"}`}>
