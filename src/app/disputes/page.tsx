@@ -731,12 +731,13 @@ export default function DisputesPage() {
     setMailing(disputeId);
 
     try {
-      // Clear old cancelled job first
-      await fetch(`/api/data/disputes/${disputeId}`, {
+      // Clear old cancelled job on server first so the mail route won't reject it
+      const clearRes = await fetch(`/api/data/disputes/${disputeId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
         body: JSON.stringify({ mailJobId: null, mailStatus: null, mailError: null }),
       });
+      if (!clearRes.ok) throw new Error("Failed to clear previous mail job");
 
       // Re-send immediately with new formatting
       const res = await fetch("/api/disputes/mail", {
@@ -1760,7 +1761,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => handleReattemptMailing(selectedDispute.id)}
                       disabled={mailing === selectedDispute.id}
-                      className={`text-sm px-3 py-1 border rounded-lg transition disabled:opacity-50 ${
+                      className={`text-sm px-3 py-1 border rounded-lg transition disabled:opacity-50 whitespace-nowrap ${
                         selectedDispute.mailStatus === "CANCELLED"
                           ? "border-orange-300 text-orange-700 hover:bg-orange-100"
                           : "border-red-300 text-red-700 hover:bg-red-100"

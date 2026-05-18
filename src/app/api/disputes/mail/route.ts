@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already mailed
-    if (dispute.data.mailJobId) {
+    // Check if already mailed (allow reattempt if previous job was cancelled)
+    if (dispute.data.mailJobId && dispute.data.mailStatus !== "CANCELLED") {
       return NextResponse.json(
         { error: "This dispute letter has already been mailed", mailJobId: dispute.data.mailJobId },
         { status: 409 }
