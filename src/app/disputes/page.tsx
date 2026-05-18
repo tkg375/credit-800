@@ -692,6 +692,25 @@ export default function DisputesPage() {
     }
   };
 
+  // Auto-sync PostGrid status whenever a mailed dispute is opened
+  useEffect(() => {
+    if (!selectedDispute?.mailJobId || !user) return;
+    // Only skip if already at a truly final state the user has seen
+    if (selectedDispute.mailStatus === "DELIVERED") return;
+
+    fetch(`/api/disputes/mail/status?disputeId=${selectedDispute.id}`, {
+      headers: { Authorization: `Bearer ${user.idToken}` },
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.mailStatus) return;
+        setDisputes(prev => prev.map(d => d.id === selectedDispute.id ? { ...d, mailStatus: data.mailStatus, mailTracking: data.tracking } : d));
+        setSelectedDispute(prev => prev ? { ...prev, mailStatus: data.mailStatus, mailTracking: data.tracking } : prev);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDispute?.id]);
+
   const handleReattemptMailing = async (disputeId: string) => {
     if (!user) return;
 
