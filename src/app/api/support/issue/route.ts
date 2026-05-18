@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { firestore, COLLECTIONS } from "@/lib/db";
+import { getUserSubscription } from "@/lib/subscription";
 import { sendIssueReport } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
@@ -9,10 +11,19 @@ export async function POST(req: NextRequest) {
   const { issue, page } = await req.json();
   if (!issue?.trim()) return NextResponse.json({ error: "Issue description is required" }, { status: 400 });
 
+  // Pull profile + subscription so the report has full account context
+  const [profileDoc, sub] = await Promise.all([
+    firestore.getDoc(COLLECTIONS.users, user.uid).catch(() => null),
+    getUserSubscription(user.uid).catch(() => null),
+  ]);
+
   try {
     await sendIssueReport({
       userId: user.uid,
       userEmail: user.email || "unknown",
+      fullName: (profileDoc?.data?.fullName as string) || "",
+      plan: sub?.plan || "none",
+      subscriptionStatus: sub?.status || "unknown",
       issue: issue.trim(),
       page,
     });

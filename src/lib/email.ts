@@ -83,8 +83,8 @@ export async function sendHealthReportEmail(_to: string, _name: string, _stats: 
 export async function sendWeeklyProgressEmail(_to: string, _name: string, _stats: unknown) { return; }
 export async function sendPaymentFailedEmail(_to: string, _planLabel: string) { return; }
 export async function sendPasswordResetEmail(_to: string, _resetUrl: string) { return; }
-export async function sendIssueReport(params: { userId: string; userEmail: string; issue: string; page?: string }): Promise<void> {
-  const { userId, userEmail, issue, page } = params;
+export async function sendIssueReport(params: { userId: string; userEmail: string; fullName?: string; plan?: string; subscriptionStatus?: string; issue: string; page?: string }): Promise<void> {
+  const { userId, userEmail, fullName, plan, subscriptionStatus, issue, page } = params;
   await sendEmail(
     "tgordo03@gmail.com",
     `[Credit 800] Issue Report from ${escHtml(userEmail)}`,
@@ -93,15 +93,17 @@ export async function sendIssueReport(params: { userId: string; userEmail: strin
         <h1 style="color:white;margin:0;font-size:20px">Issue Report</h1>
         <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px">Credit 800 User Feedback</p>
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
-        <tr><td style="padding:8px 0;color:#64748b;font-size:13px;width:100px">User</td><td style="padding:8px 0;font-size:13px">${escHtml(userEmail)}</td></tr>
-        <tr><td style="padding:8px 0;color:#64748b;font-size:13px">User ID</td><td style="padding:8px 0;font-size:13px;font-family:monospace">${escHtml(userId)}</td></tr>
-        ${page ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Page</td><td style="padding:8px 0;font-size:13px">${escHtml(page)}</td></tr>` : ""}
-        <tr><td style="padding:8px 0;color:#64748b;font-size:13px">Time</td><td style="padding:8px 0;font-size:13px">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px">
+        <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:10px 0;color:#64748b;width:130px">Name</td><td style="padding:10px 0;font-weight:600">${escHtml(fullName || "—")}</td></tr>
+        <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:10px 0;color:#64748b">Email</td><td style="padding:10px 0">${escHtml(userEmail)}</td></tr>
+        <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:10px 0;color:#64748b">Account ID</td><td style="padding:10px 0;font-family:monospace;font-size:12px">${escHtml(userId)}</td></tr>
+        <tr style="border-bottom:1px solid #f1f5f9"><td style="padding:10px 0;color:#64748b">Plan</td><td style="padding:10px 0;text-transform:capitalize">${escHtml(plan || "free")} · ${escHtml(subscriptionStatus || "—")}</td></tr>
+        ${page ? `<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:10px 0;color:#64748b">Page</td><td style="padding:10px 0">${escHtml(page)}</td></tr>` : ""}
+        <tr><td style="padding:10px 0;color:#64748b">Reported At</td><td style="padding:10px 0">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
       </table>
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin-bottom:24px">
-        <p style="margin:0 0 8px;font-weight:600;font-size:14px;color:#0f172a">Issue Description</p>
-        <p style="margin:0;font-size:14px;color:#334155;white-space:pre-wrap">${escHtml(issue)}</p>
+        <p style="margin:0 0 10px;font-weight:600;font-size:14px;color:#0f172a">Issue Description</p>
+        <p style="margin:0;font-size:14px;color:#334155;white-space:pre-wrap;line-height:1.6">${escHtml(issue)}</p>
       </div>
       <p style="color:#94a3b8;font-size:12px">Sent automatically from Credit 800 · Reply to this email to respond directly to the user.</p>
     </body></html>`
