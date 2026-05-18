@@ -98,7 +98,7 @@ export default function SimulatorPage() {
               max={850}
               value={currentScore}
               onChange={(e) => { setCurrentScore(Math.min(850, Math.max(300, Number(e.target.value)))); setResult(null); }}
-              className="w-20 px-3 py-2 rounded-lg border border-slate-300 text-center font-bold text-lg"
+              className="w-24 px-3 py-2 rounded-lg border border-slate-300 text-center font-bold text-lg"
             />
           </div>
         </div>
