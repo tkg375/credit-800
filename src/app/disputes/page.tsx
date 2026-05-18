@@ -674,7 +674,6 @@ export default function DisputesPage() {
         body: JSON.stringify({ status: "DRAFT", mailJobId: null, mailStatus: null, mailError: null, mailDocumentId: null, mailAddressId: null }),
       });
 
-      // Update local state
       setDisputes((prev) =>
         prev.map((d) =>
           d.id === disputeId
@@ -690,6 +689,65 @@ export default function DisputesPage() {
     } catch (err) {
       console.error(err);
       alert("Failed to clear error. Please try again.");
+    }
+  };
+
+  const handleReattemptMailing = async (disputeId: string) => {
+    if (!user) return;
+
+    // Load saved return address from localStorage
+    const saved = localStorage.getItem("credit800_return_address");
+    if (!saved) {
+      // No saved address — fall back to clearing so user can fill the form
+      await handleClearMailError(disputeId);
+      return;
+    }
+
+    const fromAddress = JSON.parse(saved);
+    if (!fromAddress.name || !fromAddress.address_line1 || !fromAddress.address_city || !fromAddress.address_state || !fromAddress.address_zip) {
+      await handleClearMailError(disputeId);
+      return;
+    }
+
+    setMailing(disputeId);
+
+    try {
+      // Clear old cancelled job first
+      await fetch(`/api/data/disputes/${disputeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
+        body: JSON.stringify({ mailJobId: null, mailStatus: null, mailError: null }),
+      });
+
+      // Re-send immediately with new formatting
+      const res = await fetch("/api/disputes/mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.idToken}` },
+        body: JSON.stringify({ disputeId, fromAddress }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.details || data.error || "Failed to mail letter");
+
+      setDisputes((prev) =>
+        prev.map((d) =>
+          d.id === disputeId
+            ? { ...d, mailJobId: data.mailJobId, mailStatus: "SUBMITTED", status: "SENT", mailedAt: new Date().toISOString() }
+            : d
+        )
+      );
+      if (selectedDispute?.id === disputeId) {
+        setSelectedDispute((prev) =>
+          prev ? { ...prev, mailJobId: data.mailJobId, mailStatus: "SUBMITTED", status: "SENT", mailedAt: new Date().toISOString() } : prev
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to reattempt mailing.");
+      // Reset so user can try manually
+      await handleClearMailError(disputeId);
+    } finally {
+      setMailing(null);
     }
   };
 
@@ -1681,14 +1739,15 @@ export default function DisputesPage() {
                   </div>
                   {(selectedDispute.mailStatus === "ERROR" || selectedDispute.mailStatus === "CANCELLED") ? (
                     <button
-                      onClick={() => handleClearMailError(selectedDispute.id)}
-                      className={`text-sm px-3 py-1 border rounded-lg transition ${
+                      onClick={() => handleReattemptMailing(selectedDispute.id)}
+                      disabled={mailing === selectedDispute.id}
+                      className={`text-sm px-3 py-1 border rounded-lg transition disabled:opacity-50 ${
                         selectedDispute.mailStatus === "CANCELLED"
                           ? "border-orange-300 text-orange-700 hover:bg-orange-100"
                           : "border-red-300 text-red-700 hover:bg-red-100"
                       }`}
                     >
-                      Reattempt Mailing
+                      {mailing === selectedDispute.id ? "Sending..." : "Reattempt Mailing"}
                     </button>
                   ) : (
                     <button
