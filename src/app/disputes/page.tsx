@@ -1654,7 +1654,7 @@ export default function DisputesPage() {
                     Creditor address not found — you can enter it manually when mailing.
                   </div>
                 )}
-                <pre className="whitespace-pre-wrap font-sans text-sm text-slate-700 leading-relaxed">
+                <pre className="whitespace-pre-wrap font-sans text-xs text-slate-700 leading-relaxed">
                   {selectedDispute.letterContent || "Letter content not available."}
                 </pre>
               </div>
