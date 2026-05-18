@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Notification {
   id: string;
@@ -14,6 +14,13 @@ interface Notification {
 }
 
 function NotificationModal({ n, onClose }: { n: Notification; onClose: () => void }) {
+  const router = useRouter();
+
+  const handleViewDetails = () => {
+    onClose();
+    if (n.actionUrl) router.push(n.actionUrl);
+  };
+
   const typeIcon = (type: string) => {
     switch (type) {
       case "dispute_reminder": return "⏰";
@@ -47,13 +54,12 @@ function NotificationModal({ n, onClose }: { n: Notification; onClose: () => voi
         </div>
         <div className="px-6 pb-6 flex gap-3">
           {n.actionUrl && (
-            <Link
-              href={n.actionUrl}
-              onClick={onClose}
-              className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-medium text-center hover:opacity-90 transition"
+            <button
+              onClick={handleViewDetails}
+              className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
             >
               View Details
-            </Link>
+            </button>
           )}
           <button
             onClick={onClose}
