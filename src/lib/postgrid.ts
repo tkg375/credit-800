@@ -168,15 +168,15 @@ export function letterToHtml(text: string): string {
 <style>
   body {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 11pt;
-    line-height: 1.6;
+    font-size: 9pt;
+    line-height: 1.4;
     color: #000000;
-    margin: 0.75in;
+    margin: 0.5in;
     margin-top: 2.75in;
     padding: 0;
   }
   p {
-    margin: 0 0 10pt 0;
+    margin: 0 0 6pt 0;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
