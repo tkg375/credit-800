@@ -20,10 +20,6 @@ export async function POST(request: NextRequest) {
 
   const sub = await getUserSubscription(user.uid);
 
-  if (!sub.stripeCustomerId) {
-    return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
-  }
-
   const body = await request.json();
   const { disputeId, fromAddress, toAddress: manualToAddress } = body;
 
@@ -126,6 +122,11 @@ export async function POST(request: NextRequest) {
     let pi: { id: string } | null = null;
 
     if (!isReattempt) {
+      // Require a Stripe customer and card for paid mailings
+      if (!sub.stripeCustomerId) {
+        return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
+      }
+
       // Resolve the subscriber's saved payment method for the $2 mailing fee
       const paymentMethodId = await resolvePaymentMethod(sub.stripeCustomerId, sub.stripeSubscriptionId);
       if (!paymentMethodId) {

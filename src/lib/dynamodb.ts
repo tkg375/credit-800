@@ -67,8 +67,9 @@ const SENSITIVE_FIELDS = new Set([
   "id", "passwordHash", "lastBreachCheck",
   "resetToken", "resetTokenExpiry",
   "twoFactorCode", "twoFactorCodeExpiry", "twoFactorAttempts",
-  "stripeCustomerId", "stripeSubscriptionId",
   "tokenVersion",
+  // stripeCustomerId and stripeSubscriptionId are NOT stripped — server routes
+  // need them to resolve payment methods and create charges.
 ]);
 
 function stripSensitive(item: Record<string, unknown>): Record<string, unknown> {
