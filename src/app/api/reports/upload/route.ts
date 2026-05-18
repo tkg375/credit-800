@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const sub = await getUserSubscription(user.uid).catch(() => null);
-  const limiter = sub?.planTier === "pro" || sub?.planTier === "autopilot"
+  const limiter = sub?.isPro
     ? getLimiters().pro
     : getLimiters().free;
   const { success: rlOk } = await limiter.limit(user.uid);
