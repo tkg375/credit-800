@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { getEscalationTemplate } from "@/lib/escalation-templates";
+import { getLimiters } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success: rlOk } = await getLimiters().escalate.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Escalation limit reached (5/day). Try again tomorrow." }, { status: 429 });
+  }
 
   const { disputeId, round } = await req.json();
   if (!disputeId || !round) return NextResponse.json({ error: "disputeId and round are required" }, { status: 400 });

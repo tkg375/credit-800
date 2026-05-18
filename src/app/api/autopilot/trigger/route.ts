@@ -357,6 +357,7 @@ ${senderAddress}${profile?.dateOfBirth ? "\nDOB: " + profile.dateOfBirth : ""}
       }
 
       // Charge $2 mailing fee
+      let mailingPi: { id: string } | null = null;
       try {
         const pi = await stripe.paymentIntents.create({
           amount: 200,
@@ -373,12 +374,13 @@ ${senderAddress}${profile?.dateOfBirth ? "\nDOB: " + profile.dateOfBirth : ""}
           errors.push(`Payment failed for ${creditorName} — letter saved as draft`);
           continue;
         }
+        mailingPi = pi;
       } catch (payErr) {
         errors.push(`Payment error for ${creditorName}: ${payErr instanceof Error ? payErr.message : String(payErr)}`);
         continue;
       }
 
-      // Mail via PostGrid
+      // Mail via PostGrid — refund charge if it fails
       try {
         const letter = await sendLetter({
           to: {
@@ -419,6 +421,9 @@ ${senderAddress}${profile?.dateOfBirth ? "\nDOB: " + profile.dateOfBirth : ""}
           metadata: { creditorName, bureau, mailJobId: letter.id, runId },
         });
       } catch (mailErr) {
+        if (mailingPi) {
+          await stripe.refunds.create({ payment_intent: mailingPi.id }).catch(e => console.error("Autopilot refund failed:", e));
+        }
         const msg = `Mailing failed for ${creditorName}: ${mailErr instanceof Error ? mailErr.message : String(mailErr)}`;
         errors.push(msg);
         await logAuditEvent({

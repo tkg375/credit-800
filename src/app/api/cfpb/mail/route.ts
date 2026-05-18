@@ -58,14 +58,16 @@ export async function POST(req: NextRequest) {
       off_session: true,
       description: "USPS mailing fee — CFPB complaint letter",
       metadata: { userId: user.uid },
-    });
+    }, { idempotencyKey: `cfpb-mail-${user.uid}-${Date.now()}` });
 
     if (pi.status !== "succeeded") {
       return NextResponse.json({ error: "Payment of $2.00 mailing fee failed. Please update your payment method." }, { status: 402 });
     }
 
     const html = letterToHtml(complaintText);
-    const letter = await sendLetter({
+    let letter;
+    try {
+      letter = await sendLetter({
       to: CFPB_ADDRESS,
       from: {
         name: fromAddress.name,
@@ -78,6 +80,10 @@ export async function POST(req: NextRequest) {
       html,
       description: "CFPB Complaint Letter",
     });
+    } catch (pgErr) {
+      await stripe.refunds.create({ payment_intent: pi.id }).catch(e => console.error("CFPB refund failed:", e));
+      throw pgErr;
+    }
 
     return NextResponse.json({
       success: true,

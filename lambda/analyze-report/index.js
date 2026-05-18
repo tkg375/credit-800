@@ -17,7 +17,7 @@
 
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, UpdateCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, UpdateCommand, PutCommand, QueryCommand, DeleteCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { randomUUID } = require('crypto');
 
 // ── DynamoDB client ───────────────────────────────────────────────────────────
@@ -84,6 +84,21 @@ async function queryByUserId(collection, userId) {
     ExpressionAttributeValues: { ':uid': userId },
   }));
   return result.Items || [];
+}
+
+async function deleteDoc(collection, id) {
+  await dynamo().send(new DeleteCommand({
+    TableName: tbl(collection),
+    Key: { id },
+  }));
+}
+
+// Normalize a credit item to a stable fingerprint for deduplication
+function itemFingerprint(item) {
+  const name = String(item.creditorName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Use last 4 digits of account number (strip masks like ****)
+  const acct = String(item.accountNumber || '').replace(/[^a-z0-9]/g, '').slice(-4);
+  return `${name}|${acct}`;
 }
 
 // ── S3 client (uses execution role or explicit creds) ─────────────────────────
@@ -505,38 +520,87 @@ exports.handler = async (event) => {
       }
     }
 
-    // 4. Check for duplicate analysis
-    const existingItems = await queryByUserId('reportItems', userId);
-    const reportItems = existingItems.filter(i => i.creditReportId === reportId);
+    // 4. Load existing report items scoped to the SAME BUREAU only
+    // This prevents a single-bureau upload from deleting items from other bureaus
+    const allUserItems = await queryByUserId('reportItems', userId);
+    const bureauNorm = bureau.toLowerCase();
+    const samebureauItems = allUserItems.filter(i => {
+      const b = String(i.bureau || '').toLowerCase();
+      return b === bureauNorm || bureauNorm === 'unknown';
+    });
 
-    if (reportItems.length > 0) {
-      await updateDoc('creditReports', reportId, { status: 'ANALYZED', analyzedAt: new Date().toISOString() });
-      console.log('Report already had items — skipping write, marking ANALYZED');
-      return;
+    // Build fingerprint sets
+    const newItems = analysis.items.slice(0, 30);
+    const newFingerprintSet = new Set(newItems.map(itemFingerprint));
+
+    // 5. Delete stale items — only within the same bureau
+    const staleItems = samebureauItems.filter(i => !newFingerprintSet.has(itemFingerprint(i)));
+    for (const item of staleItems) {
+      await deleteDoc('reportItems', item.id);
+    }
+    console.log(`Removed ${staleItems.length} stale items no longer on ${bureau} report`);
+
+    // 6. Upsert: update existing items, add truly new ones
+    const existingByFp = {};
+    for (const item of samebureauItems) {
+      existingByFp[itemFingerprint(item)] = item;
     }
 
-    // 5. Save report items (max 30)
-    const itemsToSave = analysis.items.slice(0, 30);
-    for (const item of itemsToSave) {
-      await addDoc('reportItems', { userId, creditReportId: reportId, ...item });
+    let created = 0;
+    let updated = 0;
+    for (const item of newItems) {
+      const fp = itemFingerprint(item);
+      const existing = existingByFp[fp];
+      if (existing) {
+        // Update mutable fields — balance, status, activity date, link to new report
+        await updateDoc('reportItems', existing.id, {
+          balance: item.balance,
+          status: item.status,
+          lastActivityDate: item.lastActivityDate,
+          latePayments: item.latePayments,
+          isDisputable: item.isDisputable,
+          disputeReason: item.disputeReason,
+          removalStrategies: item.removalStrategies,
+          creditReportId: reportId,
+          updatedAt: new Date().toISOString(),
+        });
+        updated++;
+      } else {
+        await addDoc('reportItems', { userId, creditReportId: reportId, ...item, createdAt: new Date().toISOString() });
+        created++;
+      }
     }
-    console.log(`Saved ${itemsToSave.length} report items`);
+    console.log(`Upserted report items: ${created} created, ${updated} updated`);
 
-    // 6. Save credit score if found
+    // 7. Save credit score (always add a new data point for history)
     if (analysis.creditScore) {
       await addDoc('creditScores', { userId, score: analysis.creditScore, bureau, recordedAt: new Date().toISOString() });
       console.log(`Saved credit score: ${analysis.creditScore}`);
     }
 
-    // 7. Mark report as ANALYZED with summary
+    // 8. Mark report as ANALYZED with summary
+    const currentItems = await queryByUserId('reportItems', userId);
+    const freshSummary = {
+      totalAccounts: currentItems.length,
+      negativeItems: currentItems.filter(i => i.isDisputable).length,
+      collections: currentItems.filter(i => String(i.status).includes('COLLECTION') || String(i.accountType).toLowerCase().includes('collection')).length,
+      latePayments: currentItems.filter(i => String(i.status).includes('LATE') || (Array.isArray(i.latePayments) && i.latePayments.length > 0)).length,
+      totalDebt: currentItems.reduce((s, i) => s + (Number(i.balance) || 0), 0),
+      itemsRemoved: staleItems.length,
+    };
     await updateDoc('creditReports', reportId, {
       status: 'ANALYZED',
       analyzedAt: new Date().toISOString(),
-      summary: analysis.summary,
+      summary: freshSummary,
     });
 
-    // 8. Generate action plan
+    // 9. Regenerate action plan — write new one first, then delete old ones
+    // (write-before-delete ensures user always has an active plan even if Lambda crashes mid-way)
     await generateActionPlan(userId, reportId);
+    const oldPlans = await queryByUserId('actionPlans', userId);
+    for (const plan of oldPlans) {
+      if (plan.reportId !== reportId) await deleteDoc('actionPlans', plan.id);
+    }
 
     console.log('analyze-report Lambda complete', { reportId, itemsFound: analysis.items.length });
   } catch (err) {

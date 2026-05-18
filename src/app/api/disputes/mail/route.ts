@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Skip charge if this is a reattempt of a previously cancelled letter
     const isReattempt = dispute.data.mailStatus === "CANCELLED";
+    let pi: { id: string } | null = null;
 
     if (!isReattempt) {
       // Resolve the subscriber's saved payment method for the $2 mailing fee
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Charge $2 mailing fee (off-session, after all validation passes)
-      const pi = await stripe.paymentIntents.create(
+      const createdPi = await stripe.paymentIntents.create(
         {
           amount: 200,
           currency: "usd",
@@ -146,21 +147,31 @@ export async function POST(request: NextRequest) {
         { idempotencyKey: `letter-${user.uid}-${disputeId}` }
       );
 
-      if (pi.status !== "succeeded") {
+      if (createdPi.status !== "succeeded") {
         return NextResponse.json({ error: "Payment of $2.00 mailing fee failed. Please update your payment method." }, { status: 402 });
       }
+      pi = createdPi;
     }
 
     // Convert letter text to HTML
     const html = letterToHtml(letterContent);
 
-    // Send via PostGrid
-    const letter = await sendLetter({
-      to: toAddress,
-      from: senderAddress,
-      html,
-      description: `Dispute: ${creditorName} (${dispute.data.bureau || "unknown bureau"})`,
-    });
+    // Send via PostGrid — refund the charge if this fails
+    let letter;
+    try {
+      letter = await sendLetter({
+        to: toAddress,
+        from: senderAddress,
+        html,
+        description: `Dispute: ${creditorName} (${dispute.data.bureau || "unknown bureau"})`,
+      });
+    } catch (pgErr) {
+      // Refund the $2 charge since nothing was mailed
+      if (!isReattempt && pi) {
+        await stripe.refunds.create({ payment_intent: pi.id }).catch(e => console.error("Refund failed:", e));
+      }
+      throw pgErr;
+    }
 
     // Update Firestore with mail metadata
     const now = new Date().toISOString();

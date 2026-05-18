@@ -106,10 +106,8 @@ function DashboardContent() {
   const [actionPlan, setActionPlan] = useState<{ steps: ActionStep[] } | null>(null);
   const [latestChanges, setLatestChanges] = useState<ReportChanges | null>(null);
   const [loading, setLoading] = useState(true);
-  const [netWorth, setNetWorth] = useState<number | null>(null);
   const [totalAssets, setTotalAssets] = useState<number | null>(null);
   const [totalLiabilities, setTotalLiabilities] = useState<number | null>(null);
-  const [topGoals, setTopGoals] = useState<{ id: string; title: string; current: number; target: number; unit: string }[]>([]);
 
   useEffect(() => {
     if (searchParams.get("welcome") === "1") setShowWelcome(true);
@@ -211,22 +209,9 @@ function DashboardContent() {
             const liabilities = visible.filter((a: { type: string }) => !ASSET_TYPES.includes(a.type)).reduce((s: number, a: { balance: number }) => s + a.balance, 0);
             setTotalAssets(assets);
             setTotalLiabilities(liabilities);
-            setNetWorth(assets - liabilities);
           })
           .catch(() => {});
 
-        // Load top goals
-        fetch("/api/goals", {
-          headers: { Authorization: `Bearer ${user!.idToken}` },
-        })
-          .then((r) => r.json())
-          .then((d) => {
-            const goals = (d.goals || []).filter((g: { isCompleted: boolean }) => !g.isCompleted).slice(0, 3);
-            setTopGoals(goals.map((g: { id: string; title: string; current: number; target: number; unit: string }) => ({
-              id: g.id, title: g.title, current: g.current, target: g.target, unit: g.unit,
-            })));
-          })
-          .catch(() => {});
 
         // Fire-and-forget: health report trigger
         fetch("/api/users/health-report", {

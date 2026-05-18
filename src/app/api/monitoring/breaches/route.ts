@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
+import { getLimiters } from "@/lib/ratelimit";
 
 interface HibpBreach {
   Name: string;
@@ -13,6 +14,11 @@ interface HibpBreach {
 export async function GET() {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { success: rlOk } = await getLimiters().hibp.limit(user.uid);
+  if (!rlOk) {
+    return NextResponse.json({ error: "Too many breach checks today. Try again tomorrow." }, { status: 429 });
+  }
 
   const hibpKey = process.env.HIBP_API_KEY;
   if (!hibpKey) {

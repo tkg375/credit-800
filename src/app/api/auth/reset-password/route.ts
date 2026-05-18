@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import bcrypt from "bcryptjs";
 import { firestore } from "@/lib/db";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
@@ -27,7 +28,9 @@ export async function POST(request: NextRequest) {
 
     const { resetToken, resetTokenExpiry } = doc.data as { resetToken?: string; resetTokenExpiry?: string };
 
-    if (!resetToken || resetToken !== token) {
+    const tokensMatch = resetToken && token && resetToken.length === token.length &&
+      timingSafeEqual(Buffer.from(resetToken), Buffer.from(token));
+    if (!tokensMatch) {
       return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
     }
 

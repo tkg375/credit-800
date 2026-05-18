@@ -86,6 +86,8 @@ function createLimiters() {
     planGenerate:    makeLimiter("rl:plan",         20, DAY),
     escalationEmail: makeLimiter("rl:escalation",   5,  DAY),
     simulateData:    makeLimiter("rl:simulate",     5,  DAY),
+    escalate:        makeLimiter("rl:escalate",     5,  DAY),
+    hibp:            makeLimiter("rl:hibp",         20, DAY),
   };
 }
 

@@ -50,6 +50,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 });
   }
 
+  const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+  const ext = file.name.toLowerCase();
+  const extOk = ext.endsWith(".pdf") || ext.endsWith(".jpg") || ext.endsWith(".jpeg") || ext.endsWith(".png") || ext.endsWith(".webp");
+  if (!ALLOWED_MIME_TYPES.includes(file.type) && !extOk) {
+    return NextResponse.json({ error: "Only PDF and image files are accepted" }, { status: 415 });
+  }
+
+  // Verify PDF magic bytes if claimed to be a PDF
+  const headerBuf = await file.slice(0, 5).arrayBuffer();
+  const header = Buffer.from(headerBuf).toString("ascii");
+  const claimedPdf = file.type === "application/pdf" || ext.endsWith(".pdf");
+  if (claimedPdf && !header.startsWith("%PDF-")) {
+    return NextResponse.json({ error: "Invalid PDF file" }, { status: 415 });
+  }
+
   // Verify ownership
   const dispute = await firestore.getDoc(COLLECTIONS.disputes, disputeId);
   if (!dispute.exists) return NextResponse.json({ error: "Dispute not found" }, { status: 404 });

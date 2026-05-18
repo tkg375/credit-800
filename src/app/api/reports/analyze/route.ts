@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
     user = await getAuthUser();
   } catch (authErr) {
     console.error("Auth error:", authErr);
-    console.error("Auth error:", authErr);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

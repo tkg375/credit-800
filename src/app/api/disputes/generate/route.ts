@@ -227,6 +227,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Verify item ownership BEFORE creating any records
+    if (itemId) {
+      if (typeof itemId !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(itemId)) {
+        return NextResponse.json({ error: "Invalid itemId" }, { status: 400 });
+      }
+      const reportItem = await firestore.getDoc(COLLECTIONS.reportItems, itemId);
+      if (reportItem.exists && reportItem.data.userId !== user.uid) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     // Create dispute record with address metadata
     const disputeId = await firestore.addDoc(COLLECTIONS.disputes, {
       userId: user.uid,
@@ -252,12 +263,9 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    // Update the report item to mark it's been disputed (only if it belongs to this user)
+    // Update the report item to mark it's been disputed
     if (itemId) {
       const reportItem = await firestore.getDoc(COLLECTIONS.reportItems, itemId);
-      if (reportItem.exists && reportItem.data.userId !== user.uid) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
       if (reportItem.exists) {
         await firestore.updateDoc(COLLECTIONS.reportItems, itemId, {
           isDisputable: false,

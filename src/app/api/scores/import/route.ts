@@ -74,7 +74,13 @@ Return only the raw JSON, no markdown.`;
     return NextResponse.json({ error: "No valid credit score found in image" }, { status: 422 });
   }
 
-  const recordedAt = parsed.date ? new Date(parsed.date).toISOString() : new Date().toISOString();
+  let recordedAt = new Date().toISOString();
+  if (parsed.date) {
+    const d = new Date(parsed.date);
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 2000 && d <= new Date()) {
+      recordedAt = d.toISOString();
+    }
+  }
 
   const id = await firestore.addDoc(COLLECTIONS.creditScores, {
     userId: user.uid,
