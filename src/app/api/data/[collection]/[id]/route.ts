@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 // Collections accessible by ID via this endpoint, and which fields may be PATCH'd.
 const PATCHABLE_FIELDS: Record<string, Set<string>> = {
-  disputes:          new Set(["status", "notes", "responseText", "updatedAt"]),
+  disputes:          new Set(["status", "notes", "responseText", "updatedAt", "mailJobId", "mailStatus", "mailError", "mailDocumentId", "mailAddressId"]),
   goals:             new Set(["title", "targetAmount", "targetDate", "status", "progress", "updatedAt"]),
   budgetEntries:     new Set(["amount", "category", "description", "date", "updatedAt"]),
   portfolioAccounts: new Set(["nickname", "notes", "updatedAt"]),
