@@ -352,64 +352,6 @@ function DashboardContent() {
           </Link>
         </div>
 
-        {/* Net Worth + Goals Widgets */}
-        <section className="mb-8 sm:mb-12">
-            <div className="grid sm:grid-cols-2 gap-4">
-              {netWorth !== null && (
-                <Link href="/portfolio" className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition block">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-slate-500 font-medium">Net Worth</p>
-                    <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <p className={`text-3xl font-bold mb-3 ${netWorth >= 0 ? "bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent" : "text-red-500"}`}>
-                    {netWorth < 0 ? "-" : ""}${Math.abs(netWorth).toLocaleString()}
-                  </p>
-                  <div className="flex gap-4 text-sm">
-                    <div>
-                      <p className="text-xs text-slate-400">Assets</p>
-                      <p className="font-semibold text-emerald-600">${(totalAssets ?? 0).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Liabilities</p>
-                      <p className="font-semibold text-red-500">${(totalLiabilities ?? 0).toLocaleString()}</p>
-                    </div>
-                  </div>
-                </Link>
-              )}
-
-              {/* Goals Progress Widget */}
-              <Link href="/goals" className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition block">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-slate-500 font-medium">Your Goals</p>
-                  <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                {topGoals.length === 0 ? (
-                  <p className="text-sm text-slate-400">Set your first financial goal →</p>
-                ) : (
-                  <div className="space-y-3">
-                    {topGoals.map((g) => {
-                      const pct = Math.min(100, Math.round((g.current / g.target) * 100));
-                      return (
-                        <div key={g.id}>
-                          <div className="flex justify-between text-xs text-slate-600 mb-1">
-                            <span className="font-medium truncate">{g.title}</span>
-                            <span className="ml-2 shrink-0">{pct}%</span>
-                          </div>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full bg-gradient-to-r from-lime-500 to-teal-600" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </Link>
-            </div>
-        </section>
 
         {/* Score Progress Chart (Feature 1) */}
         {scoreHistory.length > 1 && (
