@@ -4,7 +4,7 @@ import { getUserSubscription } from "@/lib/subscription";
 import { getValidConsent } from "@/lib/fcra-consent";
 import { pullCreditReport, tradelineToDisputeReason, type CreditPullIdentity } from "@/lib/credit-pull";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { resolveCreditorAddress, formatAddress } from "@/lib/creditor-addresses";
+import { resolveCreditorAddressAsync, formatAddress } from "@/lib/creditor-addresses";
 import { sendLetter, letterToHtml } from "@/lib/postgrid";
 import { stripe, resolvePaymentMethod } from "@/lib/stripe";
 import { logAuditEvent } from "@/lib/audit-log";
@@ -267,7 +267,7 @@ export async function POST(req: NextRequest) {
 
       let creditorAddress = null;
       try {
-        creditorAddress = resolveCreditorAddress(creditorName);
+        creditorAddress = await resolveCreditorAddressAsync(creditorName);
       } catch { /* address not required for letter generation */ }
 
       const addressBlock = creditorAddress

@@ -153,8 +153,43 @@ export async function POST(request: NextRequest) {
       pi = createdPi;
     }
 
+    // Replace any placeholder address block in letter content with the actual recipient address
+    const addressLine2Part = toAddress.address_line2 ? `\n${toAddress.address_line2}` : "";
+    const actualAddressBlock = `${toAddress.name}\n${toAddress.address_line1}${addressLine2Part}\n${toAddress.address_city}, ${toAddress.address_state} ${toAddress.address_zip}`;
+
+    // Replace the two known placeholder patterns produced by generate/route.ts
+    let finalLetterContent = letterContent
+      .replace(/\[Insert Creditor\/Collection Agency Address\]\n\[City, State ZIP\]/g, `${toAddress.address_line1}${addressLine2Part}\n${toAddress.address_city}, ${toAddress.address_state} ${toAddress.address_zip}`)
+      .replace(/\[Insert Bureau Address\]\n\[City, State ZIP\]/g, `${toAddress.address_line1}${addressLine2Part}\n${toAddress.address_city}, ${toAddress.address_state} ${toAddress.address_zip}`);
+
+    // Also ensure the recipient name line is correct if it was a placeholder
+    finalLetterContent = finalLetterContent.replace(
+      /^(\[Insert Creditor.*?\])/m,
+      actualAddressBlock
+    );
+
+    // Save crowdsourced address when user manually provided one (non-blocking)
+    if (manualToAddress?.address_line1) {
+      const normalizedName = creditorName.toLowerCase().trim().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ");
+      firestore.setDoc("communityAddresses", normalizedName, {
+        name: toAddress.name || creditorName,
+        normalizedName,
+        address: toAddress.address_line1,
+        address2: toAddress.address_line2 || "",
+        city: toAddress.address_city,
+        state: toAddress.address_state,
+        zip: toAddress.address_zip,
+        submittedBy: user.uid,
+        useCount: 1,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        source: "community",
+        confidence: "medium",
+      }).catch(e => console.error("Failed to save community address:", e));
+    }
+
     // Convert letter text to HTML
-    const html = letterToHtml(letterContent);
+    const html = letterToHtml(finalLetterContent);
 
     // Send via PostGrid — refund the charge if this fails
     let letter;
@@ -173,7 +208,7 @@ export async function POST(request: NextRequest) {
       throw pgErr;
     }
 
-    // Update Firestore with mail metadata
+    // Update Firestore with mail metadata and corrected letter content
     const now = new Date().toISOString();
     await firestore.updateDoc(COLLECTIONS.disputes, disputeId, {
       mailJobId: letter.id,
@@ -181,6 +216,7 @@ export async function POST(request: NextRequest) {
       mailedAt: now,
       mailExpectedDelivery: letter.expected_delivery_date || null,
       status: "SENT",
+      letterContent: finalLetterContent,
       updatedAt: now,
     });
 

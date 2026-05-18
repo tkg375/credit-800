@@ -392,6 +392,34 @@ export function resolveCreditorAddress(creditorName: string): CreditorAddress | 
   return lookupStatic(creditorName);
 }
 
+/** Async version — checks static DB first, then community-submitted addresses in Firestore */
+export async function resolveCreditorAddressAsync(creditorName: string): Promise<CreditorAddress | null> {
+  const staticMatch = lookupStatic(creditorName);
+  if (staticMatch) return staticMatch;
+
+  try {
+    const { firestore } = await import("@/lib/db");
+    const normalizedName = creditorName.toLowerCase().trim().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ");
+    const doc = await firestore.getDoc("communityAddresses", normalizedName);
+    if (doc.exists && doc.data.address) {
+      return {
+        name: doc.data.name as string || creditorName,
+        address: doc.data.address as string,
+        city: doc.data.city as string,
+        state: doc.data.state as string,
+        zip: doc.data.zip as string,
+        department: (doc.data.address2 as string) || undefined,
+        source: "community" as "database",
+        confidence: (doc.data.confidence as "high" | "medium" | "low") || "medium",
+      };
+    }
+  } catch {
+    // Non-blocking — fall through to null
+  }
+
+  return null;
+}
+
 export function formatAddress(addr: CreditorAddress): string {
   const lines: string[] = [];
   if (addr.department) lines.push(addr.department);

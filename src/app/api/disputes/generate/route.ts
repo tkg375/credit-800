@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { resolveCreditorAddress, formatAddress, type CreditorAddress } from "@/lib/creditor-addresses";
+import { resolveCreditorAddressAsync, formatAddress, type CreditorAddress } from "@/lib/creditor-addresses";
 
 function isBureauDispute(reason: string): boolean {
   const r = reason.toLowerCase();
@@ -192,10 +192,9 @@ export async function POST(req: NextRequest) {
     let creditorAddress: CreditorAddress | null = null;
     try {
       if (bureauDispute && bureau) {
-        // For bureau disputes, address the letter TO the credit bureau
-        creditorAddress = resolveCreditorAddress(bureau);
+        creditorAddress = await resolveCreditorAddressAsync(bureau);
       } else {
-        creditorAddress = resolveCreditorAddress(creditorName);
+        creditorAddress = await resolveCreditorAddressAsync(creditorName);
       }
     } catch (addrError) {
       console.error("Address lookup failed (non-blocking):", addrError);
