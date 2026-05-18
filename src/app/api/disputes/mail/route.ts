@@ -121,30 +121,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Resolve the subscriber's saved payment method for the $2 mailing fee
-    const paymentMethodId = await resolvePaymentMethod(sub.stripeCustomerId, sub.stripeSubscriptionId);
-    if (!paymentMethodId) {
-      return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
-    }
+    // Skip charge if this is a reattempt of a previously cancelled letter
+    const isReattempt = dispute.data.mailStatus === "CANCELLED";
 
-    // Charge $2 mailing fee (off-session, after all validation passes)
-    // Idempotency key prevents double-charging on retries or timeouts
-    const pi = await stripe.paymentIntents.create(
-      {
-        amount: 200, // $2.00
-        currency: "usd",
-        customer: sub.stripeCustomerId,
-        payment_method: paymentMethodId,
-        confirm: true,
-        off_session: true,
-        description: `USPS mailing fee — dispute letter (${creditorName})`,
-        metadata: { userId: user.uid, disputeId },
-      },
-      { idempotencyKey: `letter-${user.uid}-${disputeId}` }
-    );
+    if (!isReattempt) {
+      // Resolve the subscriber's saved payment method for the $2 mailing fee
+      const paymentMethodId = await resolvePaymentMethod(sub.stripeCustomerId, sub.stripeSubscriptionId);
+      if (!paymentMethodId) {
+        return NextResponse.json({ error: "No card on file. Add a payment method in Profile → Payment Method to mail letters." }, { status: 402 });
+      }
 
-    if (pi.status !== "succeeded") {
-      return NextResponse.json({ error: "Payment of $2.00 mailing fee failed. Please update your payment method." }, { status: 402 });
+      // Charge $2 mailing fee (off-session, after all validation passes)
+      const pi = await stripe.paymentIntents.create(
+        {
+          amount: 200,
+          currency: "usd",
+          customer: sub.stripeCustomerId,
+          payment_method: paymentMethodId,
+          confirm: true,
+          off_session: true,
+          description: `USPS mailing fee — dispute letter (${creditorName})`,
+          metadata: { userId: user.uid, disputeId },
+        },
+        { idempotencyKey: `letter-${user.uid}-${disputeId}` }
+      );
+
+      if (pi.status !== "succeeded") {
+        return NextResponse.json({ error: "Payment of $2.00 mailing fee failed. Please update your payment method." }, { status: 402 });
+      }
     }
 
     // Convert letter text to HTML
