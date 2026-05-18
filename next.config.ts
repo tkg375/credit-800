@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
     ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? "",
     DYNAMODB_TABLE_PREFIX: process.env.DYNAMODB_TABLE_PREFIX ?? "credit800",
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "https://credit-800.com",
+    LAMBDA_FUNCTION_NAME: process.env.LAMBDA_FUNCTION_NAME ?? "",
   },
 };
 
