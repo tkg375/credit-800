@@ -314,9 +314,9 @@ function DashboardContent() {
             const colors = ["text-teal-600", "text-lime-600", "text-cyan-600"];
             const borders = ["border-teal-200", "border-lime-200", "border-cyan-200"];
             return (
-              <Link key={bureau} href="/scores" className={`bg-white border-2 ${borders[i]} rounded-2xl p-4 shadow-sm hover:shadow-lg transition block`}>
-                <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${colors[i]}`}>{bureau}</p>
-                <p className={`text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
+              <Link key={bureau} href="/scores" className={`bg-white border-2 ${borders[i]} rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition block`}>
+                <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-widest mb-1 truncate ${colors[i]}`}>{bureau}</p>
+                <p className={`text-2xl sm:text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
               </Link>
             );
           })}

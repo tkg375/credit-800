@@ -988,10 +988,10 @@ export default function DisputesPage() {
         </p>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           <button
             onClick={() => setActiveTab("disputable")}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition text-sm sm:text-base ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "disputable"
                 ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
@@ -1001,7 +1001,7 @@ export default function DisputesPage() {
           </button>
           <button
             onClick={() => setActiveTab("disputes")}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition text-sm sm:text-base ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "disputes"
                 ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
@@ -1011,7 +1011,7 @@ export default function DisputesPage() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition text-sm sm:text-base ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "history"
                 ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
@@ -1031,7 +1031,7 @@ export default function DisputesPage() {
               mailedAt: d.mailedAt || "",
             })))}
             disabled={disputes.length === 0}
-            className="ml-auto px-3 py-2 border border-slate-200 text-slate-600 text-sm rounded-xl font-medium hover:bg-slate-50 transition disabled:opacity-40 flex items-center gap-1.5"
+            className="hidden sm:flex shrink-0 ml-auto px-3 py-2 border border-slate-200 text-slate-600 text-sm rounded-xl font-medium hover:bg-slate-50 transition disabled:opacity-40 items-center gap-1.5 whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

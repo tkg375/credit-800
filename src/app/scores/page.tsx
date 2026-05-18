@@ -186,37 +186,39 @@ export default function ScoresPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent whitespace-nowrap">
-              Score Tracking
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm sm:text-base">Track your score across all three bureaus</p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <label className={`px-3 py-2 border border-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition cursor-pointer flex items-center gap-2 ${importing ? "opacity-50 pointer-events-none" : ""}`}>
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{importing ? "Scanning..." : "Import Screenshot"}</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleImportScreenshot} disabled={importing} />
-            </label>
-            <button
-              onClick={() => downloadCSV("credit-scores.csv", scores.map(s => ({ score: s.score, source: s.source, bureau: s.bureau || "", recordedAt: s.recordedAt })))}
-              disabled={!hasAnyScores}
-              className="px-3 py-2 border border-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition disabled:opacity-40 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export CSV
-            </button>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-3 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
-            >
-              + Add Score
-            </button>
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+                Score Tracking
+              </h1>
+              <p className="text-slate-500 mt-1 text-sm sm:text-base">Track your score across all three bureaus</p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <label className={`px-3 py-2 border border-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition cursor-pointer flex items-center gap-2 ${importing ? "opacity-50 pointer-events-none" : ""}`}>
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{importing ? "Scanning..." : "Import Screenshot"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleImportScreenshot} disabled={importing} />
+              </label>
+              <button
+                onClick={() => downloadCSV("credit-scores.csv", scores.map(s => ({ score: s.score, source: s.source, bureau: s.bureau || "", recordedAt: s.recordedAt })))}
+                disabled={!hasAnyScores}
+                className="hidden sm:flex px-3 py-2 border border-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition disabled:opacity-40 items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export CSV
+              </button>
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="px-3 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+              >
+                + Add Score
+              </button>
+            </div>
           </div>
         </div>
 
