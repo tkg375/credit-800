@@ -350,7 +350,7 @@ export function AuthenticatedLayout({
       <header className="fixed top-0 left-0 right-0 z-30 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3">
         {/* Logo: centered on mobile, left-aligned on desktop */}
         <Link href="/dashboard" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 shrink-0 md:mr-2">
-          <Logo className="h-7 w-auto" />
+          <Logo className="h-9 w-auto" />
         </Link>
 
         {/* Desktop nav dropdowns */}
@@ -414,7 +414,7 @@ export function AuthenticatedLayout({
           <aside className="fixed inset-y-0 left-0 w-72 bg-white z-50 flex flex-col shadow-xl md:hidden overflow-y-auto">
             <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100">
               <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                <Logo className="h-7 w-auto" />
+                <Logo className="h-9 w-auto" />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}
