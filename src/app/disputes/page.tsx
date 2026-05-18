@@ -1697,7 +1697,7 @@ export default function DisputesPage() {
         {/* Letter Modal */}
         {selectedDispute && (
           <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={(e) => { if (e.target === e.currentTarget) setSelectedDispute(null); }}>
-            <div className="bg-white w-full max-w-xl h-full flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-white w-full sm:max-w-2xl h-full flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
                 <h2 className="text-xl font-semibold">Dispute Letter</h2>
                 <button
