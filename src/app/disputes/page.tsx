@@ -99,6 +99,7 @@ export default function DisputesPage() {
   const [checkingStatus, setCheckingStatus] = useState<string | null>(null);
   const [escalating, setEscalating] = useState<string | null>(null);
   const [showMailForm, setShowMailForm] = useState(false);
+  const [isReattempt, setIsReattempt] = useState(false);
   const [mailFormName, setMailFormName] = useState("");
   const [mailFormAddress, setMailFormAddress] = useState("");
   const [mailFormAddress2, setMailFormAddress2] = useState("");
@@ -623,6 +624,7 @@ export default function DisputesPage() {
     } : undefined;
 
     setShowMailForm(false);
+    setIsReattempt(false);
     setMailing(disputeId);
 
     try {
@@ -717,14 +719,16 @@ export default function DisputesPage() {
     // Load saved return address from localStorage
     const saved = localStorage.getItem("credit800_return_address");
     if (!saved) {
-      // No saved address — fall back to clearing so user can fill the form
-      await handleClearMailError(disputeId);
+      // No saved address — show form in reattempt mode (no charge)
+      setIsReattempt(true);
+      setShowMailForm(true);
       return;
     }
 
     const fromAddress = JSON.parse(saved);
     if (!fromAddress.name || !fromAddress.address_line1 || !fromAddress.address_city || !fromAddress.address_state || !fromAddress.address_zip) {
-      await handleClearMailError(disputeId);
+      setIsReattempt(true);
+      setShowMailForm(true);
       return;
     }
 
@@ -1884,9 +1888,14 @@ export default function DisputesPage() {
                       />
                     </div>
                   </div>
-                  {selectedDispute?.mailStatus !== "CANCELLED" && (
+                  {!isReattempt && (
                     <p className="text-xs text-slate-500 mt-3 mb-2 text-center">
                       A <span className="font-semibold text-slate-700">$2.00 mailing fee</span> will be charged to your card on file when you confirm.
+                    </p>
+                  )}
+                  {isReattempt && (
+                    <p className="text-xs text-green-600 mt-3 mb-2 text-center font-medium">
+                      No charge — reattempting a cancelled letter is free.
                     </p>
                   )}
                   <div className="flex gap-2">
@@ -1894,10 +1903,10 @@ export default function DisputesPage() {
                       onClick={handleConfirmMail}
                       className="flex-1 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium text-sm hover:from-teal-500 hover:to-cyan-500 transition"
                     >
-                      {selectedDispute?.mailStatus === "CANCELLED" ? "Confirm & Reattempt Mailing" : "Confirm & Mail — $2.00"}
+                      {isReattempt ? "Confirm & Reattempt Mailing" : "Confirm & Mail — $2.00"}
                     </button>
                     <button
-                      onClick={() => setShowMailForm(false)}
+                      onClick={() => { setShowMailForm(false); setIsReattempt(false); }}
                       className="px-4 py-2 border border-slate-300 rounded-lg text-sm hover:bg-white transition"
                     >
                       Cancel
