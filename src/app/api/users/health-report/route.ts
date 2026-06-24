@@ -27,6 +27,11 @@ export async function POST() {
 
     const name = (userDoc.data.fullName as string) || (userDoc.data.displayName as string) || "";
 
+    // Stamp the timestamp first to prevent duplicate sends on concurrent calls
+    await firestore.updateDoc(COLLECTIONS.users, user.uid, {
+      lastHealthEmailSentAt: new Date().toISOString(),
+    });
+
     // Fetch credit scores, disputes, and disputable items in parallel
     const [scores, disputes, disputableItems] = await Promise.all([
       firestore.query(COLLECTIONS.creditScores, [
@@ -63,11 +68,6 @@ export async function POST() {
       sentCount,
       resolvedCount,
       disputableCount,
-    });
-
-    // Update lastHealthEmailSentAt
-    await firestore.updateDoc(COLLECTIONS.users, user.uid, {
-      lastHealthEmailSentAt: new Date().toISOString(),
     });
 
     return NextResponse.json({ sent: true });

@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { downloadCSV } from "@/lib/export-csv";
+import { UploadModal } from "@/components/UploadModal";
 
 interface RemovalStrategy {
   method: string;
@@ -88,6 +89,7 @@ function DisputesPage() {
   const { user, loading: authLoading } = useAuth();
   const { isPro } = useSubscription();
   const router = useRouter();
+  const [uploadModalType, setUploadModalType] = useState<"report" | "letter" | null>(null);
   const [activeTab, setActiveTab] = useState<"disputable" | "disputes" | "history">("disputable");
   const [disputableItems, setDisputableItems] = useState<ReportItem[]>([]);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
@@ -1070,12 +1072,12 @@ function DisputesPage() {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No Disputable Items</h3>
                 <p className="text-slate-500 mb-6">Upload a credit report to find items you can dispute.</p>
-                <Link
-                  href="/upload"
+                <button
+                  onClick={() => setUploadModalType("report")}
                   className="inline-block px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
                 >
                   Upload Report
-                </Link>
+                </button>
               </div>
             ) : (
               <div className="space-y-6">
@@ -2127,6 +2129,7 @@ function DisputesPage() {
           </div>
         </div>
       )}
+      <UploadModal type={uploadModalType} onClose={() => setUploadModalType(null)} />
     </AuthenticatedLayout>
   );
 }

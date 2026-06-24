@@ -24,6 +24,12 @@ export async function POST() {
     }
 
     const name = (userDoc.data.fullName as string) || (userDoc.data.displayName as string) || "";
+
+    // Stamp the timestamp first to prevent duplicate sends on concurrent calls
+    await firestore.updateDoc(COLLECTIONS.users, user.uid, {
+      lastWeeklyEmailSentAt: new Date().toISOString(),
+    });
+
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const [scores, disputes, goals] = await Promise.all([
@@ -87,10 +93,6 @@ export async function POST() {
       disputesSentThisWeek,
       goalsCompletedThisWeek,
       upcomingDeadlines,
-    });
-
-    await firestore.updateDoc(COLLECTIONS.users, user.uid, {
-      lastWeeklyEmailSentAt: new Date().toISOString(),
     });
 
     return NextResponse.json({ sent: true });
