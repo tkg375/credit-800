@@ -45,7 +45,7 @@ export function AutopilotNotify() {
         <button
           onClick={handleSubmit}
           disabled={state === "loading" || !email.includes("@")}
-          className="px-3 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50 shrink-0"
+          className="px-3 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50 shrink-0"
         >
           {state === "loading" ? "..." : "Notify Me"}
         </button>

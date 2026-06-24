@@ -129,7 +129,7 @@ export default function PayoffPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -139,7 +139,7 @@ export default function PayoffPage() {
       <ProGate feature="Debt Payoff Optimizer">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-start justify-between mb-2">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
             Debt Payoff Optimizer
           </h1>
           <button
@@ -233,7 +233,7 @@ export default function PayoffPage() {
 
         <button
           onClick={calculate}
-          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition mb-8"
+          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition mb-8"
         >
           Calculate Payoff Plans
         </button>
@@ -252,7 +252,7 @@ export default function PayoffPage() {
                 return (
                   <div key={label} className={`bg-white rounded-xl border-2 p-5 ${recommended ? "border-teal-500" : "border-slate-200"}`}>
                     {recommended && (
-                      <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">Recommended</span>
+                      <span className="text-xs bg-blue-50 text-[#1a3fd4] px-2 py-0.5 rounded-full font-medium">Recommended</span>
                     )}
                     <h3 className="font-semibold mt-2">{label}</h3>
                     <p className="text-xs text-slate-500">{sub}</p>
@@ -281,7 +281,7 @@ export default function PayoffPage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
                 <h3 className="font-semibold mb-4">Balance Over Time</h3>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={256} minWidth={0}>
                     <AreaChart data={chartData}>
                       <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#94a3b8" />
                       <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />

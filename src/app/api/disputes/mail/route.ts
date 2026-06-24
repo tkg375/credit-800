@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     if (user.email) {
       const profileDoc = await firestore.getDoc(COLLECTIONS.users, user.uid).catch(() => null);
       const name = (profileDoc?.data?.fullName as string) || "";
-      sendDisputeMailedEmail(user.email, name, creditorName, letter.expected_delivery_date || "").catch(() => {});
+      sendDisputeMailedEmail(user.email, name, creditorName, letter.expected_delivery_date || "").catch((err) => console.error("[email] fire-and-forget error:", err));
     }
 
     return NextResponse.json({

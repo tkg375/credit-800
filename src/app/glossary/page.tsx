@@ -319,7 +319,7 @@ export default function GlossaryPage() {
         <MarketingNav />
       </header>
 
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">Credit Glossary</h1>
           <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
@@ -373,12 +373,12 @@ export default function GlossaryPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 rounded-2xl p-8 text-center mt-14">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-8 text-center mt-14">
           <h2 className="text-2xl font-bold text-white mb-2">Apply These Concepts to Your Own Credit</h2>
           <p className="text-lime-100 text-sm mb-6 max-w-md mx-auto">
             Upload your credit report and get a personalized analysis, dispute letters, and action plan — all the terms above, applied to your specific situation.
           </p>
-          <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
+          <GetStartedButton className="inline-block px-8 py-3 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-lg font-medium transition">
             Get Started
           </GetStartedButton>
         </div>

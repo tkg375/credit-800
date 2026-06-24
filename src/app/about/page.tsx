@@ -42,14 +42,14 @@ const features = [
       "Credit 800 analyzes your credit report against FCRA requirements and generates dispute letters that cite the specific legal sections relevant to each item — not boilerplate templates.",
   },
   {
-    title: "Everything in One Place",
+    title: "Autopilot — Fully Automated",
     description:
-      "Credit disputes, budget tracking, debt payoff planning, loan readiness scores, score simulation, and more — tools that used to require separate subscriptions, in a single platform.",
+      "Our Autopilot plan pulls your credit report, generates FCRA-compliant dispute letters, and mails them to the bureaus every month — automatically. No uploads, no manual steps.",
   },
   {
-    title: "Completely Free",
+    title: "Free to Start",
     description:
-      "Credit 800 is free for everyone — no subscription, no credit card required, and no hidden fees. The only optional charge is $2/letter if you want us to mail a dispute via USPS.",
+      "The Self Service plan is free for everyone — no subscription, no credit card required. Upgrade to Autopilot at $49/month when you want us to handle everything for you.",
   },
   {
     title: "Your Data, Your Control",
@@ -60,7 +60,7 @@ const features = [
 
 const stats = [
   { value: "22+", label: "Tools included" },
-  { value: "7", label: "Letter types" },
+  { value: "Autopilot", label: "Now live" },
   { value: "FCRA", label: "Legally grounded" },
   { value: "Free", label: "To get started" },
 ];
@@ -76,7 +76,7 @@ export default function AboutPage() {
         <MarketingNav />
       </header>
 
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">About Credit 800</h1>
           <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
@@ -108,7 +108,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
             {stats.map((s) => (
               <div key={s.label} className="border border-slate-200 rounded-xl p-5 text-center">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent mb-1">
+                <div className={`font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent mb-1 ${s.value.length > 6 ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl"}`}>
                   {s.value}
                 </div>
                 <div className="text-xs sm:text-sm text-slate-500">{s.label}</div>
@@ -149,6 +149,10 @@ export default function AboutPage() {
               <span>We help you understand every aspect of your credit and what's affecting your score</span>
             </div>
             <div className="flex items-start gap-2">
+              <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+              <span>Autopilot acts on your behalf under written FCRA authorization — pulling your report, generating letters, and mailing them automatically</span>
+            </div>
+            <div className="flex items-start gap-2">
               <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span>
               <span>We don't promise specific score increases or guarantee item removals</span>
             </div>
@@ -170,13 +174,13 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h2>
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">Ready to Put Your Credit on Autopilot?</h2>
           <p className="text-lime-100 text-sm mb-6 max-w-md mx-auto">
-            Upload your credit report, get your personalized dispute letters and action plan, and take control of your credit.
+            Start free or activate Autopilot and let us handle the entire dispute process every month.
           </p>
-          <GetStartedButton className="px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
-            Get Started
+          <GetStartedButton className="px-8 py-3 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-lg font-medium transition">
+            Start Now →
           </GetStartedButton>
         </div>
       </main>

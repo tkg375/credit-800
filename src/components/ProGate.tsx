@@ -22,7 +22,7 @@ export function ProGate({ children, feature }: { children: ReactNode; feature?: 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function ProGate({ children, feature }: { children: ReactNode; feature?: 
     <div className="flex items-center justify-center min-h-[70vh] px-4">
       <div className="w-full max-w-lg text-center">
         {/* Lock icon */}
-        <div className="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-br from-lime-100 to-teal-100 flex items-center justify-center">
+        <div className="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
           <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -66,10 +66,10 @@ export function ProGate({ children, feature }: { children: ReactNode; feature?: 
           <span className="text-3xl font-bold text-slate-900">Free</span>
         </div>
 
-        <GetStartedButton className="block w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-sm">
+        <GetStartedButton className="block w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-sm">
           Get Started — Free
         </GetStartedButton>
-        <p className="text-xs text-slate-400 mt-3">Already have an account? <LogInButton className="text-teal-600 hover:underline">Sign in</LogInButton></p>
+        <p className="text-xs text-slate-400 mt-3">Already have an account? <LogInButton className="text-[#1a3fd4] hover:underline">Sign in</LogInButton></p>
       </div>
     </div>
   );

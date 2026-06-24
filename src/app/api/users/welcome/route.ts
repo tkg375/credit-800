@@ -17,6 +17,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  sendWelcomeEmail(user.email, name || "").catch(() => {});
+  sendWelcomeEmail(user.email, name || "").catch((err) => console.error("[email] fire-and-forget error:", err));
   return NextResponse.json({ ok: true });
 }

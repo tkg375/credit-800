@@ -104,7 +104,7 @@ function CFPBComplaintContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -114,7 +114,7 @@ function CFPBComplaintContent() {
       <ProGate feature="CFPB Complaint Generator">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
             CFPB Complaint Generator
           </h1>
           <p className="text-slate-500 mt-2">
@@ -230,7 +230,7 @@ function CFPBComplaintContent() {
                 <button
                   onClick={handleGenerate}
                   disabled={!creditorName || !bureau || !reason || !consumerName}
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
                 >
                   Generate CFPB Complaint
                 </button>
@@ -250,11 +250,11 @@ function CFPBComplaintContent() {
                     {copied ? "Copied!" : "Copy"}
                   </button>
                   {mailSent ? (
-                    <span className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg font-medium">✓ Mailed to CFPB</span>
+                    <span className="px-4 py-2 text-sm bg-blue-50 text-[#1a3fd4] rounded-lg font-medium">✓ Mailed to CFPB</span>
                   ) : (
                     <button
                       onClick={() => setShowMailForm(!showMailForm)}
-                      className="px-4 py-2 text-sm bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg hover:opacity-90 transition"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg hover:opacity-90 transition"
                     >
                       Mail to CFPB via USPS
                     </button>
@@ -292,7 +292,7 @@ function CFPBComplaintContent() {
                 <button
                   onClick={handleMailCfpb}
                   disabled={mailing}
-                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {mailing ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Mailing...</> : "Confirm & Mail to CFPB"}
                 </button>
@@ -330,7 +330,7 @@ export default function CFPBComplaintPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <CFPBComplaintContent />

@@ -1,71 +1,79 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { AwsClient } from "aws4fetch";
 
-const bucket = process.env.S3_BUCKET!;
+let _injectedBucket: R2Bucket | null = null;
+export function injectBucket(bucket: R2Bucket) { _injectedBucket = bucket; }
 
-let s3Client: S3Client | null = null;
-
-function getS3Client(): S3Client {
-  if (!s3Client) {
-    const accessKeyId = process.env.S3_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-    s3Client = new S3Client({
-      region: process.env.S3_REGION || "us-east-1",
-      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
-    });
-  }
-  return s3Client;
+async function getBucket(): Promise<R2Bucket> {
+  if (_injectedBucket) return _injectedBucket;
+  const ctx = await getCloudflareContext({ async: true });
+  return (ctx.env as { CREDIT_REPORTS_BUCKET: R2Bucket }).CREDIT_REPORTS_BUCKET;
 }
 
-/** Get a pre-signed URL for a client to PUT an object directly to S3 (5 min expiry) */
-export async function getUploadUrl(
-  key: string,
-  contentType = "application/pdf"
-): Promise<string> {
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    ContentType: contentType,
+// For presigned URLs we use the R2 S3-compatible API endpoint with aws4fetch
+function getR2Client() {
+  return new AwsClient({
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    region: "auto",
+    service: "s3",
   });
-  return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 }
 
-/** Get a pre-signed URL for downloading/viewing an object (5 min expiry) */
+const ACCOUNT_ID = "3869ffbbf462deee55a7a0b1880ffb84";
+// Bucket differs per environment (dev vs prod); falls back to prod.
+function bucketName() {
+  return process.env.R2_BUCKET_NAME || "credit-800-files";
+}
+
+function r2Url(key: string) {
+  return `https://${ACCOUNT_ID}.r2.cloudflarestorage.com/${bucketName()}/${key}`;
+}
+
+/** Get a pre-signed URL for a client to PUT directly to R2 (5 min expiry) */
+export async function getUploadUrl(key: string, contentType = "application/pdf"): Promise<string> {
+  const client = getR2Client();
+  const url = new URL(r2Url(key));
+  url.searchParams.set("X-Amz-Expires", "300");
+  const signed = await client.sign(
+    new Request(url.toString(), { method: "PUT", headers: { "Content-Type": contentType } }),
+    { aws: { signQuery: true } }
+  );
+  return signed.url;
+}
+
+/** Get a pre-signed URL for downloading an object (5 min expiry) */
 export async function getDownloadUrl(key: string): Promise<string> {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
+  const client = getR2Client();
+  const url = new URL(r2Url(key));
+  url.searchParams.set("X-Amz-Expires", "300");
+  const signed = await client.sign(
+    new Request(url.toString(), { method: "GET" }),
+    { aws: { signQuery: true } }
+  );
+  return signed.url;
 }
 
-/** Read an object's bytes from S3 server-side */
+/** Read an object's bytes from R2 server-side */
 export async function getObject(key: string): Promise<Uint8Array> {
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  const response = await (getS3Client()).send(command);
-  if (!response.Body) throw new Error("No body returned from S3");
-  return response.Body.transformToByteArray();
+  const bucket = await getBucket();
+  const obj = await bucket.get(key);
+  if (!obj) throw new Error(`R2 object not found: ${key}`);
+  return new Uint8Array(await obj.arrayBuffer());
 }
 
-/** Upload bytes to S3 server-side */
+/** Upload bytes to R2 server-side */
 export async function putObject(
   key: string,
   data: Buffer | Uint8Array,
   contentType = "application/pdf"
 ): Promise<void> {
-  const command = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: data,
-    ContentType: contentType,
-  });
-  await (getS3Client()).send(command);
+  const bucket = await getBucket();
+  await bucket.put(key, data, { httpMetadata: { contentType } });
 }
 
-/** Delete an object from S3 */
+/** Delete an object from R2 */
 export async function deleteObject(key: string): Promise<void> {
-  const command = new DeleteObjectCommand({ Bucket: bucket, Key: key });
-  await (getS3Client()).send(command);
+  const bucket = await getBucket();
+  await bucket.delete(key);
 }

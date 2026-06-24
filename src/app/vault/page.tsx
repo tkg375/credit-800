@@ -118,7 +118,7 @@ export default function VaultPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function VaultPage() {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
               Document Vault
             </h1>
             <p className="text-slate-500 text-sm mt-1">Securely store your credit-related documents.</p>
@@ -146,7 +146,7 @@ export default function VaultPage() {
           >
             {uploading ? (
               <div className="flex items-center justify-center gap-3 py-2">
-                <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-2 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
                 <span className="text-slate-600 text-sm font-medium">Uploading...</span>
               </div>
             ) : (

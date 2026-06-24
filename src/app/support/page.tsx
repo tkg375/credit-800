@@ -1,8 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string;
+      reset: (widgetId: string) => void;
+    };
+  }
+}
 
 export default function SupportPage() {
   const [name, setName] = useState("");
@@ -12,22 +21,51 @@ export default function SupportPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string>("");
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (turnstileRef.current && window.turnstile) {
+        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+          sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+          callback: (token: string) => setTurnstileToken(token),
+          "expired-callback": () => setTurnstileToken(""),
+        });
+      }
+    };
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError("Please complete the security check.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/support/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({ name, email, subject, message, turnstileToken }),
       });
       const data = await res.json();
       if (data.ok) {
         setSent(true);
       } else {
         setError(data.error || "Something went wrong. Please try again.");
+        if (widgetIdRef.current && window.turnstile) {
+          window.turnstile.reset(widgetIdRef.current);
+          setTurnstileToken("");
+        }
       }
     } catch {
       setError("Failed to send. Please try again or refresh the page.");
@@ -42,7 +80,7 @@ export default function SupportPage() {
         <MarketingNav />
       </header>
 
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">We&rsquo;re Here to Help</h1>
           <p className="text-lime-100 max-w-xl mx-auto text-sm sm:text-base">
@@ -61,7 +99,7 @@ export default function SupportPage() {
 
         {sent ? (
           <div className="bg-teal-50 border border-teal-200 rounded-2xl p-8 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-lime-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
@@ -119,10 +157,11 @@ export default function SupportPage() {
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition resize-none"
               />
             </div>
+            <div ref={turnstileRef} />
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-lg font-medium transition disabled:opacity-50"
+              disabled={loading || !turnstileToken}
+              className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-lg font-medium transition disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Message"}
             </button>

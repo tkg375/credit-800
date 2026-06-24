@@ -31,7 +31,7 @@ function statusColor(status: string) {
     case "UNDER_INVESTIGATION":
       return { dot: "bg-blue-400", badge: "bg-blue-100 text-blue-700", border: "border-blue-200" };
     case "RESOLVED":
-      return { dot: "bg-green-500", badge: "bg-green-100 text-green-700", border: "border-green-200" };
+      return { dot: "bg-green-500", badge: "bg-blue-50 text-[#1a3fd4]", border: "border-green-200" };
     case "REJECTED":
       return { dot: "bg-red-400", badge: "bg-red-100 text-red-700", border: "border-red-200" };
     default:
@@ -147,7 +147,7 @@ export default function CalendarPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -156,7 +156,7 @@ export default function CalendarPage() {
     <AuthenticatedLayout activeNav="calendar">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
             Dispute Timeline
           </h1>
           <p className="text-slate-500 mt-1">
@@ -215,7 +215,7 @@ export default function CalendarPage() {
               onClick={() => setFilter(key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                 filter === key
-                  ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                  ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -233,7 +233,7 @@ export default function CalendarPage() {
             <p className="text-slate-500 mb-4">No disputes found.</p>
             <Link
               href="/disputes"
-              className="inline-block px-6 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition text-sm"
+              className="inline-block px-6 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition text-sm"
             >
               Start a Dispute
             </Link>
@@ -345,7 +345,7 @@ export default function CalendarPage() {
                         <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
                           <Link
                             href={`/disputes`}
-                            className="px-3 py-1.5 text-xs bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+                            className="px-3 py-1.5 text-xs bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium hover:opacity-90 transition"
                           >
                             Send Round 2 Letter
                           </Link>

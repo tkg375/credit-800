@@ -115,7 +115,7 @@ export default function TemplatesPage() {
     bureau_dispute: "bg-blue-100 text-blue-700",
     goodwill: "bg-purple-100 text-purple-700",
     pay_for_delete: "bg-amber-100 text-amber-700",
-    debt_validation: "bg-teal-100 text-teal-700",
+    debt_validation: "bg-blue-50 text-[#1a3fd4]",
     cease_desist: "bg-red-100 text-red-700",
     method_of_verification: "bg-slate-100 text-slate-700",
     inquiry_removal: "bg-lime-100 text-lime-700",
@@ -188,7 +188,7 @@ export default function TemplatesPage() {
                   <span className="text-xs text-teal-600 font-mono">{t.legalBasis}</span>
                   <button
                     onClick={() => { setSelectedTemplate(t); setCopied(false); setSavedVault(false); }}
-                    className="w-full sm:w-auto text-center text-xs px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+                    className="w-full sm:w-auto text-center text-xs px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium hover:opacity-90 transition"
                   >
                     Use Template
                   </button>
@@ -209,7 +209,7 @@ export default function TemplatesPage() {
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center sm:justify-center sm:p-4 z-50">
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
             {/* Modal header */}
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-4 sm:px-6 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-4 sm:px-6 py-4 flex items-center justify-between shrink-0">
               <h2 className="text-white font-semibold">{selectedTemplate.title}</h2>
               <button onClick={() => setSelectedTemplate(null)} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
             </div>
@@ -283,7 +283,7 @@ export default function TemplatesPage() {
             <div className="border-t border-slate-100 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0">
               <button
                 onClick={handleCopy}
-                className="flex-1 py-3 sm:py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+                className="flex-1 py-3 sm:py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
               >
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </button>

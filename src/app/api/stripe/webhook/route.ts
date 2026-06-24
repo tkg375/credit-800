@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { firestore } from "@/lib/db";
 import { sendNewSubscriberNotification, sendProUpgradeEmail, sendAutopilotUpgradeEmail, sendPaymentFailedEmail } from "@/lib/email";
 import Stripe from "stripe";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -24,6 +25,27 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  // Idempotency: skip already-processed events (Stripe retries at-least-once)
+  try {
+    const ctx = await getCloudflareContext({ async: true });
+    const db = (ctx.env as { DB: D1Database }).DB;
+    const now = Math.floor(Date.now() / 1000);
+    const insertResult = await db
+      .prepare(
+        `INSERT INTO stripe_processed_events (event_id, processed_at) VALUES (?, ?)
+         ON CONFLICT(event_id) DO NOTHING`
+      )
+      .bind(event.id, now)
+      .run();
+    if (insertResult.meta.changes === 0) {
+      // Already processed — return 200 so Stripe stops retrying
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+  } catch (idempErr) {
+    // Non-fatal: log and continue — better to double-process than to drop events
+    console.error("[webhook] idempotency check failed:", idempErr);
   }
 
   try {

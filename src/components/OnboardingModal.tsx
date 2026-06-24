@@ -123,7 +123,7 @@ export function OnboardingModal() {
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Top gradient bar */}
-        <div className="h-1 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600" />
+        <div className="h-1 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]" />
 
         {/* Header */}
         <div className="px-6 pt-5 pb-4 flex items-center justify-between">
@@ -148,7 +148,7 @@ export function OnboardingModal() {
                 key={i}
                 className={`flex-1 h-1 rounded-full transition-all ${
                   i <= step
-                    ? "bg-gradient-to-r from-lime-500 to-teal-600"
+                    ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]"
                     : "bg-slate-200"
                 }`}
               />
@@ -182,7 +182,7 @@ export function OnboardingModal() {
           <div className="flex flex-col gap-2">
             <button
               onClick={handleNext}
-              className="w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-semibold hover:opacity-90 transition text-sm"
+              className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-semibold hover:opacity-90 transition text-sm"
             >
               {isLast ? `${current.cta} →` : "Next"}
             </button>

@@ -4,7 +4,7 @@ import { firestore, COLLECTIONS } from "@/lib/db";
 import { getLetter } from "@/lib/postgrid";
 
 function deriveStatus(status: string, trackingEvents: { name: string }[]): string {
-  if (status === "delivered") return "DELIVERED";
+  if (status === "delivered" || status === "completed") return "DELIVERED";
   if (status === "returned_to_sender") return "RETURNED";
   if (status === "re-routed") return "RE_ROUTED";
   if (status === "in_local_area" || status === "processed_for_delivery") return "OUT_FOR_DELIVERY";
@@ -43,7 +43,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const letter = await getLetter(mailJobId);
-    const mailStatus = deriveStatus(letter.status, letter.tracking_events);
+    const derivedStatus = deriveStatus(letter.status, letter.tracking_events);
+
+    // Never downgrade from a terminal status already stored in DB
+    const TERMINAL = new Set(["DELIVERED", "RETURNED"]);
+    const existingStatus = dispute.data.mailStatus as string | undefined;
+    const mailStatus = existingStatus && TERMINAL.has(existingStatus) ? existingStatus : derivedStatus;
+
     const latestEvent = letter.tracking_events.length > 0
       ? letter.tracking_events[letter.tracking_events.length - 1]
       : null;

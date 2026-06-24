@@ -30,15 +30,36 @@ const sections = [
     faqs: [
       {
         q: "Is Credit 800 really free?",
-        a: "Yes — Credit 800 is completely free. Create an account and get instant access to the full platform with no credit card required. The only optional charge is if you choose to mail a dispute via USPS ($2/letter), which you can also do yourself for free.",
+        a: "The Self Service plan is completely free — no credit card required. You get unlimited dispute letters, the full financial toolkit, and optional USPS mailing for $2/letter. We also offer Autopilot at $49/month, which pulls your credit report and handles the entire dispute process for you automatically every month.",
       },
       {
         q: "What's included in Credit 800?",
-        a: "Everything you need to run your own credit repair — completely free. Unlimited dispute letters, budget tracker, debt payoff optimizer, credit score simulator, loan readiness calculator, goals tracker, document vault, CFPB complaint generator, letter templates library (goodwill, pay-for-delete, cease & desist, debt validation, and more), creditor letter analyzer, and smart notifications. No feature gates, no usage limits. You can also mail disputes via USPS for $2/letter.",
+        a: "Self Service (free): unlimited dispute letters, budget tracker, debt payoff optimizer, credit score simulator, loan readiness calculator, goals tracker, document vault, CFPB complaint generator, letter templates library, creditor letter analyzer, and smart notifications. Autopilot ($49/mo): everything in Self Service plus automatic monthly credit pulls, auto-generated dispute letters, and USPS mailing of up to 10 letters per month — hands-free.",
       },
       {
         q: "How is Credit 800 different from hiring a credit repair company?",
-        a: "Traditional credit repair companies charge $79–$149/month and do the same thing you can do yourself — disputing items under the FCRA. Many also require long-term contracts. Credit 800 gives you the same tools for free, with full transparency and no contracts.",
+        a: "Traditional credit repair companies charge $79–$149/month and do the same thing you can do yourself — disputing items under the FCRA. Credit 800's Self Service plan gives you the same tools for free. Our Autopilot plan at $49/month fully automates the process — pulling your report, generating letters, and mailing them — at a fraction of what other companies charge.",
+      },
+    ],
+  },
+  {
+    title: "Autopilot",
+    faqs: [
+      {
+        q: "What is Autopilot?",
+        a: "Autopilot is our fully automated credit repair plan. Once you activate it, we pull your credit report each month, identify every disputable item, generate FCRA-compliant dispute letters, and physically mail them to the credit bureaus — all without you lifting a finger. It runs every 30 days until your credit is clean.",
+      },
+      {
+        q: "How does Autopilot pull my credit report?",
+        a: "Autopilot uses a soft inquiry (which does not affect your credit score) to pull your TransUnion report each cycle. You provide one-time written FCRA authorization during setup — this is your legal permission for us to act on your behalf under FCRA § 604(a)(2).",
+      },
+      {
+        q: "Can I cancel Autopilot?",
+        a: "Yes, anytime. Cancel from your profile page or by contacting support. There are no contracts and no cancellation fees. Your remaining access continues through the end of your current billing period.",
+      },
+      {
+        q: "What happens after Autopilot mails my letters?",
+        a: "You can track every dispute, letter, and mailing status from your dashboard. When bureaus respond, you'll be notified and can view the response. If items aren't removed, Autopilot can generate escalation letters in the next cycle.",
       },
     ],
   },
@@ -47,23 +68,23 @@ const sections = [
     faqs: [
       {
         q: "Is this legit? I've been burned by credit repair scams before.",
-        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different. You're in full control — you generate your own FCRA-compliant dispute letters, send them yourself, and keep 100% of the results. No shady contracts, no per-letter charges, and no promises we can't keep.",
+        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different. On Self Service, you're in full control. On Autopilot, we act on your behalf under a written FCRA authorization you can revoke at any time. No shady contracts, no hidden fees, and no promises we can't keep.",
       },
       {
         q: "How fast will I see results?",
-        a: "Credit bureaus are required to respond to disputes within 30 days (sometimes 45 days if you submit additional documentation). Many users see their first removals within 30–60 days. Results depend on your specific situation — inaccurate items, outdated accounts, and unverifiable collections are typically the fastest to remove. Payment history and utilization improvements can reflect on your report within 1–2 billing cycles.",
+        a: "Credit bureaus are required to respond to disputes within 30 days (sometimes 45 days if additional documentation is submitted). Many users see their first removals within 30–60 days. Results depend on your specific situation — inaccurate items, outdated accounts, and unverifiable collections are typically the fastest to remove.",
       },
       {
         q: "Do I need to send letters myself?",
-        a: "You copy the letter and submit it directly on the bureau's website or via certified mail. You can also use our USPS mail service ($2/letter) where we print and mail the dispute with trackable delivery confirmation.",
+        a: "On Self Service, you submit letters yourself — either directly on the bureau's website, via certified mail, or using our $2/letter USPS service. On Autopilot, we handle all mailing automatically — nothing for you to do.",
       },
       {
         q: "What if the bureau doesn't respond or denies my dispute?",
-        a: "If a bureau denies your dispute, the next step is a Method of Verification letter demanding they explain exactly how they verified the item — this forces a more thorough reinvestigation. If they still fail to respond within 30 days, the item must be removed by law. Credit 800 includes escalation letter templates so you can send these yourself.",
+        a: "If a bureau denies your dispute, the next step is a Method of Verification letter demanding they explain exactly how they verified the item. If they still fail to respond within 30 days, the item must be removed by law. Credit 800 includes escalation letter templates for Self Service users, and Autopilot handles escalation automatically.",
       },
       {
         q: "Does disputing items hurt my credit score?",
-        a: "No. Filing a dispute does not trigger a hard inquiry and will not lower your score. In fact, successfully removing negative items almost always results in a score increase. The only way disputing can backfire is if you dispute accurate, positive information — so stick to disputing inaccuracies and unverifiable items.",
+        a: "No. Filing a dispute does not trigger a hard inquiry and will not lower your score. In fact, successfully removing negative items almost always results in a score increase.",
       },
     ],
   },
@@ -89,7 +110,7 @@ const sections = [
       },
       {
         q: "Do I need my SSN to use Credit 800?",
-        a: "No SSN required. You upload your own credit report (available free at AnnualCreditReport.com) and Credit 800 analyzes it — your SSN is never requested or stored.",
+        a: "It depends on your plan. Self Service users upload their own credit report — no SSN required. Autopilot users provide identity verification (including SSN) so we can pull your credit report on your behalf each month under FCRA authorization. Your SSN is used solely for the credit pull and is never stored in plain text or shared with third parties.",
       },
 
     ],
@@ -121,7 +142,7 @@ export default function FAQPage() {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <MarketingNav />
       </header>
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">Frequently Asked Questions</h1>
           <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
@@ -134,7 +155,7 @@ export default function FAQPage() {
         <div className="space-y-12">
           {sections.map((section) => (
             <div key={section.title}>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-teal-600 mb-4">{section.title}</h2>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#1a3fd4] mb-4">{section.title}</h2>
               <div className="space-y-3">
                 {section.faqs.map((item, i) => (
                   <details key={i} className="group border border-slate-200 rounded-xl overflow-hidden">
@@ -161,8 +182,8 @@ export default function FAQPage() {
             <Link href="/support" className="px-6 py-2.5 border border-white/30 text-white hover:border-white rounded-lg font-medium transition text-sm">
               Contact Support
             </Link>
-            <GetStartedButton className="px-6 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition text-sm">
-              Get Started — Free
+            <GetStartedButton className="px-6 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium hover:opacity-90 transition text-sm">
+              Get Started
             </GetStartedButton>
           </div>
         </div>

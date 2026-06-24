@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { ProGate } from "@/components/ProGate";
@@ -77,7 +78,7 @@ export default function BureausPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -86,7 +87,7 @@ export default function BureausPage() {
     <AuthenticatedLayout activeNav="bureaus">
       <ProGate feature="Bureau Comparison">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
           Bureau Comparison
         </h1>
         <p className="text-slate-500 mb-8">
@@ -112,7 +113,7 @@ export default function BureausPage() {
                 return (
                   <div key={bureau} className="bg-white rounded-xl border border-slate-200 p-3 sm:p-4">
                     <p className="text-xs sm:text-sm font-semibold text-slate-700 mb-1">{bureau}</p>
-                    <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent">
+                    <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
                       {bureauList.length}
                     </p>
                     <p className="text-xs text-slate-500">items</p>
@@ -165,7 +166,7 @@ export default function BureausPage() {
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                   bureauEntry.status.includes("COLLECTION") ? "bg-red-100 text-red-700" :
                                   bureauEntry.status.includes("CHARGE") ? "bg-orange-100 text-orange-700" :
-                                  bureauEntry.status.includes("OPEN") ? "bg-green-100 text-green-700" :
+                                  bureauEntry.status.includes("OPEN") ? "bg-blue-50 text-[#1a3fd4]" :
                                   bureauEntry.status.includes("CLOSED") ? "bg-slate-100 text-slate-600" :
                                   "bg-amber-100 text-amber-700"
                                 }`}>
@@ -175,7 +176,9 @@ export default function BureausPage() {
                                   <p className="text-xs text-slate-600 mt-1">${bureauEntry.balance.toLocaleString()}</p>
                                 )}
                                 {bureauEntry.isDisputable && (
-                                  <p className="text-xs text-teal-600 font-medium mt-0.5">Disputable</p>
+                                  <Link href={`/disputes?item=${bureauEntry.id}`} className="text-xs text-teal-600 font-medium mt-0.5 hover:underline block">
+                                    Dispute →
+                                  </Link>
                                 )}
                               </div>
                             ) : bureauEntry ? (
@@ -185,7 +188,9 @@ export default function BureausPage() {
                                   <p className="text-xs text-slate-600 mt-1">${bureauEntry.balance.toLocaleString()}</p>
                                 )}
                                 {bureauEntry.isDisputable && (
-                                  <p className="text-xs text-teal-600 font-medium mt-0.5">Disputable</p>
+                                  <Link href={`/disputes?item=${bureauEntry.id}`} className="text-xs text-teal-600 font-medium mt-0.5 hover:underline block">
+                                    Dispute →
+                                  </Link>
                                 )}
                               </div>
                             ) : (
@@ -223,7 +228,7 @@ export default function BureausPage() {
                                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                                   entry.status.includes("COLLECTION") ? "bg-red-100 text-red-700" :
                                   entry.status.includes("CHARGE") ? "bg-orange-100 text-orange-700" :
-                                  entry.status.includes("OPEN") ? "bg-green-100 text-green-700" :
+                                  entry.status.includes("OPEN") ? "bg-blue-50 text-[#1a3fd4]" :
                                   entry.status.includes("CLOSED") ? "bg-slate-100 text-slate-600" :
                                   "bg-amber-100 text-amber-700"
                                 }`}>

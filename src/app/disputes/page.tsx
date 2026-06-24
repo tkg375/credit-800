@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/lib/use-subscription";
@@ -80,13 +80,20 @@ function getDeadlineChip(dispute: Dispute): { label: string; color: string } | n
   return { label: `${daysLeft}d left`, color: "bg-slate-100 text-slate-600" };
 }
 
-export default function DisputesPage() {
+export default function DisputesPageWrapper() {
+  return <Suspense><DisputesPage /></Suspense>;
+}
+
+function DisputesPage() {
   const { user, loading: authLoading } = useAuth();
   const { isPro } = useSubscription();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"disputable" | "disputes" | "history">("disputable");
   const [disputableItems, setDisputableItems] = useState<ReportItem[]>([]);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const searchParams = useSearchParams();
+  const highlightItemId = searchParams.get("item");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -249,6 +256,14 @@ export default function DisputesPage() {
       }
     }
 
+    // Scroll to and highlight item linked from bureaus page
+    if (highlightItemId) {
+      setTimeout(() => {
+        const el = itemRefs.current[highlightItemId];
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 600);
+    }
+
     async function checkEscalationNotifications(idToken: string, disputeDocs: Record<string, unknown>[]) {
       try {
         const now = Date.now();
@@ -332,6 +347,10 @@ export default function DisputesPage() {
         }),
       });
 
+      if (res.status === 409) {
+        const data = await res.json();
+        throw new Error(data.error || "An active dispute already exists for this account.");
+      }
       if (!res.ok) throw new Error("Failed to generate dispute");
 
       const data = await res.json();
@@ -370,8 +389,8 @@ export default function DisputesPage() {
 
       setActiveTab("disputes");
     } catch (err) {
-      console.error(err);
-      alert("Failed to generate dispute letter. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to generate dispute letter.";
+      alert(msg);
     } finally {
       setGenerating(null);
     }
@@ -916,7 +935,7 @@ export default function DisputesPage() {
       case "OUT_FOR_DELIVERY":
         return "bg-emerald-100 text-emerald-700";
       case "DELIVERED":
-        return "bg-green-100 text-green-700";
+        return "bg-blue-50 text-[#1a3fd4]";
       case "RETURNED":
       case "RE_ROUTED":
       case "ERROR":
@@ -951,7 +970,7 @@ export default function DisputesPage() {
       case "UNDER_INVESTIGATION":
         return "bg-amber-100 text-amber-700";
       case "RESOLVED":
-        return "bg-green-100 text-green-700";
+        return "bg-blue-50 text-[#1a3fd4]";
       case "REJECTED":
         return "bg-red-100 text-red-700";
       default:
@@ -972,7 +991,7 @@ export default function DisputesPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-500">Loading...</p>
         </div>
       </div>
@@ -993,7 +1012,7 @@ export default function DisputesPage() {
             onClick={() => setActiveTab("disputable")}
             className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "disputable"
-                ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
             }`}
           >
@@ -1003,7 +1022,7 @@ export default function DisputesPage() {
             onClick={() => setActiveTab("disputes")}
             className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "disputes"
-                ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
             }`}
           >
@@ -1013,7 +1032,7 @@ export default function DisputesPage() {
             onClick={() => setActiveTab("history")}
             className={`shrink-0 px-4 py-2.5 rounded-xl font-medium transition text-sm whitespace-nowrap ${
               activeTab === "history"
-                ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                 : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
             }`}
           >
@@ -1053,7 +1072,7 @@ export default function DisputesPage() {
                 <p className="text-slate-500 mb-6">Upload a credit report to find items you can dispute.</p>
                 <Link
                   href="/upload"
-                  className="inline-block px-6 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:from-lime-400 hover:to-teal-500 transition"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
                 >
                   Upload Report
                 </Link>
@@ -1061,7 +1080,7 @@ export default function DisputesPage() {
             ) : (
               <div className="space-y-6">
                 {/* Removal Analysis Summary */}
-                <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+                <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-6 text-white">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -1124,7 +1143,7 @@ export default function DisputesPage() {
                     <button
                       onClick={handleBulkGenerate}
                       disabled={bulkGenerating}
-                      className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white text-sm rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white text-sm rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center gap-2"
                     >
                       {bulkGenerating && bulkProgress ? (
                         <>
@@ -1143,8 +1162,13 @@ export default function DisputesPage() {
                 {disputableItems.map((item) => (
                   <div
                     key={item.id}
+                    ref={(el) => { itemRefs.current[item.id] = el; }}
                     className={`bg-white border rounded-xl p-4 sm:p-6 hover:shadow-lg transition ${
-                      selectedItemIds.has(item.id) ? "border-teal-400 ring-1 ring-teal-300" : "border-slate-200"
+                      selectedItemIds.has(item.id)
+                        ? "border-teal-400 ring-1 ring-teal-300"
+                        : highlightItemId === item.id
+                        ? "border-teal-500 ring-2 ring-teal-400 shadow-lg"
+                        : "border-slate-200"
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -1161,7 +1185,7 @@ export default function DisputesPage() {
                             return next;
                           });
                         }}
-                        className="mt-1.5 w-4 h-4 rounded accent-teal-600 shrink-0 cursor-pointer"
+                        className="mt-1.5 w-4 h-4 rounded accent-[#1a3fd4] shrink-0 cursor-pointer"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -1307,7 +1331,7 @@ export default function DisputesPage() {
                         {generating === item.id ? (
                           <button
                             disabled
-                            className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white text-sm rounded-lg font-medium disabled:opacity-50"
+                            className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white text-sm rounded-lg font-medium disabled:opacity-50"
                           >
                             <span className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -1317,7 +1341,7 @@ export default function DisputesPage() {
                         ) : (
                           <button
                             onClick={() => setStrategyPicker(strategyPicker === item.id ? null : item.id)}
-                            className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white text-sm rounded-lg font-medium hover:from-lime-400 hover:to-teal-500 transition"
+                            className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white text-sm rounded-lg font-medium hover:opacity-90 transition"
                           >
                             Generate Dispute
                           </button>
@@ -1708,7 +1732,7 @@ export default function DisputesPage() {
               <div className="p-6 overflow-y-auto flex-1 min-h-0">
                 {/* Address confidence banner */}
                 {selectedDispute.addressSource === "database" && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-sm text-green-700">
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-sm text-green-700">
                     <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -1901,7 +1925,7 @@ export default function DisputesPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleConfirmMail}
-                      className="flex-1 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium text-sm hover:from-teal-500 hover:to-cyan-500 transition"
+                      className="flex-1 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium text-sm hover:opacity-90 transition"
                     >
                       {isReattempt ? "Confirm & Reattempt Mailing" : "Confirm & Mail — $2.00"}
                     </button>
@@ -1943,7 +1967,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => handleMailLetter(selectedDispute.id)}
                       disabled={mailing === selectedDispute.id}
-                      className="flex-1 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-medium hover:from-teal-500 hover:to-cyan-500 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {mailing === selectedDispute.id ? (
                         <>

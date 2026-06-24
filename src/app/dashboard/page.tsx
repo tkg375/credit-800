@@ -5,15 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
+import { useSubscription } from "@/lib/use-subscription";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { AutopilotDashboard } from "@/components/AutopilotDashboard";
+import { UploadModal } from "@/components/UploadModal";
 
-const LineChart = dynamic(() => import("recharts").then((m) => m.LineChart), { ssr: false });
-const Line = dynamic(() => import("recharts").then((m) => m.Line), { ssr: false });
-const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), { ssr: false });
-const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), { ssr: false });
-const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: false });
-const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false });
 
 interface Dispute {
   id: string;
@@ -22,13 +19,6 @@ interface Dispute {
   status: string;
   outcome: "won" | "denied" | null;
   mailedAt: string | null;
-}
-
-interface ActionStep {
-  title: string;
-  description: string;
-  impact: "HIGH" | "MEDIUM" | "LOW";
-  actionUrl?: string;
 }
 
 interface ReportChanges {
@@ -95,19 +85,21 @@ async function checkDeadlines(
 
 function DashboardContent() {
   const { user, loading: authLoading } = useAuth();
+  const { isAutopilot, loading: subLoading } = useSubscription();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showWelcome, setShowWelcome] = useState(false);
-  const [scoreHistory, setScoreHistory] = useState<{ score: number; recordedAt: string }[]>([]);
+  const [scoreHistory, setScoreHistory] = useState<{ score: number; recordedAt: string; bureau: string }[]>([]);
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [bureauScores, setBureauScores] = useState<Record<string, number | null>>({ Equifax: null, Experian: null, TransUnion: null });
   const [disputableCount, setDisputableCount] = useState(0);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [actionPlan, setActionPlan] = useState<{ steps: ActionStep[] } | null>(null);
   const [latestChanges, setLatestChanges] = useState<ReportChanges | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalAssets, setTotalAssets] = useState<number | null>(null);
   const [totalLiabilities, setTotalLiabilities] = useState<number | null>(null);
+  const [uploadModalType, setUploadModalType] = useState<"report" | "letter" | null>(null);
+  const [letters, setLetters] = useState<{ id: string; creditorName: string | null; fileName: string; status: string; createdAt?: string; uploadedAt?: string }[]>([]);
 
   useEffect(() => {
     if (searchParams.get("welcome") === "1") setShowWelcome(true);
@@ -133,16 +125,21 @@ function DashboardContent() {
       };
 
       try {
-        // Load score history (up to 30 entries for chart + bureau breakdown)
-        const scores = await fetchDocs("creditScores", { limit: 30 });
-        if (scores.length > 0) {
-          const sorted = [...scores].sort(
+        // Load score history via the same endpoint as /scores page
+        const scoresRes = await fetch("/api/scores", {
+          headers: { Authorization: `Bearer ${user!.idToken}` },
+        });
+        const scoresData = scoresRes.ok ? await scoresRes.json() as { scores: Record<string, unknown>[] } : { scores: [] };
+        const rawScores = scoresData.scores || [];
+        if (rawScores.length > 0) {
+          const sorted = [...rawScores].sort(
             (a, b) => new Date(a.recordedAt as string).getTime() - new Date(b.recordedAt as string).getTime()
           );
           setScoreHistory(
-            sorted.map((s: Record<string, unknown>) => ({
+            sorted.map((s) => ({
               score: s.score as number,
               recordedAt: s.recordedAt as string,
+              bureau: String(s.bureau ?? ""),
             }))
           );
           setLatestScore(sorted[sorted.length - 1].score as number);
@@ -150,9 +147,8 @@ function DashboardContent() {
           // Latest score per bureau
           const bureauMap: Record<string, number | null> = { Equifax: null, Experian: null, TransUnion: null };
           for (const s of sorted) {
-            const b = String(s.bureau || "");
-            const lower = b.toLowerCase();
-            const key = lower.includes("equifax") ? "Equifax" : lower.includes("experian") ? "Experian" : lower.includes("transunion") || lower.includes("trans union") ? "TransUnion" : null;
+            const b = String(s.bureau || "").toLowerCase();
+            const key = b.includes("equifax") ? "Equifax" : b.includes("experian") ? "Experian" : b.includes("transunion") || b.includes("trans union") ? "TransUnion" : null;
             if (key) bureauMap[key] = s.score as number;
           }
           setBureauScores(bureauMap);
@@ -213,6 +209,13 @@ function DashboardContent() {
           .catch(() => {});
 
 
+        // Load letter history
+        const lettersRes = await fetch("/api/letters", { headers: { Authorization: `Bearer ${user!.idToken}` } });
+        if (lettersRes.ok) {
+          const lettersData = await lettersRes.json() as { letters: { id: string; creditorName: string | null; fileName: string; status: string; createdAt?: string; uploadedAt?: string }[] };
+          setLetters((lettersData.letters ?? []).slice(0, 5));
+        }
+
         // Fire-and-forget: health report trigger
         fetch("/api/users/health-report", {
           method: "POST",
@@ -235,35 +238,25 @@ function DashboardContent() {
       }
     }
 
-    // Fire-and-forget: load action plan
-    async function loadActionPlan() {
-      try {
-        const res = await fetch("/api/plans", {
-          headers: { Authorization: `Bearer ${user!.idToken}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.plan?.steps) {
-            setActionPlan({ steps: data.plan.steps as ActionStep[] });
-          }
-        }
-      } catch {
-        // non-blocking
-      }
-    }
-
     loadDashboard();
-    loadActionPlan();
   }, [user, authLoading, router]);
 
-  if (authLoading || loading) {
+  if (authLoading || loading || subLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-500">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  if (isAutopilot) {
+    return (
+      <AuthenticatedLayout activeNav="dashboard">
+        <AutopilotDashboard />
+      </AuthenticatedLayout>
     );
   }
 
@@ -271,13 +264,42 @@ function DashboardContent() {
     (d) => d.status === "SENT" || d.status === "UNDER_INVESTIGATION"
   ).length;
 
-  // Score chart data
+  // Score chart data — one line per bureau, timezone-safe dates
+  const BUREAU_COLORS: Record<string, string> = { Equifax: "#14b8a6", Experian: "#84cc16", TransUnion: "#06b6d4" };
+  const BUREAU_LIST = ["Equifax", "Experian", "TransUnion"] as const;
+
+  function dateKey(recordedAt: string) { return recordedAt.split("T")[0]; }
+  function chartLabel(dk: string) {
+    const [y, m] = dk.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+  }
+  function normBureau(b: string) {
+    const l = b.toLowerCase();
+    if (l.includes("equifax")) return "Equifax";
+    if (l.includes("experian")) return "Experian";
+    if (l.includes("transunion") || l.includes("trans union")) return "TransUnion";
+    return null;
+  }
+
+  const byBureau: Record<string, { dk: string; score: number }[]> = { Equifax: [], Experian: [], TransUnion: [] };
+  for (const s of scoreHistory) {
+    const b = normBureau(s.bureau);
+    if (b) byBureau[b].push({ dk: dateKey(s.recordedAt), score: s.score });
+  }
+
+  const allDateKeys = [...new Set(scoreHistory.map(s => dateKey(s.recordedAt)))].sort();
+  const chartData = allDateKeys.map(dk => {
+    const point: Record<string, string | number> = { date: chartLabel(dk) };
+    for (const b of BUREAU_LIST) {
+      const match = byBureau[b].find(e => e.dk === dk);
+      if (match) point[b] = match.score;
+    }
+    return point;
+  });
+
+  const hasChartData = allDateKeys.length > 1 || BUREAU_LIST.some(b => byBureau[b].length > 1);
   const firstScore = scoreHistory.length > 1 ? scoreHistory[0].score : null;
   const scoreChange = firstScore !== null && latestScore !== null ? latestScore - firstScore : null;
-  const chartData = scoreHistory.map((s) => ({
-    date: new Date(s.recordedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    score: s.score,
-  }));
 
   // Win rate data
   const wonCount = disputes.filter((d) => d.outcome === "won").length;
@@ -287,16 +309,16 @@ function DashboardContent() {
   return (
     <AuthenticatedLayout activeNav="dashboard">
       <OnboardingModal />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
         {showWelcome && (
-          <div className="mb-6 bg-gradient-to-r from-lime-50 to-teal-50 border border-teal-200 rounded-2xl p-5 flex items-start justify-between gap-4">
+          <div className="mb-8 bg-gradient-to-r from-blue-50 to-blue-50 border border-blue-200 rounded-2xl p-6 flex items-start justify-between gap-4">
             <div>
-              <p className="font-semibold text-teal-800 mb-0.5">Welcome to Credit 800!</p>
+              <p className="font-semibold text-teal-800 mb-1">Welcome to Credit 800!</p>
               <p className="text-sm text-teal-700">Your account is active. Start by uploading your credit report or adding your current score to get personalized recommendations.</p>
             </div>
             <button
               onClick={() => setShowWelcome(false)}
-              className="text-teal-500 hover:text-teal-700 shrink-0 mt-0.5 transition"
+              className="text-[#1a3fd4] hover:text-[#0e7fd4] shrink-0 mt-0.5 transition"
               aria-label="Dismiss"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,221 +327,75 @@ function DashboardContent() {
             </button>
           </div>
         )}
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-10">Dashboard</h1>
 
         {/* Bureau Score Cards */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
-          {(["Equifax", "Experian", "TransUnion"] as const).map((bureau, i) => {
-            const score = bureauScores[bureau];
-            const colors = ["text-teal-600", "text-lime-600", "text-cyan-600"];
-            const borders = ["border-teal-200", "border-lime-200", "border-cyan-200"];
-            return (
-              <Link key={bureau} href="/scores" className={`bg-white border-2 ${borders[i]} rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-lg transition block`}>
-                <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-widest mb-1 truncate ${colors[i]}`}>{bureau}</p>
-                <p className={`text-2xl sm:text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition block">
-            <p className="text-sm text-slate-500 mb-1">Disputable Items</p>
-            <p className="text-4xl font-bold text-amber-500">
-              {disputableCount}
-            </p>
-          </Link>
-          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition block">
-            <p className="text-sm text-slate-500 mb-1">Active Disputes</p>
-            <p className="text-4xl font-bold text-emerald-500">
-              {activeDisputes}
-            </p>
-          </Link>
-        </div>
-
-
-        {/* Score Progress Chart (Feature 1) */}
-        {scoreHistory.length > 1 && (
-          <section className="mb-8 sm:mb-12">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                <h2 className="text-xl font-semibold">Score Progress</h2>
-                {scoreChange !== null && (
-                  <span className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1 rounded-full ${
-                    scoreChange >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                  }`}>
-                    {scoreChange >= 0 ? "▲" : "▼"} {Math.abs(scoreChange)} pts
-                    <span className="font-normal text-xs">({firstScore} → {latestScore})</span>
-                  </span>
-                )}
-              </div>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                    <YAxis domain={[300, 850]} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px" }}
-                      formatter={(v: any) => [v, "Score"]}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#14b8a6"
-                      strokeWidth={2.5}
-                      dot={{ fill: "#14b8a6", r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* AI Coach / Next Steps (Feature 2) */}
-        {actionPlan && actionPlan.steps.length > 0 && (
-          <section className="mb-8 sm:mb-12">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+        <Link href="/scores" className="block bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition mb-6">
+          <div className="grid grid-cols-3 divide-x divide-slate-100">
+            {(["Equifax", "Experian", "TransUnion"] as const).map((bureau, i) => {
+              const score = bureauScores[bureau];
+              const colors = ["text-[#1a3fd4]", "text-[#0e7fd4]", "text-[#00d4aa]"];
+              return (
+                <div key={bureau} className="flex flex-col items-center px-2">
+                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${colors[i]}`}>{bureau}</p>
+                  <p className={`text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
                 </div>
-                <h2 className="text-xl font-semibold">Your Next Steps</h2>
-              </div>
-              <div className="space-y-3">
-                {actionPlan.steps.slice(0, 3).map((step, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className={`mt-0.5 shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
-                      step.impact === "HIGH"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : step.impact === "MEDIUM"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-200 text-slate-600"
-                    }`}>
-                      {step.impact}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-slate-800">{step.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{step.description}</p>
-                    </div>
-                    {step.actionUrl ? (
-                      <Link
-                        href={step.actionUrl}
-                        className="shrink-0 text-xs px-3 py-1.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition"
-                      >
-                        Start
-                      </Link>
-                    ) : (
-                      <Link
-                        href="/disputes"
-                        className="shrink-0 text-xs px-3 py-1.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:opacity-90 transition"
-                      >
-                        Start
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Win Rate Widget (Feature 3) */}
-        {winRate !== null && (
-          <section className="mb-8 sm:mb-12">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <h2 className="text-xl font-semibold mb-4">Dispute Results</h2>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-3xl font-bold text-emerald-600">{wonCount}</p>
-                  <p className="text-sm text-slate-500 mt-1">Won</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-red-500">{deniedCount}</p>
-                  <p className="text-sm text-slate-500 mt-1">Denied</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent">{winRate}%</p>
-                  <p className="text-sm text-slate-500 mt-1">Win Rate</p>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Recent Disputes</h2>
-            <Link
-              href="/disputes"
-              className="text-sm text-teal-600 hover:text-lime-600 transition"
-            >
-              View all
-            </Link>
+              );
+            })}
           </div>
-          {disputes.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <p className="text-slate-500 mb-4">No disputes yet. Upload a credit report to get started.</p>
-              <Link
-                href="/upload"
-                className="inline-block px-6 py-2 bg-gradient-to-r from-lime-500 to-teal-600 rounded-lg text-sm text-white font-medium hover:from-lime-400 hover:to-teal-500 transition"
-              >
-                Upload Report
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {disputes.map((d) => (
-                <div
-                  key={d.id}
-                  className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition"
-                >
-                  <div>
-                    <p className="font-medium">{d.bureau}</p>
-                    <p className="text-sm text-slate-500">{d.reason}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {d.outcome === "won" && (
-                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-emerald-100 text-emerald-700">Won</span>
-                    )}
-                    {d.outcome === "denied" && (
-                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">Denied</span>
-                    )}
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full font-medium ${
-                        d.status === "RESOLVED"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : d.status === "SENT" ||
-                              d.status === "UNDER_INVESTIGATION"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {d.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        </Link>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-10 sm:mb-14">
+          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
+            <p className="text-sm text-slate-500 mb-2">Disputable Items</p>
+            <p className="text-5xl font-bold text-amber-500">{disputableCount}</p>
+          </Link>
+          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
+            <p className="text-sm text-slate-500 mb-2">Active Disputes</p>
+            <p className="text-5xl font-bold text-emerald-500">{activeDisputes}</p>
+          </Link>
+        </div>
+
+
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-10 sm:mb-14">
+          <button onClick={() => setUploadModalType("report")} className="bg-blue-50 border border-blue-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition flex items-center gap-5 text-left w-full">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-xl flex items-center justify-center shrink-0">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800">Upload Credit Report</p>
+              <p className="text-sm text-slate-500 mt-0.5">Scan for disputable items</p>
+            </div>
+          </button>
+          <button onClick={() => setUploadModalType("letter")} className="bg-blue-50 border border-blue-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition flex items-center gap-5 text-left w-full">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-xl flex items-center justify-center shrink-0">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800">Upload Collector Letter</p>
+              <p className="text-sm text-slate-500 mt-0.5">Analyze debt collector mail</p>
+            </div>
+          </button>
+        </div>
+        {uploadModalType && (
+          <UploadModal type={uploadModalType} onClose={() => setUploadModalType(null)} />
+        )}
+
+        {/* Changes Since Last Report */}
         {latestChanges && (
-          <section className="mb-12">
+          <section className="mb-10 sm:mb-14">
             <h2 className="text-xl font-semibold mb-4">Changes Since Last Report</h2>
             {(() => {
               const isImprovement = latestChanges.removedItems.length > 0 || latestChanges.totalBalanceDelta < -100;
               const hasNewNegatives = latestChanges.newItems.filter(i => i.status !== "CURRENT").length > 0;
-              const cardBg = hasNewNegatives ? "bg-red-50 border-red-200" : isImprovement ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200";
-              const badgeColor = hasNewNegatives ? "bg-red-100 text-red-700" : isImprovement ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700";
+              const cardBg = hasNewNegatives ? "bg-red-50 border-red-200" : isImprovement ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200";
+              const badgeColor = hasNewNegatives ? "bg-red-100 text-red-700" : isImprovement ? "bg-blue-50 text-[#1a3fd4]" : "bg-amber-100 text-amber-700";
               const balanceDeltaStr = latestChanges.totalBalanceDelta >= 0
                 ? `+$${latestChanges.totalBalanceDelta.toLocaleString()}`
                 : `-$${Math.abs(latestChanges.totalBalanceDelta).toLocaleString()}`;
@@ -533,7 +409,7 @@ function DashboardContent() {
                       </span>
                     )}
                     {latestChanges.removedItems.length > 0 && (
-                      <span className="text-sm px-3 py-1 rounded-full font-medium bg-emerald-100 text-emerald-700">
+                      <span className="text-sm px-3 py-1 rounded-full font-medium bg-blue-50 text-[#1a3fd4]">
                         -{latestChanges.removedItems.length} item{latestChanges.removedItems.length !== 1 ? "s" : ""} removed
                       </span>
                     )}
@@ -553,10 +429,7 @@ function DashboardContent() {
                       <p className="text-sm text-slate-500">Total balance change</p>
                       <p className={`text-2xl font-bold ${balanceColor}`}>{balanceDeltaStr}</p>
                     </div>
-                    <Link
-                      href="/disputes"
-                      className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white text-sm rounded-lg font-medium hover:from-lime-400 hover:to-teal-500 transition"
-                    >
+                    <Link href="/disputes" className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white text-sm rounded-lg font-medium hover:opacity-90 transition">
                       View Disputes
                     </Link>
                   </div>
@@ -570,14 +443,12 @@ function DashboardContent() {
                             <span className="text-red-600 font-medium">${item.balance.toLocaleString()}</span>
                           </div>
                         ))}
-                        {latestChanges.newItems.length > 3 && (
-                          <p className="text-xs text-slate-500">+{latestChanges.newItems.length - 3} more</p>
-                        )}
+                        {latestChanges.newItems.length > 3 && <p className="text-xs text-slate-500">+{latestChanges.newItems.length - 3} more</p>}
                       </div>
                     </div>
                   )}
                   {latestChanges.removedItems.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-emerald-200">
+                    <div className="mt-4 pt-4 border-t border-blue-200">
                       <p className="text-xs font-semibold text-emerald-700 mb-2">REMOVED ITEMS</p>
                       <div className="space-y-1">
                         {latestChanges.removedItems.slice(0, 3).map((item, i) => (
@@ -586,9 +457,7 @@ function DashboardContent() {
                             <span className="text-emerald-600 font-medium line-through">${item.balance.toLocaleString()}</span>
                           </div>
                         ))}
-                        {latestChanges.removedItems.length > 3 && (
-                          <p className="text-xs text-slate-500">+{latestChanges.removedItems.length - 3} more</p>
-                        )}
+                        {latestChanges.removedItems.length > 3 && <p className="text-xs text-slate-500">+{latestChanges.removedItems.length - 3} more</p>}
                       </div>
                     </div>
                   )}
@@ -598,6 +467,117 @@ function DashboardContent() {
                 </div>
               );
             })()}
+          </section>
+        )}
+
+        {/* Win Rate Widget */}
+        {winRate !== null && (
+          <section className="mb-10 sm:mb-14">
+            <div className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm">
+              <h2 className="text-xl font-semibold mb-6">Dispute Results</h2>
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div>
+                  <p className="text-4xl font-bold text-emerald-600">{wonCount}</p>
+                  <p className="text-sm text-slate-500 mt-2">Won</p>
+                </div>
+                <div>
+                  <p className="text-4xl font-bold text-red-500">{deniedCount}</p>
+                  <p className="text-sm text-slate-500 mt-2">Denied</p>
+                </div>
+                <div>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">{winRate}%</p>
+                  <p className="text-sm text-slate-500 mt-2">Win Rate</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="mb-14">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-semibold">Recent Disputes</h2>
+            <Link
+              href="/disputes"
+              className="text-sm text-[#1a3fd4] hover:text-[#0e7fd4] transition"
+            >
+              View all
+            </Link>
+          </div>
+          {disputes.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <p className="text-slate-500 mb-4">No disputes yet. View your disputable items to get started.</p>
+              <Link
+                href="/disputes"
+                className="inline-block px-6 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-lg text-sm text-white font-medium hover:opacity-90 transition"
+              >
+                View Disputable Items
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {disputes.map((d) => (
+                <div
+                  key={d.id}
+                  className="bg-white border border-slate-200 rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition"
+                >
+                  <div>
+                    <p className="font-medium">{d.bureau}</p>
+                    <p className="text-sm text-slate-500">{d.reason}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {d.outcome === "won" && (
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-blue-50 text-[#1a3fd4]">Won</span>
+                    )}
+                    {d.outcome === "denied" && (
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">Denied</span>
+                    )}
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-medium ${
+                        d.status === "RESOLVED"
+                          ? "bg-blue-50 text-[#1a3fd4]"
+                          : d.status === "SENT" ||
+                              d.status === "UNDER_INVESTIGATION"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {d.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Letter History */}
+        {letters.length > 0 && (
+          <section className="mb-14">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold">Letter History</h2>
+            </div>
+            <div className="space-y-4">
+              {letters.map((l) => (
+                <Link key={l.id} href={`/analyze-letter?letter=${l.id}`} className="bg-white border border-slate-200 rounded-xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition block">
+                  <div>
+                    <p className="font-medium text-slate-800">{l.creditorName || l.fileName}</p>
+                    <p className="text-sm text-slate-500 mt-0.5">{(l.createdAt || l.uploadedAt) ? new Date((l.createdAt || l.uploadedAt)!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}</p>
+                  </div>
+                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                    l.status === "complete" ? "bg-blue-50 text-[#1a3fd4]" :
+                    l.status === "processing" ? "bg-amber-100 text-amber-700" :
+                    "bg-slate-100 text-slate-600"
+                  }`}>
+                    {l.status === "complete" ? "Analyzed" : l.status === "processing" ? "Processing" : l.status}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </section>
         )}
 

@@ -3,6 +3,8 @@ import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { sendCreditChangesEmail } from "@/lib/email";
 
+export const dynamic = "force-dynamic";
+
 // Normalize a creditor name + account number + bureau into a stable key for matching
 function itemKey(item: Record<string, unknown>): string {
   const name = String(item.creditorName ?? "").toLowerCase().trim().replace(/\s+/g, " ");
@@ -184,7 +186,7 @@ export async function POST(req: NextRequest) {
       if (user.email) {
         const profileDoc = await firestore.getDoc(COLLECTIONS.users, user.uid).catch(() => null);
         const name = (profileDoc?.data?.fullName as string) || "";
-        sendCreditChangesEmail(user.email, name, { newItems, removedItems, balanceChanges, statusChanges, totalBalanceDelta }).catch(() => {});
+        sendCreditChangesEmail(user.email, name, { newItems, removedItems, balanceChanges, statusChanges, totalBalanceDelta }).catch((err) => console.error("[email] fire-and-forget error:", err));
       }
     }
 

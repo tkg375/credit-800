@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { getObject } from "@/lib/s3";
-import { getUserSubscription } from "@/lib/subscription";
-import { getLimiters } from "@/lib/ratelimit";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+export const dynamic = "force-dynamic";
+
+const AI_TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const AI_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
+type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
 
 const ANALYZE_PROMPT = `You are a consumer rights and credit law expert. A user has uploaded a letter received from a creditor, debt collector, or credit bureau.
 
@@ -29,7 +32,7 @@ Carefully analyze the letter and extract the following information. Return ONLY 
       "description": "Detailed explanation of what to do and why"
     }
   ],
-  "draftResponseLetter": "Full formatted letter text the user can send in response, including [YOUR NAME], [YOUR ADDRESS], [DATE] placeholders"
+  "draftResponseLetter": "Full formatted letter text with real line breaks (\\n)"
 }
 
 Guidelines:
@@ -38,25 +41,42 @@ Guidelines:
 - deadline: Extract any response deadline or due date if mentioned, otherwise null
 - yourLegalRights: List 3-6 specific legal rights applicable under FCRA, FDCPA, or other consumer protection laws based on the letter type
 - recommendedActions: Provide 3-5 prioritized actions the consumer should take, ordered by urgency
-- draftResponseLetter: Write a professional, legally-informed response letter the consumer can customize and send. Include appropriate legal citations (FDCPA Section 809, FCRA Section 611, etc.) where relevant
-Return only the raw JSON, no markdown.`;
+- draftResponseLetter: Write a professional, legally-informed response letter the consumer can customize and send. Include appropriate legal citations (FDCPA Section 809, FCRA Section 611, etc.) where relevant.
+
+CRITICAL — the draftResponseLetter MUST be formatted as a real business letter using newline (\\n) characters, NOT one run-on paragraph. Follow this exact structure, each part separated by line breaks:
+
+[YOUR NAME]
+[YOUR ADDRESS]
+[CITY, STATE ZIP]
+
+[DATE]
+
+[Recipient name]
+[Recipient address]
+
+Re: Account Number XXXX
+
+Dear [Recipient],
+
+(First body paragraph.)
+
+(Second body paragraph.)
+
+(Closing paragraph.)
+
+Sincerely,
+
+[YOUR NAME]
+
+Use \\n\\n between paragraphs and \\n between address/header lines. Return only the raw JSON, no markdown.`;
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const sub = await getUserSubscription(user.uid);
-  if (!sub.isPro) {
-    return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
-  }
-
-  const { success: rlOk } = await getLimiters().letterAnalyze.limit(user.uid);
-  if (!rlOk) {
-    return NextResponse.json({ error: "Daily analysis limit reached (10/day). Try again tomorrow." }, { status: 429 });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "Gemini not configured" }, { status: 503 });
+  const { env, ctx } = await getCloudflareContext({ async: true });
+  const ai = (env as { AI: AiBinding }).AI;
+  if (!ai) return NextResponse.json({ error: "AI not configured" }, { status: 503 });
 
   let body: { s3Key: string; fileName: string; mimeType: string };
   try {
@@ -72,68 +92,123 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  try {
-    const bytes = await getObject(s3Key);
-    const base64 = Buffer.from(bytes).toString("base64");
-    const fileMime = mimeType || "application/pdf";
+  // Create the letter record immediately in a processing state, then analyze in the
+  // background so the client never waits. The user is notified + emailed when ready.
+  const letterId = await firestore.addDoc(COLLECTIONS.creditorLetters, {
+    userId: user.uid,
+    fileName,
+    s3Key,
+    uploadedAt: new Date().toISOString(),
+    status: "processing",
+    creditorName: null,
+    letterType: "other",
+    keyClaimsAndDemands: [],
+    amountClaimed: null,
+    deadline: null,
+    yourLegalRights: [],
+    recommendedActions: [],
+    draftResponseLetter: "",
+  });
 
-    const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { inline_data: { mime_type: fileMime, data: base64 } },
-            { text: ANALYZE_PROMPT },
-          ],
-        }],
-        generationConfig: { temperature: 0, maxOutputTokens: 8192 },
-      }),
-    });
+  const uid = user.uid;
+  const userEmail = user.email;
 
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      console.error("Gemini API error:", JSON.stringify(errBody));
-      throw new Error("Gemini request failed");
+  async function analyzeInBackground() {
+    try {
+      const bytes = await getObject(s3Key);
+      const fileMime = mimeType || "application/pdf";
+      const isPdf = fileMime === "application/pdf" || s3Key.toLowerCase().endsWith(".pdf");
+
+      let aiInputs: Record<string, unknown>;
+      let aiModel: string;
+      if (isPdf) {
+        const { extractText, getDocumentProxy } = await import("unpdf");
+        const pdf = await getDocumentProxy(new Uint8Array(bytes));
+        const { text: extracted } = await extractText(pdf, { mergePages: true });
+        const letterText = (Array.isArray(extracted) ? extracted.join("\n") : extracted).slice(0, 52_000);
+        if (!letterText || letterText.trim().length < 30) {
+          throw new Error("Could not extract text from PDF — it may be a scanned image");
+        }
+        aiModel = AI_TEXT_MODEL;
+        aiInputs = {
+          temperature: 0,
+          max_tokens: 6000,
+          messages: [{ role: "user", content: `${ANALYZE_PROMPT}\n\nHere is the letter text:\n${letterText}` }],
+        };
+      } else {
+        aiModel = AI_VISION_MODEL;
+        aiInputs = {
+          prompt: ANALYZE_PROMPT,
+          image: Array.from(new Uint8Array(bytes)),
+          max_tokens: 6000,
+          temperature: 0,
+        };
+      }
+
+      const aiCall = ai.run(aiModel, aiInputs) as Promise<{ response?: unknown }>;
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("AI timed out")), 60_000)
+      );
+      const result = await Promise.race([aiCall, timeout]);
+      const raw = result?.response;
+
+      // Workers AI usually returns `response` as a string, but some models return an
+      // already-parsed object. Handle both.
+      let analysis: Record<string, unknown>;
+      if (raw && typeof raw === "object") {
+        analysis = raw as Record<string, unknown>;
+      } else {
+        const text = typeof raw === "string" ? raw : "";
+        if (!text) throw new Error("AI service returned empty response");
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start === -1 || end === -1) throw new Error("AI service returned unexpected format");
+        analysis = JSON.parse(text.slice(start, end + 1));
+      }
+
+      await firestore.updateDoc(COLLECTIONS.creditorLetters, letterId, {
+        status: "complete",
+        creditorName: analysis.creditorName ?? null,
+        letterDate: analysis.letterDate ?? null,
+        letterType: analysis.letterType ?? "other",
+        keyClaimsAndDemands: analysis.keyClaimsAndDemands ?? [],
+        amountClaimed: analysis.amountClaimed ?? null,
+        deadline: analysis.deadline ?? null,
+        yourLegalRights: analysis.yourLegalRights ?? [],
+        recommendedActions: analysis.recommendedActions ?? [],
+        draftResponseLetter: analysis.draftResponseLetter ?? "",
+      });
+
+      // Notify + email
+      const creditorName = typeof analysis.creditorName === "string" ? analysis.creditorName : null;
+      await firestore.addDoc(COLLECTIONS.notifications, {
+        userId: uid,
+        type: "success",
+        title: "Letter analysis complete",
+        message: creditorName
+          ? `Your analysis of the letter from ${creditorName} is ready.`
+          : "Your letter analysis is ready to view.",
+        read: false,
+        createdAt: new Date().toISOString(),
+        actionUrl: "/analyze-letter",
+      });
+      if (userEmail) {
+        const { sendLetterReadyEmail } = await import("@/lib/email");
+        const userDoc = await firestore.getDoc(COLLECTIONS.users, uid).catch(() => null);
+        const name = (userDoc?.data?.fullName as string) || "";
+        await sendLetterReadyEmail(userEmail, name, creditorName);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("analyze-letter error:", msg);
+      await firestore.updateDoc(COLLECTIONS.creditorLetters, letterId, {
+        status: "error",
+        errorMessage: msg,
+      }).catch((err) => console.error("[email] fire-and-forget error:", err));
     }
-
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    if (!text) {
-      const finishReason = data.candidates?.[0]?.finishReason;
-      console.error("Empty Gemini response, finishReason:", finishReason, "raw:", JSON.stringify(data).slice(0, 300));
-      throw new Error("AI service returned empty response");
-    }
-
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start === -1 || end === -1) {
-      console.error("No JSON in Gemini response, raw text:", text.slice(0, 500));
-      throw new Error("AI service returned unexpected format");
-    }
-
-    const analysis = JSON.parse(text.slice(start, end + 1));
-
-    const letterId = await firestore.addDoc(COLLECTIONS.creditorLetters, {
-      userId: user.uid,
-      fileName,
-      s3Key,
-      uploadedAt: new Date().toISOString(),
-      creditorName: analysis.creditorName ?? null,
-      letterDate: analysis.letterDate ?? null,
-      letterType: analysis.letterType ?? "other",
-      keyClaimsAndDemands: analysis.keyClaimsAndDemands ?? [],
-      amountClaimed: analysis.amountClaimed ?? null,
-      deadline: analysis.deadline ?? null,
-      yourLegalRights: analysis.yourLegalRights ?? [],
-      recommendedActions: analysis.recommendedActions ?? [],
-      draftResponseLetter: analysis.draftResponseLetter ?? "",
-    });
-
-    return NextResponse.json({ letterId, analysis });
-  } catch (err) {
-    console.error("analyze-letter error:", err);
-    return NextResponse.json({ error: "Failed to analyze letter" }, { status: 500 });
   }
+
+  ctx.waitUntil(analyzeInBackground());
+
+  return NextResponse.json({ letterId, status: "processing" });
 }

@@ -47,7 +47,7 @@ export const fidelityFunds: Fund[] = [
     bestFor: "Core US equity holding for any portfolio",
     minInvestment: "$0",
     benchmarkIndex: "Fidelity US Total Investable Market Index",
-    colorClass: "from-teal-500 to-cyan-600",
+    colorClass: "from-[#1a3fd4] to-[#00d4aa]",
     pros: [
       "Zero expense ratio — costs you nothing to hold",
       "Instant diversification across ~2,700 US companies",

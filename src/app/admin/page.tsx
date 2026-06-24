@@ -2,39 +2,42 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 
+interface UserRow {
+  id: string;
+  email: string;
+  name: string;
+  plan: string;
+  status: string;
+  createdAt: string;
+}
 
 interface AdminStats {
   totalUsers: number;
-  notSubscribed: number;
-  proSubscribers: number;
-  autopilotSubscribers: number;
-  autopilotWaitlistCount: number;
-  mrrCents: number;
-  disputesLast7: number;
-  disputesLast30: number;
-  reportsLast7: number;
-  topReasons: { reason: string; count: number }[];
-  recentDisputes: {
-    id: string;
-    creditorName: unknown;
-    bureau: unknown;
-    status: unknown;
-    createdAt: unknown;
-    userId: unknown;
-  }[];
+  totalAnalyses: number;
+  totalLettersGenerated: number;
+  totalSentUSPS: number;
+  users: UserRow[];
   generatedAt: string;
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5">
-      <p className="text-sm text-slate-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+    <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col gap-2">
+      <span className="text-3xl">{icon}</span>
+      <p className="text-3xl font-bold text-slate-900">{value.toLocaleString()}</p>
+      <p className="text-sm text-slate-500">{label}</p>
     </div>
   );
+}
+
+function PlanBadge({ plan, status }: { plan: string; status: string }) {
+  const isActive = status === "active";
+  if (plan === "autopilot" && isActive) return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Autopilot</span>;
+  if (plan === "pro" && isActive) return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-[#1a3fd4]">Pro</span>;
+  return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Free</span>;
 }
 
 export default function AdminPage() {
@@ -43,22 +46,22 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push("/login"); return; }
 
-    fetch("/api/admin/stats", {
-      headers: { Authorization: `Bearer ${user.idToken}` },
-    })
+    fetch("/api/admin/stats", { headers: { Authorization: `Bearer ${user.idToken}` } })
       .then((r) => {
         if (r.status === 403) { router.push("/dashboard"); return null; }
         return r.json();
       })
-      .then((data) => {
+      .then((data: unknown) => {
         if (!data) return;
-        if (data.error) { setError(data.error); return; }
-        setStats(data);
+        const d = data as Record<string, unknown>;
+        if (d.error) { setError(d.error as string); return; }
+        setStats(d as unknown as AdminStats);
       })
       .catch(() => setError("Failed to load admin stats."))
       .finally(() => setLoading(false));
@@ -66,101 +69,92 @@ export default function AdminPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 text-center max-w-sm">
-          <p className="text-red-400 font-semibold mb-2">Access Denied</p>
-          <p className="text-slate-400 text-sm">{error}</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }
 
   if (!stats) return null;
 
-  const mrrDisplay = `$${(stats.mrrCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+  const filtered = stats.users.filter((u) => {
+    const q = search.toLowerCase();
+    return !q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q);
+  });
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Last updated: {new Date(stats.generatedAt).toLocaleString()}
+            <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
+            <p className="text-sm text-slate-400 mt-1">
+              Last updated {new Date(stats.generatedAt).toLocaleString()}
             </p>
           </div>
-          <a href="/dashboard" className="text-sm text-slate-400 hover:text-white transition">
-            ← Back to app
-          </a>
+          <Link
+            href="/dashboard"
+            className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+          >
+            ← Back to Dashboard
+          </Link>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
-          <StatCard label="Total Users" value={stats.totalUsers} />
-          <StatCard label="Not Subscribed" value={stats.notSubscribed} />
-          <StatCard label="Self Service" value={stats.proSubscribers} sub="$5/mo" />
-          <StatCard label="Autopilot" value={stats.autopilotSubscribers} sub="$49/mo" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          <StatCard label="MRR (est.)" value={mrrDisplay} sub="Based on active subs" />
-          <StatCard label="Disputes This Week" value={stats.disputesLast7} sub={`${stats.disputesLast30} last 30 days`} />
-          <StatCard label="Autopilot Waitlist" value={stats.autopilotWaitlistCount} sub="Waiting for launch" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <StatCard label="Total Users" value={stats.totalUsers} icon="👥" />
+          <StatCard label="Reports Analyzed" value={stats.totalAnalyses} icon="📄" />
+          <StatCard label="Letters Generated" value={stats.totalLettersGenerated} icon="✉️" />
+          <StatCard label="Sent to USPS" value={stats.totalSentUSPS} icon="📬" />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Top Dispute Reasons */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h2 className="font-semibold mb-4 text-slate-200">Top Dispute Reasons</h2>
-            {stats.topReasons.length === 0 ? (
-              <p className="text-slate-400 text-sm">No data yet</p>
-            ) : (
-              <div className="space-y-3">
-                {stats.topReasons.map((r, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-slate-500 w-5 shrink-0">#{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-300 truncate">{r.reason}</p>
-                    </div>
-                    <span className="text-sm font-bold text-lime-400 shrink-0">{r.count}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <h2 className="font-semibold text-slate-800">Users</h2>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or email..."
+              className="text-sm px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-56"
+            />
           </div>
-
-          {/* Recent Disputes */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <h2 className="font-semibold mb-4 text-slate-200">Recent Disputes</h2>
-            {stats.recentDisputes.length === 0 ? (
-              <p className="text-slate-400 text-sm">No disputes yet</p>
-            ) : (
-              <div className="space-y-2">
-                {stats.recentDisputes.map((d) => (
-                  <div key={d.id} className="flex items-center gap-3 text-xs">
-                    <span className="text-slate-400 font-mono truncate max-w-[80px] shrink-0">
-                      {String(d.userId || "").slice(0, 8)}...
-                    </span>
-                    <span className="text-slate-300 flex-1 truncate">{String(d.creditorName || "—")}</span>
-                    <span className="text-slate-400 shrink-0">{String(d.bureau || "—")}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${
-                      d.status === "RESOLVED" ? "bg-green-900/50 text-green-400" :
-                      d.status === "SENT" ? "bg-blue-900/50 text-blue-400" :
-                      "bg-slate-700 text-slate-400"
-                    }`}>
-                      {String(d.status || "—")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-left">
+                  <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Name</th>
+                  <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Email</th>
+                  <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Plan</th>
+                  <th className="px-5 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Joined</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center text-slate-400">No users found</td>
+                  </tr>
+                ) : (
+                  filtered.map((u) => (
+                    <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3 font-medium text-slate-800">{u.name.trim() || "—"}</td>
+                      <td className="px-5 py-3 text-slate-600">{u.email}</td>
+                      <td className="px-5 py-3"><PlanBadge plan={u.plan} status={u.status} /></td>
+                      <td className="px-5 py-3 text-slate-400">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -39,7 +39,7 @@ function NotificationModal({ n, onClose }: { n: Notification; onClose: () => voi
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">{typeIcon(n.type)}</span>
             <h2 className="text-white font-semibold text-base">{n.title}</h2>
@@ -56,7 +56,7 @@ function NotificationModal({ n, onClose }: { n: Notification; onClose: () => voi
           {n.actionUrl && (
             <button
               onClick={handleViewDetails}
-              className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+              className="flex-1 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
             >
               View Details
             </button>

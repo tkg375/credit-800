@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
           title: "Credit Score Update",
           message: `Your score ${delta > 0 ? "increased" : "decreased"} by ${Math.abs(delta)} points (${lastScore} → ${score})`,
           actionUrl: "/scores",
-        }).catch(() => {});
+        }).catch((err) => console.error("[email] fire-and-forget error:", err));
       }
     }
 

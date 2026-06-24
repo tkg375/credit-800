@@ -35,6 +35,18 @@ export async function POST(req: NextRequest) {
       { field: "userId", op: "EQUAL", value: user.uid },
     ]);
 
+    const notifications = await firestore.query(COLLECTIONS.notifications, [
+      { field: "userId", op: "EQUAL", value: user.uid },
+    ]);
+
+    const letters = await firestore.query(COLLECTIONS.creditorLetters, [
+      { field: "userId", op: "EQUAL", value: user.uid },
+    ]);
+
+    const changes = await firestore.query(COLLECTIONS.reportChanges, [
+      { field: "userId", op: "EQUAL", value: user.uid },
+    ]);
+
     // Delete items in batches
     let deleted = 0;
     const maxDeletes = 100;
@@ -64,12 +76,30 @@ export async function POST(req: NextRequest) {
       deleted++;
     }
 
+    for (const n of notifications.slice(0, maxDeletes)) {
+      await firestore.deleteDoc(COLLECTIONS.notifications, n.id);
+      deleted++;
+    }
+
+    for (const letter of letters.slice(0, maxDeletes)) {
+      await firestore.deleteDoc(COLLECTIONS.creditorLetters, letter.id);
+      deleted++;
+    }
+
+    for (const change of changes.slice(0, maxDeletes)) {
+      await firestore.deleteDoc(COLLECTIONS.reportChanges, change.id);
+      deleted++;
+    }
+
     const remaining =
       Math.max(0, items.length - maxDeletes) +
       Math.max(0, scores.length - maxDeletes) +
       Math.max(0, disputes.length - maxDeletes) +
       Math.max(0, reports.length - maxDeletes) +
-      Math.max(0, plans.length - maxDeletes);
+      Math.max(0, plans.length - maxDeletes) +
+      Math.max(0, notifications.length - maxDeletes) +
+      Math.max(0, letters.length - maxDeletes) +
+      Math.max(0, changes.length - maxDeletes);
 
     return NextResponse.json({
       success: true,

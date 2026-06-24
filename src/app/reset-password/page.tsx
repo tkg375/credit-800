@@ -110,7 +110,7 @@ function ResetPasswordForm() {
                 <button
                   type="submit"
                   disabled={loading || !token || !uid}
-                  className="w-full py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-lg font-medium transition disabled:opacity-50"
+                  className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-lg font-medium transition disabled:opacity-50"
                 >
                   {loading ? "Updating..." : "Update Password"}
                 </button>

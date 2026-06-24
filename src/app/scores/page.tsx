@@ -7,13 +7,6 @@ import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import dynamic from "next/dynamic";
 import { downloadCSV } from "@/lib/export-csv";
 
-const LineChart = dynamic(() => import("recharts").then((m) => m.LineChart), { ssr: false });
-const Line = dynamic(() => import("recharts").then((m) => m.Line), { ssr: false });
-const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), { ssr: false });
-const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), { ssr: false });
-const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: false });
-const Legend = dynamic(() => import("recharts").then((m) => m.Legend), { ssr: false });
-const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false });
 
 const BUREAUS = ["Equifax", "Experian", "TransUnion"] as const;
 type Bureau = typeof BUREAUS[number];
@@ -152,19 +145,32 @@ export default function ScoresPage() {
     }
   };
 
+  // Parse date from ISO string without timezone shifting
+  function dateKey(recordedAt: string) {
+    return recordedAt.split("T")[0]; // "2026-05-30"
+  }
+  function displayDate(recordedAt: string) {
+    const [y, m, d] = dateKey(recordedAt).split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString();
+  }
+  function chartLabel(dateStr: string) {
+    const [y, m] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+  }
+
   // Group scores by bureau
   const byBureau = BUREAUS.reduce((acc, b) => {
     acc[b] = scores.filter(s => normalizeBureau(s.bureau) === b)
-      .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+      .sort((a, b) => dateKey(a.recordedAt).localeCompare(dateKey(b.recordedAt)));
     return acc;
   }, {} as Record<Bureau, ScoreEntry[]>);
 
-  // Build chart data: one data point per unique date, with a value per bureau
-  const allDates = [...new Set(scores.map(s => new Date(s.recordedAt).toLocaleDateString("en-US", { month: "short", year: "2-digit" })))];
-  const chartData = allDates.map(date => {
-    const point: Record<string, string | number> = { date };
+  // Build chart data: unique dates sorted chronologically
+  const allDateKeys = [...new Set(scores.map(s => dateKey(s.recordedAt)))].sort();
+  const chartData = allDateKeys.map(dk => {
+    const point: Record<string, string | number> = { date: chartLabel(dk) };
     BUREAUS.forEach(b => {
-      const match = byBureau[b].find(s => new Date(s.recordedAt).toLocaleDateString("en-US", { month: "short", year: "2-digit" }) === date);
+      const match = byBureau[b].find(s => dateKey(s.recordedAt) === dk);
       if (match) point[b] = match.score;
     });
     return point;
@@ -176,7 +182,7 @@ export default function ScoresPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -189,7 +195,7 @@ export default function ScoresPage() {
         <div className="mb-8">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
                 Score Tracking
               </h1>
               <p className="text-slate-500 mt-1 text-sm sm:text-base">Track your score across all three bureaus</p>
@@ -214,7 +220,7 @@ export default function ScoresPage() {
               </button>
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="px-3 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+                className="px-3 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
               >
                 + Add Score
               </button>
@@ -234,7 +240,7 @@ export default function ScoresPage() {
                 <div className="flex items-center justify-between mb-3">
                   <span className={`text-xs font-bold uppercase tracking-widest ${BUREAU_TEXT[bureau]}`}>{bureau}</span>
                   {change !== null && (
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${change >= 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${change >= 0 ? "bg-blue-50 text-[#1a3fd4]" : "bg-red-100 text-red-700"}`}>
                       {change >= 0 ? "+" : ""}{change}
                     </span>
                   )}
@@ -243,7 +249,7 @@ export default function ScoresPage() {
                   <>
                     <p className="text-4xl font-black text-slate-900">{latest.score}</p>
                     <p className={`text-sm font-semibold mt-1 ${scoreLabelColor(latest.score)}`}>{scoreLabel(latest.score)}</p>
-                    <p className="text-xs text-slate-400 mt-2">{new Date(latest.recordedAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-400 mt-2">{displayDate(latest.recordedAt)}</p>
                     <div className="mt-3 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
@@ -336,33 +342,7 @@ export default function ScoresPage() {
           </div>
         )}
 
-        {/* Chart — all 3 bureaus on one chart */}
-        {chartData.length > 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-            <h2 className="font-semibold mb-4">Score History by Bureau</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                  <YAxis domain={[300, 850]} tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                  <Tooltip />
-                  <Legend />
-                  {BUREAUS.map(b => (
-                    <Line
-                      key={b}
-                      type="monotone"
-                      dataKey={b}
-                      stroke={BUREAU_COLORS[b]}
-                      strokeWidth={2.5}
-                      dot={{ fill: BUREAU_COLORS[b], r: 4 }}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
+        {!hasAnyScores && (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center mb-6">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +351,7 @@ export default function ScoresPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">No Score Data Yet</h3>
             <p className="text-slate-500 mb-4">Add your first score entry to start tracking progress across all three bureaus.</p>
-            <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition">
+            <button onClick={() => setShowForm(true)} className="px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition">
               Add Your First Score
             </button>
           </div>
@@ -399,7 +379,7 @@ export default function ScoresPage() {
                     const color = b !== "Other" ? BUREAU_COLORS[b] : "#94a3b8";
                     return (
                       <tr key={s.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-xs text-slate-500">{new Date(s.recordedAt).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-xs text-slate-500">{displayDate(s.recordedAt)}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />

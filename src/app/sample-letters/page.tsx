@@ -405,13 +405,13 @@ const letterTypes = [
     title: "FCRA § 611 Initial Dispute",
     desc: "Standard first-round bureau dispute. Demands investigation of inaccurate or unverifiable items.",
     tag: "Credit Bureau",
-    tagColor: "bg-teal-100 text-teal-700",
+    tagColor: "bg-blue-50 text-[#1a3fd4]",
   },
   {
     title: "Method of Verification (Round 2)",
     desc: "Escalation demanding the bureau explain exactly how they verified a disputed item.",
     tag: "Credit Bureau",
-    tagColor: "bg-teal-100 text-teal-700",
+    tagColor: "bg-blue-50 text-[#1a3fd4]",
   },
   {
     title: "Goodwill Letter",
@@ -471,7 +471,7 @@ export default function SampleLettersPage() {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <MarketingNav />
       </header>
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">Sample Dispute Letters</h1>
           <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
@@ -509,7 +509,7 @@ export default function SampleLettersPage() {
         {/* Letter 1 — Credit Bureau */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs font-semibold px-2.5 py-1 bg-teal-100 text-teal-700 rounded-full">Credit Bureau</span>
+            <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-[#1a3fd4] rounded-full">Credit Bureau</span>
             <div>
               <h2 className="text-lg font-bold text-slate-900">FCRA § 611 Initial Dispute Letter</h2>
               <p className="text-xs text-slate-500">Sent to Equifax, Experian, or TransUnion — first round</p>
@@ -537,7 +537,7 @@ export default function SampleLettersPage() {
         {/* Letter 3 — Method of Verification */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs font-semibold px-2.5 py-1 bg-teal-100 text-teal-700 rounded-full">Credit Bureau</span>
+            <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-[#1a3fd4] rounded-full">Credit Bureau</span>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Method of Verification Request (Round 2)</h2>
               <p className="text-xs text-slate-500">Sent after the bureau claims they "verified" a disputed item</p>
@@ -605,12 +605,12 @@ export default function SampleLettersPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 rounded-2xl p-8 text-center">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-2">Get Your Personalized Letters</h2>
           <p className="text-lime-100 text-sm mb-6 max-w-lg mx-auto">
             Your letters include specific account numbers, exact legal citations, and bureau/collector mailing addresses — personalized and ready to send.
           </p>
-          <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
+          <GetStartedButton className="inline-block px-8 py-3 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-lg font-medium transition">
             Get Started
           </GetStartedButton>
         </div>

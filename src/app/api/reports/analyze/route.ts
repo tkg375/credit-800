@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { getUserSubscription } from "@/lib/subscription";
 import { getLimiters } from "@/lib/ratelimit";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "nodejs";
-// Analyze route now just triggers Lambda — returns well within API Gateway 29s limit
-export const maxDuration = 30;
-
-function getLambdaClient() {
-  return new LambdaClient({
-    region: process.env.S3_REGION || "us-east-1",
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-    },
-  });
-}
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   let user;
@@ -37,37 +25,28 @@ export async function POST(req: NextRequest) {
 
     const sub = await getUserSubscription(user.uid);
 
-    if (simulateData) {
-      // simulateData requires Pro and has its own rate limit (5/day)
-      if (!sub.isPro) {
-        return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
-      }
-      const { success: rlOk } = await getLimiters().simulateData.limit(user.uid);
-      if (!rlOk) {
-        return NextResponse.json({ error: "Daily simulation limit reached (5/day). Try again tomorrow." }, { status: 429 });
-      }
-    } else {
-      // Rate limit real uploads: free=1/day, pro=3/day
-      try {
-        const { free, pro } = getLimiters();
-        const limiter = sub.isPro ? pro : free;
-        const { success, reset } = await limiter.limit(user.uid);
-        if (!success) {
-          const resetAt = new Date(reset).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-          return NextResponse.json(
-            { error: `Daily upload limit reached. You can upload again after ${resetAt}.`, reset },
-            { status: 429 }
-          );
-        }
-      } catch (rlErr) {
-        console.warn("[analyze] Rate limiter unavailable, skipping:", rlErr);
+    if (simulateData && !sub.isPro) {
+      return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
+    }
+
+    // Rate limit real PDF analysis to 5/day per user
+    if (!simulateData) {
+      const rl = await getLimiters().reportAnalyze.limit(`uid:${user.uid}`);
+      if (!rl.success) {
+        return NextResponse.json(
+          { error: "Daily analysis limit reached. You can analyze up to 5 reports per day." },
+          { status: 429, headers: { "Retry-After": String(rl.reset) } }
+        );
       }
     }
 
-    // Verify reportId ownership before any reads/writes
+    // Verify reportId ownership — 404 if missing, 403 if owned by another user
     if (reportId) {
       const reportDoc = await firestore.getDoc(COLLECTIONS.creditReports, reportId);
-      if (reportDoc.exists && reportDoc.data.userId !== user.uid) {
+      if (!reportDoc.exists) {
+        return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      }
+      if (reportDoc.data.userId !== user.uid) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
@@ -352,6 +331,7 @@ export async function POST(req: NextRequest) {
         userId: user.uid,
         score: 673,
         bureau: "EQUIFAX",
+        source: "Credit Report",
         recordedAt: new Date().toISOString(),
       });
 
@@ -370,16 +350,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Real PDF analysis — delegate to background Lambda
-    const functionName = process.env.LAMBDA_FUNCTION_NAME;
-    if (!functionName) {
-      return NextResponse.json(
-        { error: "LAMBDA_FUNCTION_NAME not configured" },
-        { status: 500 }
-      );
-    }
-
-    // Get the report to confirm it exists and get the s3Key
+    // Real PDF analysis — run in background via ctx.waitUntil (no timeout for the client)
     const report = await firestore.getDoc(COLLECTIONS.creditReports, reportId);
     if (!report.exists) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
@@ -387,28 +358,26 @@ export async function POST(req: NextRequest) {
 
     const s3Key = (report.data.s3Key || report.data.blobUrl) as string;
     if (!s3Key) {
-      return NextResponse.json(
-        { error: "PDF file not found for this report" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "PDF file not found for this report" }, { status: 404 });
     }
 
-    const bureau = (report.data.bureau as string) || "UNKNOWN";
-
-    // Mark as ANALYZING so the client can show a progress state
+    // Add to the analysis queue. The Cloudflare Queue consumer (max_concurrency = 1)
+    // processes reports one at a time, in order, with a full async budget — so a
+    // 3-bureau burst runs sequentially and reliably. The user is notified (in-app +
+    // email) when each completes.
     await firestore.updateDoc(COLLECTIONS.creditReports, reportId, {
-      status: "ANALYZING",
-      analysisStartedAt: new Date().toISOString(),
+      status: "QUEUED",
+      queuedAt: new Date().toISOString(),
     });
 
-    // Fire-and-forget Lambda invocation (InvocationType: Event returns 202 immediately)
-    await getLambdaClient().send(new InvokeCommand({
-      FunctionName: functionName,
-      InvocationType: "Event",
-      Payload: JSON.stringify({ reportId, userId: user.uid, s3Key, bureau }),
-    }));
+    const { env } = await getCloudflareContext({ async: true });
+    const queue = (env as { ANALYSIS_QUEUE?: { send: (m: unknown) => Promise<void> } }).ANALYSIS_QUEUE;
+    if (!queue) {
+      return NextResponse.json({ error: "Analysis queue not configured" }, { status: 503 });
+    }
+    await queue.send({ reportId });
 
-    return NextResponse.json({ status: "processing", reportId });
+    return NextResponse.json({ status: "queued", reportId });
   } catch (err) {
     console.error("Analyze error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

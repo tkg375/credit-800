@@ -105,7 +105,7 @@ export default function FreezePage() {
     return (
       <AuthenticatedLayout activeNav="freeze">
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
         </div>
       </AuthenticatedLayout>
     );
@@ -188,7 +188,7 @@ export default function FreezePage() {
                   <button
                     onClick={() => saveCard(bureau.key)}
                     disabled={saving === bureau.key}
-                    className="flex-1 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="flex-1 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
                   >
                     {saving === bureau.key ? "Saving..." : "Save"}
                   </button>

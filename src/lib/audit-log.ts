@@ -19,7 +19,9 @@ export type AuditActionType =
   | "autopilot_subscription_activated"
   | "autopilot_subscription_canceled"
   | "two_factor_verified"
-  | "two_factor_failed";
+  | "two_factor_failed"
+  | "smartcredit_account_linked"
+  | "smartcredit_webhook_received";
 
 export interface AuditEntry {
   userId: string;

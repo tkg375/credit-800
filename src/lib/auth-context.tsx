@@ -24,6 +24,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<User>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  complete2FA: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -101,23 +102,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
 
+    const data = await res.json() as { uid?: string; email?: string; token?: string; requires2FA?: boolean; error?: string };
+
     if (!res.ok) {
-      const data = await res.json() as { error?: string };
       const code = data.error || "Sign in failed";
       if (code === "INVALID_LOGIN_CREDENTIALS") throw new Error("INVALID_LOGIN_CREDENTIALS");
       throw new Error(code);
     }
 
-    const data = await res.json() as { uid: string; email: string; token: string };
+    if (data.requires2FA) throw new Error("REQUIRES_2FA");
+
     const newUser: User = {
-      uid: data.uid,
-      email: data.email,
+      uid: data.uid!,
+      email: data.email!,
       displayName: null,
-      idToken: data.token,
+      idToken: data.token!,
       refreshToken: "",
     };
     saveUser(newUser);
     setUser(newUser);
+  };
+
+  const complete2FA = async (code: string) => {
+    const res = await fetch("/api/auth/2fa/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json() as { uid?: string; email?: string; error?: string };
+    if (!res.ok) throw new Error(data.error || "Verification failed");
+    // Fetch full user profile after 2FA
+    const meRes = await fetch("/api/auth/me");
+    if (meRes.ok) {
+      const me = await meRes.json() as { uid: string; email: string; idToken?: string };
+      const newUser: User = { uid: me.uid, email: me.email, displayName: null, idToken: me.idToken || "", refreshToken: "" };
+      saveUser(newUser);
+      setUser(newUser);
+    }
   };
 
   const signUp = async (email: string, password: string): Promise<User> => {
@@ -161,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signUp, signInWithGoogle, signOut }}
+      value={{ user, loading, signIn, signUp, signInWithGoogle, signOut, complete2FA }}
     >
       {children}
     </AuthContext.Provider>
@@ -175,6 +196,7 @@ export function useAuth(): AuthContextType {
       user: null,
       loading: true,
       signIn: async () => {},
+      complete2FA: async () => {},
       signUp: async () => { throw new Error("Auth not initialized"); },
       signInWithGoogle: async () => {},
       signOut: async () => {},

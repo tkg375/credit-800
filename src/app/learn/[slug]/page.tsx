@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const categoryColors: Record<string, string> = {
-  "Understanding Credit": "bg-teal-100 text-teal-700",
+  "Understanding Credit": "bg-blue-50 text-[#1a3fd4]",
   "Dispute Rights": "bg-rose-100 text-rose-700",
   "Building Credit": "bg-lime-100 text-lime-700",
   "Debt Management": "bg-amber-100 text-amber-700",
@@ -204,12 +204,12 @@ export default async function LearnArticlePage({ params }: Props) {
         </article>
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 rounded-2xl p-6 sm:p-8 text-center mt-12">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-6 sm:p-8 text-center mt-12">
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Ready to Put This Into Action?</h2>
           <p className="text-lime-100 text-sm mb-6 max-w-md mx-auto">
             Upload your credit report and get personalized FCRA dispute letters, a score improvement plan, and all the tools you need — in one place.
           </p>
-          <GetStartedButton className="inline-block px-8 py-3 bg-white text-teal-600 hover:bg-lime-50 rounded-lg font-medium transition">
+          <GetStartedButton className="inline-block px-8 py-3 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-lg font-medium transition">
             Get Started
           </GetStartedButton>
         </div>

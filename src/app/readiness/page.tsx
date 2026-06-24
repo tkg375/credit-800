@@ -161,7 +161,7 @@ export default function ReadinessPage() {
             <h2 className="font-semibold text-slate-800 mb-4">Your Financial Profile</h2>
             {loading ? (
               <div className="flex justify-center py-6">
-                <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <div className="grid sm:grid-cols-3 gap-4">

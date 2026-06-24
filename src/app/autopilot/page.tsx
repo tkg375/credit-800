@@ -31,8 +31,8 @@ interface AutopilotStatus {
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    completed: "bg-green-100 text-green-700",
-    running: "bg-teal-100 text-teal-700 animate-pulse",
+    completed: "bg-blue-50 text-[#1a3fd4]",
+    running: "bg-blue-50 text-[#1a3fd4] animate-pulse",
     failed: "bg-red-100 text-red-700",
     skipped: "bg-slate-100 text-slate-600",
   };
@@ -125,7 +125,7 @@ export default function AutopilotPage() {
   if (authLoading || subLoading || loadingStatus) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -137,10 +137,10 @@ export default function AutopilotPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
               Autopilot
             </h1>
-            <span className="text-xs font-semibold bg-gradient-to-r from-lime-500 to-teal-600 text-white px-2.5 py-0.5 rounded-full">
+            <span className="text-xs font-semibold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white px-2.5 py-0.5 rounded-full">
               Active
             </span>
           </div>
@@ -204,7 +204,7 @@ export default function AutopilotPage() {
             <button
               onClick={handleTrigger}
               disabled={triggering || status?.currentlyRunning || !status?.hasValidConsent}
-              className="shrink-0 px-4 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-40"
+              className="shrink-0 px-4 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition disabled:opacity-40"
             >
               {triggering || status?.currentlyRunning ? "Running..." : "Run Autopilot"}
             </button>
@@ -217,7 +217,7 @@ export default function AutopilotPage() {
           )}
 
           {runResult && (
-            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
               <p className="text-sm font-medium text-green-800">
                 Run complete — {runResult.lettersGenerated} letters generated, {runResult.lettersMailed} mailed.
               </p>
@@ -237,7 +237,7 @@ export default function AutopilotPage() {
           <h2 className="font-semibold mb-4">FCRA Authorization</h2>
           {status?.hasValidConsent ? (
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center shrink-0">
                 <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -299,7 +299,7 @@ export default function AutopilotPage() {
       {showConsent && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-4 shrink-0">
+            <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-6 py-4 shrink-0">
               <h2 className="text-white font-semibold text-lg">FCRA Credit Report Authorization</h2>
               <p className="text-white/80 text-sm mt-0.5">Required under the Fair Credit Reporting Act</p>
             </div>
@@ -317,7 +317,7 @@ export default function AutopilotPage() {
                   type="checkbox"
                   checked={consentAgreed}
                   onChange={(e) => setConsentAgreed(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-teal-600"
+                  className="mt-0.5 w-4 h-4 accent-[#1a3fd4]"
                 />
                 <span className="text-sm text-slate-700">
                   I have read, understand, and agree to the above authorization. I am providing my electronic signature and authorizing Credit 800 to obtain my consumer credit report.
@@ -327,7 +327,7 @@ export default function AutopilotPage() {
                 <button
                   onClick={handleGiveConsent}
                   disabled={!consentAgreed || submittingConsent}
-                  className="flex-1 py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-40"
+                  className="flex-1 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-40"
                 >
                   {submittingConsent ? "Saving..." : "I Authorize"}
                 </button>

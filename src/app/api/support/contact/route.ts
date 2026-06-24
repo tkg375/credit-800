@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+import { AwsClient } from "aws4fetch";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 const SUPPORT_EMAIL = "tgordo03@gmail.com";
 const FROM_EMAIL = "Credit 800 <noreply@credit-800.com>";
 
-function getSesClient() {
-  const region = process.env.S3_REGION || "us-east-1";
-  const accessKeyId = process.env.S3_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-  if (!accessKeyId || !secretAccessKey) return null;
-  return new SESv2Client({ region, credentials: { accessKeyId, secretAccessKey } });
+async function verifyTurnstile(token: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return true; // fail open if not configured
+  const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ secret, response: token }),
+  });
+  const data = await res.json() as { success: boolean };
+  return data.success === true;
 }
 
 export async function POST(req: NextRequest) {
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
-  const { name, email, subject, message } = await req.json();
+  const { name, email, subject, message, turnstileToken } = await req.json();
 
   if (!name?.trim() || !email?.trim() || !message?.trim()) {
     return NextResponse.json({ error: "Name, email, and message are required." }, { status: 400 });
@@ -29,8 +33,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Input exceeds maximum length." }, { status: 400 });
   }
 
-  const safeSubject = subject?.trim() || "General Inquiry";
+  const turnstileValid = await verifyTurnstile(turnstileToken || "");
+  if (!turnstileValid) {
+    return NextResponse.json({ error: "Security check failed. Please try again." }, { status: 400 });
+  }
 
+  const safeSubject = subject?.trim() || "General Inquiry";
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -56,29 +64,41 @@ export async function POST(req: NextRequest) {
     </div>
   `;
 
-  const client = getSesClient();
-  if (!client) {
-    console.warn("[support/contact] AWS SES not configured — would have sent:", { name, email, safeSubject });
+  const accessKeyId = process.env.S3_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
+  const region = process.env.S3_REGION || "us-east-1";
+
+  if (!accessKeyId || !secretAccessKey) {
+    console.warn("[support/contact] AWS credentials not set");
     return NextResponse.json({ ok: true });
   }
 
+  const aws = new AwsClient({ accessKeyId, secretAccessKey, region, service: "ses" });
+  const body = JSON.stringify({
+    FromEmailAddress: FROM_EMAIL,
+    ReplyToAddresses: [email.trim()],
+    Destination: { ToAddresses: [SUPPORT_EMAIL] },
+    Content: {
+      Simple: {
+        Subject: { Data: `[Support] ${safeSubject} — ${name.trim()}`, Charset: "UTF-8" },
+        Body: { Html: { Data: html, Charset: "UTF-8" } },
+      },
+    },
+  });
+
   try {
-    await client.send(
-      new SendEmailCommand({
-        FromEmailAddress: FROM_EMAIL,
-        ReplyToAddresses: [email.trim()],
-        Destination: { ToAddresses: [SUPPORT_EMAIL] },
-        Content: {
-          Simple: {
-            Subject: { Data: `[Support] ${safeSubject} — ${name.trim()}`, Charset: "UTF-8" },
-            Body: { Html: { Data: html, Charset: "UTF-8" } },
-          },
-        },
-      })
+    const res = await aws.fetch(
+      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body }
     );
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("[support/contact] SES error:", res.status, text);
+      return NextResponse.json({ error: "Failed to send message. Please email us directly." }, { status: 500 });
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[support/contact] SES error:", err);
+    console.error("[support/contact] fetch error:", err);
     return NextResponse.json({ error: "Failed to send message. Please email us directly." }, { status: 500 });
   }
 }

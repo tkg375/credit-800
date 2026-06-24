@@ -21,10 +21,10 @@ export function MarketingFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
 
           {/* Brand */}
-          <div className="col-span-2 lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-1 text-center sm:text-left flex flex-col items-center sm:items-start">
             <Link href="/"><Logo className="h-10 w-auto mb-3" /></Link>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
               Smarter tools to dispute credit errors, manage your finances, and build toward an 800 credit score.
@@ -35,14 +35,14 @@ export function MarketingFooter() {
           </div>
 
           {/* Resources */}
-          <div>
+          <div className="text-center sm:text-left">
             <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Resources</h3>
             <ul className="space-y-2.5">
               {resources.map((r) => (
                 <li key={r.href}>
                   <Link
                     href={r.href}
-                    className="text-xs text-slate-500 hover:text-teal-600 transition"
+                    className="text-xs text-slate-500 hover:text-[#1a3fd4] transition"
                   >
                     {r.label}
                   </Link>
@@ -52,14 +52,14 @@ export function MarketingFooter() {
           </div>
 
           {/* Company */}
-          <div>
+          <div className="text-center sm:text-left">
             <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Company</h3>
             <ul className="space-y-2.5">
               {company.map((c) => (
                 <li key={c.href}>
                   <Link
                     href={c.href}
-                    className="text-xs text-slate-500 hover:text-teal-600 transition"
+                    className="text-xs text-slate-500 hover:text-[#1a3fd4] transition"
                   >
                     {c.label}
                   </Link>
@@ -69,17 +69,17 @@ export function MarketingFooter() {
           </div>
 
           {/* Get Started */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Get Started</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Start Now →</h3>
             <p className="text-xs text-slate-500 leading-relaxed mb-4">
               Upload your credit report and get personalized dispute letters and an action plan.
             </p>
-            <GetStartedButton className="inline-block px-4 py-2 text-xs font-medium bg-gradient-to-r from-lime-500 to-teal-500 text-white rounded-lg hover:from-lime-400 hover:to-teal-400 transition">
+            <GetStartedButton className="inline-block px-4 py-2 text-xs font-medium bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg hover:opacity-90 transition">
               Get Started
             </GetStartedButton>
             <div className="mt-6">
               <p className="text-xs text-slate-400 mb-2">Already have an account?</p>
-              <LogInButton className="text-xs text-teal-600 hover:text-teal-700 font-medium transition">
+              <LogInButton className="text-xs text-[#1a3fd4] hover:text-[#0e7fd4] font-medium transition">
                 Log in →
               </LogInButton>
             </div>

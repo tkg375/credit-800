@@ -1,31 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { getLimiters } from "@/lib/ratelimit";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+export const dynamic = "force-dynamic";
+
+const AI_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
+type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { success: rlOk } = await getLimiters().scoreImport.limit(user.uid);
-  if (!rlOk) {
-    return NextResponse.json({ error: "Daily import limit reached (10/day). Try again tomorrow." }, { status: 429 });
-  }
+  const ctx = await getCloudflareContext({ async: true });
+  const ai = (ctx.env as { AI: AiBinding }).AI;
+  if (!ai) return NextResponse.json({ error: "AI not configured" }, { status: 503 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "Gemini not configured" }, { status: 503 });
-
-  const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   const MAX_BASE64_LENGTH = 1_400_000; // ~1MB decoded
 
-  const { imageBase64, mimeType } = await req.json();
+  const { imageBase64 } = await req.json();
   if (!imageBase64) return NextResponse.json({ error: "imageBase64 is required" }, { status: 400 });
   if (typeof imageBase64 !== "string" || imageBase64.length > MAX_BASE64_LENGTH) {
     return NextResponse.json({ error: "Image too large" }, { status: 400 });
   }
-  const safeMime = ALLOWED_MIME_TYPES.includes(mimeType) ? mimeType : "image/jpeg";
 
   const prompt = `Look at this credit score screenshot or document. Extract:
 1. The credit score number (300-850)
@@ -39,28 +36,23 @@ Return ONLY a JSON object like:
 If you cannot find a score, return: {"score": null}
 Return only the raw JSON, no markdown.`;
 
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: safeMime, data: imageBase64 } },
-          { text: prompt },
-        ],
-      }],
-      generationConfig: { temperature: 0, maxOutputTokens: 256 },
-    }),
-  });
+  // Workers AI vision takes the image as an array of byte values
+  const imageBytes = Array.from(Buffer.from(imageBase64, "base64"));
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error("[scores/import] Gemini error:", JSON.stringify(err));
+  let text = "";
+  try {
+    const result = await ai.run(AI_VISION_MODEL, {
+      prompt,
+      image: imageBytes,
+      max_tokens: 256,
+      temperature: 0,
+    }) as { response?: unknown };
+    const raw = result?.response;
+    text = typeof raw === "string" ? raw : raw ? JSON.stringify(raw) : "";
+  } catch (err) {
+    console.error("[scores/import] Workers AI error:", err);
     return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
   }
-
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
   let parsed: { score: number | null; bureau?: string; source?: string; date?: string };
   try {

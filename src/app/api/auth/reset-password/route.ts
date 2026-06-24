@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import bcrypt from "bcryptjs";
 import { firestore } from "@/lib/db";
+import { getUserResetToken } from "@/lib/dynamodb";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
@@ -21,15 +22,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "WEAK_PASSWORD" }, { status: 400 });
     }
 
-    const doc = await firestore.getDoc("users", uid);
-    if (!doc.exists) {
+    // Use direct DB read to access resetToken (stripped by normal getDoc)
+    const userReset = await getUserResetToken(uid);
+    if (!userReset) {
       return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
     }
 
-    const { resetToken, resetTokenExpiry } = doc.data as { resetToken?: string; resetTokenExpiry?: string };
+    const { resetToken: storedToken, resetTokenExpiry, tokenVersion: currentVersion } = userReset;
 
-    const tokensMatch = resetToken && token && resetToken.length === token.length &&
-      timingSafeEqual(Buffer.from(resetToken), Buffer.from(token));
+    const tokensMatch = storedToken && token && storedToken.length === token.length &&
+      timingSafeEqual(Buffer.from(storedToken), Buffer.from(token));
     if (!tokensMatch) {
       return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
     }
@@ -39,9 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-
-    // Increment tokenVersion to invalidate all existing JWT sessions
-    const currentVersion = (doc.data.tokenVersion as number | undefined) ?? 0;
 
     await firestore.updateDoc("users", uid, {
       passwordHash,

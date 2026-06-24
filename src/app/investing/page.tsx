@@ -140,7 +140,7 @@ function CompoundCalculator() {
               step={0.5}
               value={rate}
               onChange={(e) => setRate(Number(e.target.value))}
-              className="w-full accent-teal-600"
+              className="w-full accent-[#1a3fd4]"
             />
             <div className="flex justify-between text-xs text-slate-400 mt-1">
               <span>3% (bonds)</span>
@@ -158,7 +158,7 @@ function CompoundCalculator() {
               max={40}
               value={years}
               onChange={(e) => setYears(Number(e.target.value))}
-              className="w-full accent-teal-600"
+              className="w-full accent-[#1a3fd4]"
             />
             <div className="flex justify-between text-xs text-slate-400 mt-1">
               <span>1 yr</span>
@@ -171,7 +171,7 @@ function CompoundCalculator() {
 
       {/* Result Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl p-4 text-white text-center">
+        <div className="bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-xl p-4 text-white text-center">
           <p className="text-xs text-white/70 mb-1">Final Balance</p>
           <p className="text-2xl font-bold">{fmt(finalValue)}</p>
         </div>
@@ -189,7 +189,7 @@ function CompoundCalculator() {
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <h3 className="font-semibold mb-4">Growth Over Time</h3>
         <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={256} minWidth={0}>
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
@@ -286,7 +286,7 @@ export default function InvestingPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -296,7 +296,7 @@ export default function InvestingPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
             Investing Strategies
           </h1>
           <p className="text-slate-500 mt-1">
@@ -305,7 +305,7 @@ export default function InvestingPage() {
         </div>
 
         {/* Intro banner */}
-        <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white mb-8">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-6 text-white mb-8">
           <div className="grid sm:grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-3xl font-bold">$0</p>
@@ -335,7 +335,7 @@ export default function InvestingPage() {
               onClick={() => setActiveTab(key)}
               className={`px-4 py-2.5 rounded-xl font-medium text-sm transition ${
                 activeTab === key
-                  ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                  ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -545,7 +545,7 @@ export default function InvestingPage() {
             </div>
 
             {/* Key principles */}
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-6 text-white">
               <h3 className="font-semibold text-lg mb-4">Index Fund Investing Principles</h3>
               <div className="grid sm:grid-cols-2 gap-4 text-sm text-white/90">
                 {[
@@ -579,7 +579,7 @@ export default function InvestingPage() {
                   return (
                     <div key={id} className="flex-1 flex flex-col sm:flex-row items-center gap-2">
                       <div className="flex-1 bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
-                        <div className="w-8 h-8 bg-gradient-to-r from-lime-500 to-teal-600 rounded-full text-white text-sm font-bold flex items-center justify-center mx-auto mb-2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-full text-white text-sm font-bold flex items-center justify-center mx-auto mb-2">
                           {i + 1}
                         </div>
                         <div className="text-lg">{acct.icon}</div>

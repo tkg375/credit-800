@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+export const dynamic = "force-dynamic";
+
+const AI_TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const AI_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
+type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
 
 const PARSE_PROMPT = `You are a credit dispute expert. A user has uploaded a bureau response letter.
 Extract the following information from the letter:
@@ -30,8 +35,9 @@ export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "AI service not configured" }, { status: 503 });
+  const ctx = await getCloudflareContext({ async: true });
+  const ai = (ctx.env as { AI: AiBinding }).AI;
+  if (!ai) return NextResponse.json({ error: "AI service not configured" }, { status: 503 });
 
   let formData: FormData;
   try {
@@ -70,60 +76,49 @@ export async function POST(request: NextRequest) {
   if (!dispute.exists) return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
   if (dispute.data.userId !== user.uid) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
-  // Convert file to base64
   const arrayBuffer = await file.arrayBuffer();
-  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  const bytes = new Uint8Array(arrayBuffer);
   const mimeType = file.type || "application/pdf";
-
-  // Determine content type for Claude API
   const isPdf = mimeType === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
-  const contentBlock = isPdf
-    ? {
-        type: "document",
-        source: { type: "base64", media_type: "application/pdf", data: base64 },
-      }
-    : {
-        type: "image",
-        source: { type: "base64", media_type: mimeType, data: base64 },
-      };
-
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2024-01-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+    let aiModel: string;
+    let aiInputs: Record<string, unknown>;
+    if (isPdf) {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const pdf = await getDocumentProxy(bytes);
+      const { text: extracted } = await extractText(pdf, { mergePages: true });
+      const letterText = (Array.isArray(extracted) ? extracted.join("\n") : extracted).slice(0, 60_000);
+      if (!letterText || letterText.trim().length < 20) {
+        throw new Error("Could not extract text from PDF — it may be a scanned image");
+      }
+      aiModel = AI_TEXT_MODEL;
+      aiInputs = {
         max_tokens: 1024,
-        messages: [
-          {
-            role: "user",
-            content: [
-              contentBlock,
-              { type: "text", text: PARSE_PROMPT },
-            ],
-          },
-        ],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Claude API error ${res.status}: ${err}`);
+        temperature: 0,
+        messages: [{ role: "user", content: `${PARSE_PROMPT}\n\nHere is the letter text:\n${letterText}` }],
+      };
+    } else {
+      aiModel = AI_VISION_MODEL;
+      aiInputs = {
+        prompt: PARSE_PROMPT,
+        image: Array.from(bytes),
+        max_tokens: 1024,
+        temperature: 0,
+      };
     }
 
-    const data = await res.json();
-    const text = data.content?.[0]?.text || "";
-
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON in Claude response");
-
-    const parsed = JSON.parse(jsonMatch[0]);
+    const result = await ai.run(aiModel, aiInputs) as { response?: unknown };
+    const raw = result?.response;
+    let parsed: Record<string, unknown>;
+    if (raw && typeof raw === "object") {
+      parsed = raw as Record<string, unknown>;
+    } else {
+      const text = typeof raw === "string" ? raw : "";
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("No JSON in AI response");
+      parsed = JSON.parse(jsonMatch[0]);
+    }
     return NextResponse.json(parsed);
   } catch (err) {
     console.error("parse-response error:", err);

@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
+import { useSubscription } from "@/lib/use-subscription";
+import { BillingModal } from "@/components/BillingModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { loadStripe } from "@stripe/stripe-js";
 import type { Stripe, StripeCardElement } from "@stripe/stripe-js";
 
@@ -11,6 +15,21 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { plan, isAutopilot, status } = useSubscription();
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [cancelMsg, setCancelMsg] = useState("");
+  const [subPeriodEnd, setSubPeriodEnd] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || !isAutopilot) return;
+    fetch("/api/stripe/subscription", { headers: { Authorization: `Bearer ${user.idToken}` } })
+      .then(r => r.json())
+      .then(d => setSubPeriodEnd(d.currentPeriodEnd ?? null))
+      .catch(() => {});
+  }, [user, isAutopilot]);
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -231,23 +250,27 @@ export default function ProfilePage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <AuthenticatedLayout activeNav="profile">
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent mb-1">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent mb-1">
           My Profile
         </h1>
         <p className="text-slate-500 mb-8 text-sm">Manage your account information</p>
 
+        <div className="grid lg:grid-cols-2 gap-6">
+        {/* Left column */}
+        <div className="space-y-6">
+
         {/* Account Info */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-lime-400 to-teal-500 flex items-center justify-center text-white text-2xl font-bold shrink-0">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] flex items-center justify-center text-white text-2xl font-bold shrink-0">
               {(fullName || user?.email || "?")[0].toUpperCase()}
             </div>
             <div>
@@ -364,15 +387,25 @@ export default function ProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 mb-6"
+          className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50"
         >
           {saving ? "Saving..." : saveSuccess ? "✓ Saved!" : "Save Changes"}
         </button>
 
-        {/* Payment Method */}
+        </div>{/* end left column */}
+
+        {/* Right column */}
+        <div className="space-y-6">
+
+        {/* Payment Method — hidden for Autopilot (managed via Billing Modal) */}
+        {!isAutopilot && (
         <div id="payment" className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
           <h2 className="font-semibold mb-1">Payment Method</h2>
-          <p className="text-sm text-slate-500 mb-4">Used for the $2/letter USPS mailing fee. No charge until you mail.</p>
+          <p className="text-sm text-slate-500 mb-4">
+            {isAutopilot
+              ? "Used for your Autopilot subscription ($49/month)."
+              : "Used for the $2/letter USPS mailing fee. No charge until you mail."}
+          </p>
 
           {cardLoading ? (
             <div className="h-10 flex items-center"><div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" /></div>
@@ -390,7 +423,7 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 {cardSuccess && <span className="text-teal-600 text-sm">✓ Saved!</span>}
                 <button onClick={() => setShowAddCard(true)} className="text-sm text-teal-600 hover:text-teal-500 font-medium">Replace</button>
-                <button onClick={handleRemoveCard} disabled={cardSaving} className="text-sm text-red-500 hover:text-red-400 font-medium">Remove</button>
+                {!isAutopilot && <button onClick={handleRemoveCard} disabled={cardSaving} className="text-sm text-red-500 hover:text-red-400 font-medium">Remove</button>}
               </div>
             </div>
           ) : (
@@ -398,7 +431,7 @@ export default function ProfilePage() {
               <p className="text-sm text-slate-500">No card on file.</p>
               <button
                 onClick={() => setShowAddCard(true)}
-                className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition"
+                className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg text-sm font-medium hover:opacity-90 transition"
               >
                 Add Card
               </button>
@@ -417,7 +450,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSaveCard}
                   disabled={cardSaving}
-                  className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                  className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
                 >
                   {cardSaving ? "Saving..." : "Save Card"}
                 </button>
@@ -428,6 +461,105 @@ export default function ProfilePage() {
                   Cancel
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+        )}
+
+        {/* Subscription */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-semibold">Subscription</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Your current plan</p>
+            </div>
+            {isAutopilot ? (
+              <span className="text-xs font-bold px-2.5 py-1 bg-blue-50 text-[#1a3fd4] rounded-full">Autopilot</span>
+            ) : (
+              <span className="text-xs font-bold px-2.5 py-1 bg-lime-100 text-lime-700 rounded-full">Self Service</span>
+            )}
+          </div>
+
+          {isAutopilot ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-500">Plan</span>
+                <span className="font-medium text-slate-800">Autopilot — $49/mo</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-500">Status</span>
+                <span className={`font-medium ${status === "active" ? "text-green-600" : status === "past_due" ? "text-red-600" : "text-slate-600"}`}>
+                  {status === "active" ? "Active" : status === "past_due" ? "Past Due" : status}
+                </span>
+              </div>
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => setShowBillingModal(true)}
+                  className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                >
+                  Manage Billing →
+                </button>
+              </div>
+              {cancelMsg && (
+                <p className={`text-sm mt-3 font-medium ${cancelMsg.startsWith("✓") ? "text-emerald-600" : "text-red-500"}`}>{cancelMsg}</p>
+              )}
+              {!cancelConfirm ? (
+                <button
+                  onClick={() => setCancelConfirm(true)}
+                  className="mt-4 text-sm text-red-400 hover:text-red-600 transition"
+                >
+                  Cancel subscription
+                </button>
+              ) : (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-sm text-red-700 mb-3 font-medium">Are you sure? You'll keep access until the end of your billing period.</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        setCanceling(true);
+                        setCancelMsg("");
+                        try {
+                          const res = await fetch("/api/stripe/subscription/cancel", {
+                            method: "POST",
+                            headers: { Authorization: `Bearer ${user!.idToken}` },
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            setCancelMsg("✓ Subscription canceled. You'll keep access until your billing period ends.");
+                            setCancelConfirm(false);
+                          } else {
+                            setCancelMsg(data.error || "Failed to cancel. Please try again.");
+                          }
+                        } catch {
+                          setCancelMsg("Network error. Please try again.");
+                        } finally {
+                          setCanceling(false);
+                        }
+                      }}
+                      disabled={canceling}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+                    >
+                      {canceling ? "Canceling…" : "Yes, cancel"}
+                    </button>
+                    <button
+                      onClick={() => setCancelConfirm(false)}
+                      className="px-4 py-2 border border-slate-200 text-sm font-medium rounded-lg hover:bg-slate-50 transition"
+                    >
+                      Keep subscription
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-slate-500 mb-4">You're on the free Self Service plan. Upgrade to Autopilot to let us handle everything automatically.</p>
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg text-sm font-medium hover:opacity-90 transition"
+              >
+                Upgrade to Autopilot →
+              </button>
             </div>
           )}
         </div>
@@ -507,7 +639,34 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        </div>{/* end right column */}
+        </div>{/* end grid */}
       </main>
+
+      {showUpgradeModal && user && (
+        <UpgradeModal
+          onClose={() => setShowUpgradeModal(false)}
+          idToken={user.idToken}
+        />
+      )}
+
+      {showBillingModal && user && (
+        <BillingModal
+          onClose={() => setShowBillingModal(false)}
+          cardInfo={cardInfo}
+          subscriptionStatus={status}
+          currentPeriodEnd={subPeriodEnd}
+          idToken={user.idToken}
+          onCardUpdated={() => {
+            setShowBillingModal(false);
+            fetch("/api/billing/card", { headers: { Authorization: `Bearer ${user.idToken}` } })
+              .then(r => r.json())
+              .then(d => { if (d.card) setCardInfo(d.card); })
+              .catch(() => {});
+          }}
+        />
+      )}
     </AuthenticatedLayout>
   );
 }

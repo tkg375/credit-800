@@ -13,6 +13,10 @@
   font-size: 16px;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 @font-face {
   font-family: "AmericanCaptain";
   src: url("/AmericanCaptain.otf") format("opentype");

@@ -59,7 +59,7 @@ export interface CreditPullResult {
   provider: string;
 }
 
-export type CreditPullProvider = "crs" | "bloom" | "softpull" | "equifax" | "stub";
+export type CreditPullProvider = "crs" | "bloom" | "softpull" | "equifax" | "smartcredit" | "stub";
 
 // ---------------------------------------------------------------------------
 // Stub provider — returns mock data for development/testing
@@ -336,6 +336,56 @@ async function pullEquifax(
 }
 
 // ---------------------------------------------------------------------------
+// SmartCredit Enterprise provider
+// Pulls via the SmartCredit API using a pre-linked member account.
+// Requires the user to have already linked their SmartCredit account via
+// POST /api/smartcredit/link (stores smartCreditUserId on the user profile).
+// Env vars: SMARTCREDIT_API_KEY, SMARTCREDIT_API_BASE_URL
+// ---------------------------------------------------------------------------
+
+async function pullSmartCredit(
+  identity: CreditPullIdentity,
+  smartCreditUserId?: string
+): Promise<CreditPullResult> {
+  if (!smartCreditUserId) {
+    throw new Error(
+      "SmartCredit pull requires a linked smartCreditUserId. " +
+      "The user must complete SmartCredit account setup first."
+    );
+  }
+
+  const { fetchSmartCreditReport } = await import("./smartcredit");
+  const report = await fetchSmartCreditReport(smartCreditUserId);
+
+  const primaryScore = report.scores?.[0];
+  const allTradelines = [
+    ...(report.tradelines ?? []),
+    ...(report.collectionAccounts ?? []),
+  ];
+
+  return {
+    externalReportId: report.reportId,
+    vantageScore: primaryScore?.score ?? null,
+    bureau: "TRANSUNION",
+    pulledAt: report.pulledAt,
+    provider: "smartcredit",
+    tradelines: allTradelines.map((t) => ({
+      creditorName: t.creditorName,
+      accountNumber: t.accountNumber,
+      accountType: t.accountType,
+      balance: t.balance,
+      creditLimit: t.creditLimit,
+      status: t.status,
+      dateOpened: t.dateOpened,
+      dateOfFirstDelinquency: t.dateOfFirstDelinquency,
+      lastActivityDate: t.lastActivityDate,
+      isNegative: t.isNegative,
+      bureau: t.bureau,
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main entry point
 // ---------------------------------------------------------------------------
 
@@ -349,10 +399,12 @@ async function pullEquifax(
  *
  * @param identity - Consumer PII needed for identity verification
  * @param consentId - Firestore ID of the user's active FCRA consent record
+ * @param smartCreditUserId - Required when provider is "smartcredit"
  */
 export async function pullCreditReport(
   identity: CreditPullIdentity,
-  consentId: string
+  consentId: string,
+  smartCreditUserId?: string
 ): Promise<CreditPullResult> {
   const provider = (process.env.CREDIT_PULL_PROVIDER ?? "stub") as CreditPullProvider;
 
@@ -370,6 +422,8 @@ export async function pullCreditReport(
       return pullSoftPullSolutions(identity);
     case "equifax":
       return pullEquifax(identity);
+    case "smartcredit":
+      return pullSmartCredit(identity, smartCreditUserId);
     case "stub":
     default:
       return pullStub(identity);

@@ -66,7 +66,7 @@ export default function SimulatorPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -75,7 +75,7 @@ export default function SimulatorPage() {
     <AuthenticatedLayout activeNav="simulator">
       <ProGate feature="Score Simulator">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
           Credit Score Simulator
         </h1>
         <p className="text-slate-500 mb-8">See how different actions could affect your credit score.</p>
@@ -90,7 +90,7 @@ export default function SimulatorPage() {
               max={850}
               value={currentScore}
               onChange={(e) => { setCurrentScore(Number(e.target.value)); setResult(null); }}
-              className="flex-1 accent-teal-600"
+              className="flex-1 accent-[#1a3fd4]"
             />
             <input
               type="number"
@@ -154,7 +154,7 @@ export default function SimulatorPage() {
             </div>
             <button
               onClick={handleSimulate}
-              className="mt-4 px-6 py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-medium hover:opacity-90 transition"
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
             >
               Simulate
             </button>
@@ -184,7 +184,7 @@ export default function SimulatorPage() {
             </div>
 
             <div className={`rounded-xl p-4 ${
-              result.impact === "positive" ? "bg-green-50 border border-green-200" :
+              result.impact === "positive" ? "bg-blue-50 border border-blue-200" :
               result.impact === "negative" ? "bg-red-50 border border-red-200" :
               "bg-slate-50 border border-slate-200"
             }`}>

@@ -171,7 +171,7 @@ export default function BudgetPage() {
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+              className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
             >
               + Add Entry
             </button>
@@ -217,7 +217,7 @@ export default function BudgetPage() {
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-6">
               <h2 className="font-semibold text-slate-800 mb-4">Expenses by Category</h2>
               <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={192} minWidth={0}>
                   <BarChart data={expenseByCategory} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <XAxis dataKey="cat" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
@@ -252,7 +252,7 @@ export default function BudgetPage() {
           {/* Entry list */}
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filteredEntries.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
@@ -296,7 +296,7 @@ export default function BudgetPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-6 py-4 flex items-center justify-between">
               <h2 className="text-white font-semibold text-lg">Add Entry</h2>
               <button onClick={() => setShowModal(false)} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
             </div>
@@ -350,7 +350,7 @@ export default function BudgetPage() {
                 <button
                   onClick={handleAdd}
                   disabled={saving || !form.amount || !form.date}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Add Entry"}
                 </button>

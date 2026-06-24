@@ -236,7 +236,7 @@ export default function GoalsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">Goals Tracker</h1>
           <button
             onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+            className="px-4 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
           >
             + New Goal
           </button>
@@ -245,7 +245,7 @@ export default function GoalsPage() {
         <ProGate feature="Goals Tracker">
           {loading ? (
             <div className="flex justify-center py-16">
-              <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>
@@ -257,7 +257,7 @@ export default function GoalsPage() {
                   <p className="text-sm text-slate-400 mb-4">Set a financial goal to start tracking your progress.</p>
                   <button
                     onClick={() => setShowModal(true)}
-                    className="px-5 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+                    className="px-5 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
                   >
                     Create Your First Goal
                   </button>
@@ -300,7 +300,7 @@ export default function GoalsPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-6 py-4 flex items-center justify-between">
               <h2 className="text-white font-semibold text-lg">New Goal</h2>
               <button onClick={() => setShowModal(false)} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
             </div>
@@ -373,7 +373,7 @@ export default function GoalsPage() {
                 <button
                   onClick={handleAdd}
                   disabled={saving || !form.title || !form.target || !form.current}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Create Goal"}
                 </button>

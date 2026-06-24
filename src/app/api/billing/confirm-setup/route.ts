@@ -14,16 +14,25 @@ export async function POST(req: NextRequest) {
   const customerId = (userDoc?.data?.stripeCustomerId as string) || null;
   if (!customerId) return NextResponse.json({ error: "No Stripe customer found" }, { status: 400 });
 
-  // Verify the payment method belongs to this customer before setting it as default
-  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-  if (paymentMethod.customer !== customerId) {
-    return NextResponse.json({ error: "Payment method not found" }, { status: 400 });
+  // Attach payment method to customer (no-op if already attached)
+  try {
+    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+  } catch {
+    // Already attached — ignore
   }
 
   // Set as default payment method on the customer
   await stripe.customers.update(customerId, {
     invoice_settings: { default_payment_method: paymentMethodId },
   });
+
+  // If Autopilot subscriber, update the subscription default too
+  const subscriptionId = userDoc?.data?.stripeSubscriptionId as string | undefined;
+  if (subscriptionId) {
+    await stripe.subscriptions.update(subscriptionId, {
+      default_payment_method: paymentMethodId,
+    }).catch((err) => console.error("[email] fire-and-forget error:", err));
+  }
 
   return NextResponse.json({ success: true });
 }

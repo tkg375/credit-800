@@ -53,7 +53,7 @@ export async function PATCH(
         title: "Goal Achieved!",
         message: `You reached your goal: ${goalTitle}`,
         actionUrl: "/goals",
-      }).catch(() => {});
+      }).catch((err) => console.error("[email] fire-and-forget error:", err));
     }
 
     await firestore.updateDoc("goals", id, updates);

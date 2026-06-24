@@ -1,30 +1,9 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// ── DynamoDB client (reuses same credentials as the rest of the app) ──────────
-
-function getClient(): DynamoDBDocumentClient {
-  const accessKeyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
-
-  const raw = new DynamoDBClient({
-    region: process.env.S3_REGION || process.env.AWS_REGION || "us-east-1",
-    ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
-  });
-  return DynamoDBDocumentClient.from(raw);
+async function getDb(): Promise<D1Database> {
+  const ctx = await getCloudflareContext({ async: true });
+  return (ctx.env as { DB: D1Database }).DB;
 }
-
-let _client: DynamoDBDocumentClient | null = null;
-function db() {
-  if (!_client) _client = getClient();
-  return _client;
-}
-
-const TABLE = `${process.env.DYNAMODB_TABLE_PREFIX || "credit800"}-ratelimits`;
-
-// ── Fixed-window rate limiter backed by DynamoDB ──────────────────────────────
-// Each window gets its own item (key = "<prefix>:<identifier>:<bucket>").
-// DynamoDB TTL auto-deletes expired items — no cleanup needed.
 
 interface LimitResult {
   success: boolean;
@@ -33,37 +12,45 @@ interface LimitResult {
   reset: number;
 }
 
+const IS_DEV = process.env.NEXT_PUBLIC_APP_URL?.includes("workers.dev") ?? false;
+
 function makeLimiter(prefix: string, maxRequests: number, windowMs: number) {
   return {
     async limit(identifier: string): Promise<LimitResult> {
+      if (IS_DEV) return { success: true, limit: maxRequests, remaining: maxRequests, reset: 0 };
       const bucket = Math.floor(Date.now() / windowMs);
       const id = `${prefix}:${identifier}:${bucket}`;
-      const resetTs = Math.floor((bucket + 1) * windowMs / 1000); // Unix seconds
-      const ttl = resetTs + 60; // keep 60s past expiry for safety
+      const resetTs = Math.floor(((bucket + 1) * windowMs) / 1000);
 
       try {
-        const result = await db().send(new UpdateCommand({
-          TableName: TABLE,
-          Key: { id },
-          UpdateExpression: "ADD #count :inc SET #ttl = if_not_exists(#ttl, :ttl)",
-          ExpressionAttributeNames: { "#count": "count", "#ttl": "ttl" },
-          ExpressionAttributeValues: { ":inc": 1, ":ttl": ttl },
-          ReturnValues: "ALL_NEW",
-        }));
+        const db = await getDb();
+        await db
+          .prepare(
+            `INSERT INTO ratelimits (id, count, expires_at) VALUES (?, 1, ?)
+             ON CONFLICT(id) DO UPDATE SET count = count + 1`
+          )
+          .bind(id, resetTs + 60)
+          .run();
 
-        const count = (result.Attributes?.count as number) ?? 1;
-        const success = count <= maxRequests;
-        return { success, limit: maxRequests, remaining: Math.max(0, maxRequests - count), reset: resetTs };
+        const row = await db
+          .prepare("SELECT count FROM ratelimits WHERE id = ?")
+          .bind(id)
+          .first<{ count: number }>();
+
+        const count = row?.count ?? 1;
+        return {
+          success: count <= maxRequests,
+          limit: maxRequests,
+          remaining: Math.max(0, maxRequests - count),
+          reset: resetTs,
+        };
       } catch (err) {
-        // Fail open — if DynamoDB is unreachable, don't block users
-        console.error("[ratelimit] DynamoDB unavailable — failing open:", err);
+        console.error("[ratelimit] D1 unavailable — failing open:", err);
         return { success: true, limit: maxRequests, remaining: maxRequests, reset: resetTs };
       }
     },
   };
 }
-
-// ── Limiter definitions ───────────────────────────────────────────────────────
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -75,6 +62,7 @@ function createLimiters() {
     pro:             makeLimiter("rl:upload:pro",   3,  DAY),
     forgotPassword:  makeLimiter("rl:forgot",       5,  HOUR),
     register:        makeLimiter("rl:register",     10, HOUR),
+    autopilotSignup: makeLimiter("rl:ap:signup",    10, HOUR),
     login:           makeLimiter("rl:login",        20, 15 * MINUTE),
     contact:         makeLimiter("rl:contact",      5,  HOUR),
     autopilotNotify: makeLimiter("rl:apnotify",     5,  HOUR),
@@ -82,6 +70,7 @@ function createLimiters() {
     autopilotLock:   makeLimiter("rl:autopilot",    1,  5 * MINUTE),
     letterAnalyze:   makeLimiter("rl:letter",       10, DAY),
     scoreImport:     makeLimiter("rl:scoreimport",  10, DAY),
+    reportAnalyze:   makeLimiter("rl:analyze",      5,  DAY),
     mailLetter:      makeLimiter("rl:mail",         10, DAY),
     planGenerate:    makeLimiter("rl:plan",         20, DAY),
     escalationEmail: makeLimiter("rl:escalation",   5,  DAY),
@@ -98,7 +87,6 @@ export function getLimiters() {
   return _limiters;
 }
 
-/** Returns the best identifier for rate limiting (email preferred, then IP) */
 export function getRateLimitKey(req: Request, email?: string): string {
   if (email) return `email:${email.toLowerCase()}`;
   const ip =

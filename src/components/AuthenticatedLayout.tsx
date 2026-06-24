@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { Logo } from "@/components/Logo";
 import { NotificationBell } from "@/components/NotificationBell";
+import { CompletionToast } from "@/components/CompletionToast";
 
 function ReportIssueModal({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
@@ -43,20 +44,20 @@ function ReportIssueModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] px-6 py-4 flex items-center justify-between">
           <h2 className="text-white font-semibold text-lg">Report an Issue</h2>
           <button onClick={onClose} className="text-white/70 hover:text-white transition text-2xl leading-none">×</button>
         </div>
         {submitted ? (
           <div className="p-8 text-center">
-            <div className="w-14 h-14 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h3 className="font-semibold text-lg mb-2">Report Sent</h3>
             <p className="text-slate-500 text-sm mb-6">Thanks for letting us know. We&apos;ll look into it as soon as possible.</p>
-            <button onClick={onClose} className="px-6 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-medium text-sm hover:opacity-90 transition">
+            <button onClick={onClose} className="px-6 py-2 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium text-sm hover:opacity-90 transition">
               Close
             </button>
           </div>
@@ -72,13 +73,13 @@ function ReportIssueModal({ onClose }: { onClose: () => void }) {
               placeholder="e.g. The dispute letter won't download, or the upload page shows an error..."
               rows={5}
               required
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a3fd4] focus:border-transparent resize-none"
             />
             <div className="flex gap-3">
               <button
                 type="submit"
                 disabled={submitting || !issue.trim()}
-                className="flex-1 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
+                className="flex-1 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium text-sm hover:opacity-90 transition disabled:opacity-50"
               >
                 {submitting ? "Sending..." : "Send Report"}
               </button>
@@ -118,15 +119,10 @@ const sections: { label: string; items: NavEntry[] }[] = [
     ],
   },
   {
-    label: "Analysis",
-    items: [
-      { href: "/upload", label: "Upload Credit Report", key: "upload", icon: <Icon d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /> },
-      { href: "/analyze-letter", label: "Analyze Letter", key: "analyze-letter", icon: <Icon d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /> },
-    ],
-  },
-  {
     label: "Monitoring",
     items: [
+      { href: "/credit-monitoring", label: "Credit Monitoring", key: "credit-monitoring", icon: <Icon d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /> },
+      { href: "/monitoring", label: "Identity Monitor", key: "monitoring", icon: <Icon d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /> },
       { href: "/scores", label: "Scores", key: "scores", icon: <Icon d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /> },
       { href: "/disputes", label: "Disputes", key: "disputes", icon: <Icon d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
       { href: "/goals", label: "Goals", key: "goals", icon: <Icon d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
@@ -187,7 +183,7 @@ function NavDropdown({
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
           hasActive
-            ? "text-teal-700 bg-teal-50"
+            ? "text-[#1a3fd4] bg-blue-50"
             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         }`}
       >
@@ -212,7 +208,7 @@ function NavDropdown({
                 onClick={() => { setOpen(false); onNavigate?.(); }}
                 className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
                   active
-                    ? "text-teal-700 bg-teal-50 font-medium"
+                    ? "text-[#1a3fd4] bg-blue-50 font-medium"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
@@ -231,11 +227,13 @@ function ProfileDropdown({
   profileName,
   userEmail,
   activeNav,
+  isAutopilot,
   onSignOut,
 }: {
   profileName: string | null;
   userEmail: string | null | undefined;
   activeNav: NavItem;
+  isAutopilot: boolean;
   onSignOut: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -255,10 +253,10 @@ function ProfileDropdown({
       <button
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-          isActive ? "text-teal-700 bg-teal-50" : "text-slate-600 hover:bg-slate-100"
+          isActive ? "text-[#1a3fd4] bg-blue-50" : "text-slate-600 hover:bg-slate-100"
         }`}
       >
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-lime-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] flex items-center justify-center text-white text-xs font-bold shrink-0">
           {(profileName || userEmail || "?")[0].toUpperCase()}
         </div>
         <span>Profile</span>
@@ -278,7 +276,7 @@ function ProfileDropdown({
             onClick={() => setOpen(false)}
             className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
               activeNav === "profile"
-                ? "text-teal-700 bg-teal-50 font-medium"
+                ? "text-[#1a3fd4] bg-blue-50 font-medium"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
           >
@@ -287,6 +285,18 @@ function ProfileDropdown({
             </svg>
             Profile Settings
           </Link>
+          {isAutopilot && (
+            <Link
+              href="/autopilot"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              <svg className="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Autopilot Settings
+            </Link>
+          )}
           <div className="border-t border-slate-100 mt-1 pt-1">
             <button
               onClick={() => { onSignOut(); setOpen(false); }}
@@ -314,7 +324,7 @@ export function AuthenticatedLayout({
   const { user, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { isPro, loading: subLoading } = useSubscription();
+  const { isPro, isAutopilot, loading: subLoading } = useSubscription();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -338,7 +348,7 @@ export function AuthenticatedLayout({
   if (subLoading) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-white items-center justify-center">
-        <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -353,7 +363,7 @@ export function AuthenticatedLayout({
 
         {/* Logo: centered on mobile, left-aligned on desktop */}
         <Link href="/dashboard" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 shrink-0 md:mr-2">
-          <Logo className="h-9 w-auto" />
+          <Logo className="h-14 w-auto" />
         </Link>
 
         {/* Desktop nav dropdowns */}
@@ -365,7 +375,7 @@ export function AuthenticatedLayout({
                 href={section.items[0].href}
                 className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeNav === section.items[0].key
-                    ? "text-teal-700 bg-teal-50"
+                    ? "text-[#1a3fd4] bg-blue-50"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
@@ -389,6 +399,7 @@ export function AuthenticatedLayout({
             profileName={profileName}
             userEmail={user?.email}
             activeNav={activeNav}
+            isAutopilot={isAutopilot}
             onSignOut={signOut}
           />
         </div>
@@ -417,7 +428,7 @@ export function AuthenticatedLayout({
           <aside className="fixed inset-y-0 left-0 w-72 bg-white z-50 flex flex-col shadow-xl md:hidden overflow-y-auto">
             <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100">
               <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                <Logo className="h-9 w-auto" />
+                <Logo className="h-14 w-auto" />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -444,7 +455,7 @@ export function AuthenticatedLayout({
                         onClick={() => setMobileMenuOpen(false)}
                         className={`flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           active
-                            ? "bg-gradient-to-r from-lime-500/10 to-teal-500/10 text-teal-700"
+                            ? "bg-gradient-to-r from-[#1a3fd4]/10 to-[#00d4aa]/10 text-[#1a3fd4]"
                             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
@@ -466,11 +477,11 @@ export function AuthenticatedLayout({
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeNav === "profile"
-                      ? "bg-gradient-to-r from-lime-500/10 to-teal-500/10 text-teal-700"
+                      ? "bg-gradient-to-r from-[#1a3fd4]/10 to-[#00d4aa]/10 text-[#1a3fd4]"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-lime-400 to-teal-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                     {(profileName || user?.email || "?")[0].toUpperCase()}
                   </div>
                   Profile
@@ -491,6 +502,8 @@ export function AuthenticatedLayout({
       )}
 
       {/* Main content */}
+      <CompletionToast />
+
       <main className="flex-1 pt-14 pb-10 min-h-screen">
         {children}
       </main>
@@ -499,7 +512,7 @@ export function AuthenticatedLayout({
       <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center py-2 bg-white/80 backdrop-blur-sm border-t border-slate-100">
         <button
           onClick={() => setShowReportModal(true)}
-          className="text-xs text-slate-400 hover:text-teal-600 transition-colors"
+          className="text-xs text-slate-400 hover:text-[#1a3fd4] transition-colors"
         >
           Report an Issue
         </button>

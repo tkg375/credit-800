@@ -117,7 +117,7 @@ export function SampleLetterModal() {
               <p className="text-sm text-slate-600 mb-3">
                 Your personalized letters include specific account numbers, exact FCRA citations, and bureau mailing addresses — ready to send.
               </p>
-              <GetStartedButton className="block w-full text-center px-6 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-lg font-medium hover:from-lime-400 hover:to-teal-500 transition">
+              <GetStartedButton className="block w-full text-center px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-lg font-medium hover:opacity-90 transition">
                 Get Your Letters Free
               </GetStartedButton>
             </div>

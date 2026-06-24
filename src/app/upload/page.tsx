@@ -70,63 +70,28 @@ export default function UploadPage() {
     setProgress("Uploading credit report...");
 
     try {
-      // Get a pre-signed S3 upload URL (bypasses API size limits)
-      const urlRes = await fetch("/api/reports/get-upload-url", {
+      // Upload through Worker (handles R2 storage + report record creation in one step)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bureau", detectBureau(file.name));
+
+      const uploadRes = await fetch("/api/reports/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.idToken}`,
-        },
-        body: JSON.stringify({ fileName: file.name }),
+        headers: { Authorization: `Bearer ${user.idToken}` },
+        body: formData,
       });
 
-      if (!urlRes.ok) {
-        const errorData = await urlRes.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to get upload URL");
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json().catch(() => ({}));
+        if (uploadRes.status === 429) throw new Error(errorData.error || "Daily upload limit reached.");
+        throw new Error(errorData.error || "Failed to upload file");
       }
 
-      const { uploadUrl, s3Key } = await urlRes.json();
-
-      // Upload directly to S3 (bypasses Next.js API size limits)
-      const putRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": "application/pdf" },
-      });
-
-      if (!putRes.ok) {
-        throw new Error(`S3 upload failed: ${putRes.status} ${putRes.statusText}`);
-      }
-
-      setProgress("Creating report record...");
-
-      // Create report record with S3 key
-      const createRes = await fetch("/api/reports/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.idToken}`,
-        },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileSize: file.size,
-          bureau: detectBureau(file.name),
-          s3Key,
-        }),
-      });
-
-      if (!createRes.ok) {
-        const errorData = await createRes.json().catch(() => ({}));
-        const reason = errorData.reason ? ` (${errorData.reason})` : "";
-        throw new Error((errorData.details || errorData.error || "Failed to create report") + reason);
-      }
-
-      const { reportId } = await createRes.json();
+      const { reportId } = await uploadRes.json();
 
       setProgress("Starting analysis...");
       setAnalyzing(true);
 
-      // Trigger background Lambda analysis (returns immediately with status: "processing")
       const analyzeRes = await fetch("/api/reports/analyze", {
         method: "POST",
         headers: {
@@ -141,45 +106,10 @@ export default function UploadPage() {
         if (analyzeRes.status === 429) {
           throw new Error(errorData.error || "Daily upload limit reached. Please try again tomorrow.");
         }
-        throw new Error(errorData.details || errorData.error || "Failed to start analysis");
+        throw new Error(errorData.details || errorData.error || "Analysis failed. Please try again.");
       }
 
-      // Poll for completion — Lambda runs in background, updates Firestore when done
-      setProgress("Analyzing credit report... (this may take a few minutes for large reports)");
-
-      const POLL_INTERVAL = 4000; // 4 seconds
-      const MAX_WAIT = 10 * 60 * 1000; // 10 minutes
-      const startTime = Date.now();
-
-      await new Promise<void>((resolve, reject) => {
-        const poll = async () => {
-          if (Date.now() - startTime > MAX_WAIT) {
-            reject(new Error("__TIMEOUT__"));
-            return;
-          }
-
-          try {
-            const statusRes = await fetch(`/api/reports/status?reportId=${reportId}`, {
-              headers: { Authorization: `Bearer ${user.idToken}` },
-            });
-            const { status, errorMessage } = await statusRes.json();
-
-            if (status === "ANALYZED") {
-              resolve();
-            } else if (status === "ERROR") {
-              reject(new Error(errorMessage || "Analysis failed. Please try again."));
-            } else {
-              // Still ANALYZING — update progress message with elapsed time
-              const elapsed = Math.round((Date.now() - startTime) / 1000);
-              setProgress(`Analyzing credit report... (${elapsed}s elapsed)`);
-              setTimeout(poll, POLL_INTERVAL);
-            }
-          } catch {
-            setTimeout(poll, POLL_INTERVAL);
-          }
-        };
-        setTimeout(poll, POLL_INTERVAL);
-      });
+      // Analysis is synchronous — response returns when complete
 
       setProgress("Analysis complete! Generating action plan...");
 
@@ -236,7 +166,7 @@ export default function UploadPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -310,7 +240,7 @@ export default function UploadPage() {
             {file && (
               <button
                 onClick={handleUpload}
-                className="w-full mt-6 py-3.5 sm:py-4 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-base sm:text-lg"
+                className="w-full mt-6 py-3.5 sm:py-4 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:from-lime-400 hover:via-teal-400 hover:to-cyan-500 text-white rounded-xl font-medium transition text-base sm:text-lg"
               >
                 Analyze Report
               </button>
@@ -363,14 +293,14 @@ export default function UploadPage() {
             </p>
             <Link
               href="/dashboard"
-              className="inline-block px-6 py-3 bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 text-white rounded-xl font-medium"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium"
             >
               Go to Dashboard
             </Link>
           </div>
         ) : (
           <div className="text-center py-10 sm:py-16">
-            <div className="w-16 sm:w-20 h-16 sm:h-20 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <div className="w-16 sm:w-20 h-16 sm:h-20 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h2 className="text-lg sm:text-xl font-semibold mb-2">
               {analyzing ? "Analyzing Your Report" : "Uploading..."}
             </h2>
@@ -383,7 +313,7 @@ export default function UploadPage() {
               </div>
               <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-lime-500 to-teal-600 transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] transition-all duration-1000"
                   style={{ width: analyzing ? "75%" : "25%" }}
                 ></div>
               </div>

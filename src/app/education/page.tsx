@@ -40,7 +40,7 @@ export default function EducationPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default function EducationPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
             Credit Education
           </h1>
           <p className="text-slate-500 text-sm mt-1">
@@ -68,7 +68,7 @@ export default function EducationPage() {
           </div>
           <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-lime-500 to-teal-600 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-full transition-all duration-500"
               style={{ width: `${(completed.length / educationModules.length) * 100}%` }}
             />
           </div>
@@ -102,7 +102,7 @@ export default function EducationPage() {
               onClick={() => setActiveCategory(cat)}
               className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition flex-shrink-0 ${
                 activeCategory === cat
-                  ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
+                  ? "bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
@@ -124,7 +124,7 @@ export default function EducationPage() {
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h3 className="font-semibold text-sm">{mod.title}</h3>
                     {completed.includes(mod.id) && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Done</span>
+                      <span className="text-xs bg-blue-50 text-[#1a3fd4] px-2 py-0.5 rounded-full font-medium">✓ Done</span>
                     )}
                   </div>
                   <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{mod.category}</span>
@@ -159,7 +159,7 @@ export default function EducationPage() {
                       onClick={() => toggleComplete(mod.id)}
                       className={`w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium transition ${
                         completed.includes(mod.id)
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          ? "bg-blue-50 text-[#1a3fd4] hover:bg-green-200"
                           : "bg-teal-600 text-white hover:bg-teal-700"
                       }`}
                     >

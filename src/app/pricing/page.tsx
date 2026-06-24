@@ -22,8 +22,8 @@ const proFeatures = [
 function statusBadge(status: string, cancelAtPeriodEnd?: boolean) {
   if (cancelAtPeriodEnd) return { label: "Cancels at period end", color: "bg-amber-100 text-amber-700" };
   switch (status) {
-    case "active": return { label: "Active", color: "bg-green-100 text-green-700" };
-    case "trialing": return { label: "Trial", color: "bg-teal-100 text-teal-700" };
+    case "active": return { label: "Active", color: "bg-blue-50 text-[#1a3fd4]" };
+    case "trialing": return { label: "Trial", color: "bg-blue-50 text-[#1a3fd4]" };
     case "past_due": return { label: "Past Due", color: "bg-red-100 text-red-700" };
     case "canceled": return { label: "Canceled", color: "bg-slate-100 text-slate-600" };
     default: return { label: "No Plan", color: "bg-slate-100 text-slate-600" };
@@ -83,7 +83,7 @@ export default function SubscriptionPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function SubscriptionPage() {
   return (
     <AuthenticatedLayout activeNav="pricing">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent mb-1">
+        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent mb-1">
           Plan
         </h1>
         <p className="text-slate-500 mb-8 text-sm">Credit 800 is free for everyone</p>
@@ -119,9 +119,9 @@ export default function SubscriptionPage() {
         <div className="bg-white rounded-2xl border-2 border-teal-400 ring-1 ring-teal-400 p-6 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <h3 className="font-semibold text-slate-900">Self Service</h3>
-            <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">Your Plan</span>
+            <span className="text-xs bg-blue-50 text-[#1a3fd4] px-2 py-0.5 rounded-full font-medium">Your Plan</span>
           </div>
-          <p className="text-3xl font-bold mb-1 bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent">Free</p>
+          <p className="text-3xl font-bold mb-1 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">Free</p>
           <p className="text-xs text-slate-500 mb-5">Full DIY credit repair toolkit — no credit card required</p>
           <ul className="space-y-2 flex-1 mb-6">
             {proFeatures.map((f) => (

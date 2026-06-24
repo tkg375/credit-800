@@ -35,7 +35,7 @@ export default function ToolsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -117,14 +117,14 @@ export default function ToolsPage() {
 
                 <button
                   onClick={handleCalculateSOL}
-                  className="w-full py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:from-lime-400 hover:to-teal-500 transition"
+                  className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
                 >
                   Check Status
                 </button>
               </div>
 
               {solResult && (
-                <div className={`mt-6 p-6 rounded-xl ${solResult.expired ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
+                <div className={`mt-6 p-6 rounded-xl ${solResult.expired ? "bg-blue-50 border border-blue-200" : "bg-amber-50 border border-amber-200"}`}>
                   {solResult.expired ? (
                     <>
                       <div className="flex items-center gap-3 mb-2">
@@ -216,7 +216,7 @@ export default function ToolsPage() {
 
                 <button
                   onClick={handleCalculateRemoval}
-                  className="w-full py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:from-lime-400 hover:to-teal-500 transition"
+                  className="w-full py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
                 >
                   Calculate Removal Date
                 </button>

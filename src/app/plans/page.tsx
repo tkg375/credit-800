@@ -2,7 +2,6 @@ import Link from "next/link";
 import { MarketingFooter } from "@/components/MarketingFooter";
 import { MarketingNav } from "@/components/MarketingNav";
 import { GetStartedButton } from "@/components/AuthModalButtons";
-import { AutopilotNotify } from "@/components/AutopilotNotify";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -38,7 +37,6 @@ const proFeatures = [
   "CFPB complaint generator",
   "Analyze letters from collectors",
   "Score tracking & charts",
-  "Mail disputes via USPS ($2/letter)",
 ];
 
 const autopilotFeatures = [
@@ -123,11 +121,15 @@ export default function PlansPage() {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <MarketingNav />
       </header>
-      <div className="bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600">
+      <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
-          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">Get Started</h1>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 border border-white/30 rounded-full text-white text-xs font-semibold mb-4">
+            <span className="w-2 h-2 bg-lime-300 rounded-full animate-pulse" />
+            Autopilot is Now Live
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-3">Simple, Honest Pricing</h1>
           <p className="text-lime-100 max-w-2xl mx-auto text-sm sm:text-base">
-            Self Service is free. Mail disputes via USPS for $2/letter. No hidden fees.
+            Start free. Upgrade to Autopilot when you're ready to let us handle everything.
           </p>
         </div>
       </div>
@@ -138,7 +140,7 @@ export default function PlansPage() {
           {/* Self Service */}
           <div className="bg-white border-2 border-teal-500 rounded-2xl p-6 flex flex-col">
             <h3 className="font-semibold text-slate-900 mb-1">Self Service</h3>
-            <p className="text-3xl font-bold mb-1 bg-gradient-to-r from-lime-500 to-teal-600 bg-clip-text text-transparent">Free</p>
+            <p className="text-3xl font-bold mb-1 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">Free</p>
             <p className="text-xs text-slate-500 mb-5">Full DIY credit repair toolkit</p>
             <ul className="space-y-2 flex-1 mb-6">
               {proFeatures.map((f) => (
@@ -150,34 +152,35 @@ export default function PlansPage() {
                 </li>
               ))}
             </ul>
-            <GetStartedButton className="block w-full text-center px-4 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 hover:from-lime-400 hover:to-teal-500 text-white rounded-xl font-medium transition text-sm">
+            <GetStartedButton className="block w-full text-center px-4 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:opacity-90 text-white rounded-xl font-medium transition text-sm">
               Get Started — Free
             </GetStartedButton>
           </div>
 
           {/* Autopilot */}
-          <div className="bg-white border-2 border-slate-200 rounded-2xl p-6 flex flex-col relative overflow-hidden">
-            {/* Coming Soon overlay */}
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Coming Soon</span>
-              <p className="text-sm text-slate-400">We're working on something great</p>
+          <div className="bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] border-2 border-lime-400 rounded-2xl p-6 flex flex-col relative overflow-hidden">
+            <div className="absolute top-4 right-4">
+              <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 bg-lime-400 text-slate-900 rounded-full">Live Now</span>
             </div>
-            <h3 className="font-semibold text-slate-900 mb-1">Autopilot</h3>
-            <p className="text-3xl font-bold mb-1 bg-gradient-to-r from-teal-500 to-cyan-600 bg-clip-text text-transparent">
-              $49 <span className="text-sm font-normal text-slate-400">/ month</span>
+            <h3 className="font-semibold text-white mb-1">Autopilot</h3>
+            <p className="text-3xl font-bold mb-1 text-white">
+              $49 <span className="text-sm font-normal text-teal-200">/ month</span>
             </p>
-            <p className="text-xs text-slate-500 mb-5">We do everything for you</p>
+            <p className="text-xs text-teal-200 mb-1">We handle everything — fully automated</p>
+            <p className="text-xs text-lime-300 mb-5">Cancel anytime · No contracts</p>
             <ul className="space-y-2 flex-1 mb-6">
               {autopilotFeatures.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-slate-600">
-                  <svg className="w-3.5 h-3.5 text-cyan-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li key={f} className="flex items-start gap-2 text-sm text-white/90">
+                  <svg className="w-3.5 h-3.5 text-lime-300 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                   {f}
                 </li>
               ))}
             </ul>
-            <AutopilotNotify />
+            <GetStartedButton className="block w-full text-center px-4 py-2.5 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-xl font-semibold transition text-sm">
+              Start Now →
+            </GetStartedButton>
           </div>
         </div>
 
@@ -189,10 +192,6 @@ export default function PlansPage() {
           <span className="flex items-center gap-1">
             <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             No hidden fees
-          </span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            USPS mailing $2/letter
           </span>
         </div>
 

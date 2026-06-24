@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6">Privacy Policy</h1>
-        <p className="text-slate-500 mb-8">Last updated: March 9, 2026</p>
+        <p className="text-slate-500 mb-8">Last updated: June 1, 2026</p>
 
         <div className="prose prose-slate max-w-none space-y-6">
           <section>
@@ -50,13 +50,6 @@ export default function PrivacyPolicy() {
               <li>Budget entries (category, amount, date)</li>
               <li>Debt accounts and balances you manually enter</li>
               <li>Credit scores you log manually</li>
-            </ul>
-
-            <h3 className="text-lg font-medium mt-4 mb-2">Identity Monitoring Data</h3>
-            <p className="text-slate-600 leading-relaxed mb-3">If you use identity monitoring, we:</p>
-            <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li>Send your email address to Have I Been Pwned to check for known data breaches</li>
-              <li>Cache the breach check result (breach names, dates, data types exposed) in your account for display purposes</li>
             </ul>
 
             <h3 className="text-lg font-medium mt-4 mb-2">Payment Information</h3>
@@ -100,11 +93,14 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="text-xl font-semibold mb-3">4. Automated Processing</h2>
+            <p className="text-slate-600 leading-relaxed mb-3">
+              We use automated AI technology to analyze your credit report data, generate dispute letters, and parse bureau response documents. This processing occurs on secure Cloudflare infrastructure. We do not use your credit report data to train AI models.
+            </p>
             <p className="text-slate-600 leading-relaxed">
-              We use automated document processing technology to analyze your credit report data, generate dispute letters,
-              and parse bureau response documents. This processing occurs on secure servers.
-              We do not use your credit report data to train models. Generated content is always
-              presented for your review before any action is taken.
+              <strong>Self Service users:</strong> Generated content is presented for your review before any action is taken. You are responsible for submitting dispute letters yourself.
+            </p>
+            <p className="text-slate-600 leading-relaxed mt-3">
+              <strong>Autopilot users:</strong> With your written FCRA authorization, we automatically pull your credit report, generate dispute letters, and mail them on your behalf via USPS — without requiring your manual intervention each cycle.
             </p>
           </section>
 
@@ -114,12 +110,11 @@ export default function PrivacyPolicy() {
               Your data is stored using industry-standard security measures:
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li>Credit report PDFs are stored in encrypted AWS S3 cloud storage</li>
-              <li>Account data and audit logs are stored in Google Firebase Firestore with access controls</li>
+              <li>Credit report PDFs are stored in encrypted Cloudflare R2 cloud storage</li>
+              <li>Account data and audit logs are stored in Cloudflare D1 with strict access controls</li>
               <li>Passwords and 2FA codes are hashed and never stored in plain text</li>
-              <li>SSNs are never stored or logged — used only transiently in-memory during credit pulls</li>
               <li>All data transmission uses TLS encryption</li>
-              <li>Two-factor authentication is mandatory for all accounts and cannot be disabled</li>
+              <li>Two-factor authentication is available for all accounts</li>
               <li>Access to data is restricted to authorized personnel only</li>
             </ul>
           </section>
@@ -141,12 +136,12 @@ export default function PrivacyPolicy() {
               We do not sell your personal information. We may share your information with:
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li><strong>Stripe:</strong> For payment processing of optional USPS mailing charges</li>
+              <li><strong>Stripe:</strong> For payment processing and subscription management</li>
               <li><strong>PostGrid:</strong> For physical USPS mailing and mail tracking of dispute letters (name and mailing address only)</li>
-              <li><strong>AWS:</strong> For cloud infrastructure, file storage, and email delivery (SES)</li>
-              <li><strong>Google Firebase:</strong> For authentication and data storage</li>
-              <li><strong>Document processing services:</strong> For credit report analysis and letter generation</li>
-              <li><strong>Have I Been Pwned:</strong> For identity monitoring — your email address is sent to check against known breach databases</li>
+              <li><strong>Cloudflare:</strong> For hosting, edge infrastructure, and file storage</li>
+              <li><strong>AWS:</strong> For transactional email delivery</li>
+              <li><strong>Cloudflare AI:</strong> For AI-powered credit report analysis and dispute letter generation — your report data is processed solely to generate your dispute content and is not used for model training</li>
+              <li><strong>Credit Bureaus (Autopilot only):</strong> When you authorize Autopilot, we submit dispute letters to Equifax, Experian, and/or TransUnion on your behalf</li>
               <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
               <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
             </ul>
@@ -159,7 +154,6 @@ export default function PrivacyPolicy() {
               <li>Access your personal information</li>
               <li>Correct inaccurate information via your profile page</li>
               <li>Request deletion of your account and data</li>
-              <li>Export your disputes, scores, and budget data as CSV from within the app</li>
               <li>Opt out of non-transactional email communications</li>
               <li>Opt out of optional USPS mailing charges at any time</li>
             </ul>

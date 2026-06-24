@@ -237,6 +237,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Deduplicate: check for an existing active dispute for the same creditor/account/bureau
+    const existingDisputes = await firestore.query(COLLECTIONS.disputes, [
+      { field: "userId", op: "EQUAL", value: user.uid },
+      { field: "creditorName", op: "EQUAL", value: creditorName },
+    ]);
+    const activeDupe = existingDisputes.find((d) => {
+      if (["won", "denied"].includes(d.data.status as string)) return false; // resolved — allow re-dispute
+      const sameBureau = !bureau || !d.data.bureau || d.data.bureau === bureau;
+      const sameAccount = !accountNumber || accountNumber === "****" || !d.data.accountNumber || d.data.accountNumber === accountNumber;
+      return sameBureau && sameAccount;
+    });
+    if (activeDupe) {
+      return NextResponse.json({
+        error: "An active dispute already exists for this account.",
+        existingDisputeId: activeDupe.id,
+      }, { status: 409 });
+    }
+
     // Create dispute record with address metadata
     const disputeId = await firestore.addDoc(COLLECTIONS.disputes, {
       userId: user.uid,

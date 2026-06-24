@@ -70,7 +70,7 @@ function PlaidLinkButton({
     <button
       onClick={() => open()}
       disabled={!ready}
-      className="w-full px-4 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
+      className="w-full px-4 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
     >
       {ready ? "Connect Account" : "Loading Plaid..."}
     </button>
@@ -295,7 +295,7 @@ function AddAccountModal({
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full px-4 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
+                className="w-full px-4 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
               >
                 {saving ? "Adding..." : "Add Account"}
               </button>
@@ -329,12 +329,12 @@ function AddAccountModal({
               {error && <p className="text-sm text-red-600">{error}</p>}
               {connecting ? (
                 <div className="flex items-center justify-center gap-2 py-3 text-sm text-slate-600">
-                  <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
                   Importing accounts...
                 </div>
               ) : loadingLink ? (
                 <div className="flex items-center justify-center gap-2 py-3 text-sm text-slate-600">
-                  <div className="w-5 h-5 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
                   Initializing...
                 </div>
               ) : linkToken ? (
@@ -346,7 +346,7 @@ function AddAccountModal({
               ) : (
                 <button
                   onClick={fetchLinkToken}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition"
                 >
                   Connect Account
                 </button>
@@ -464,7 +464,7 @@ function EditAccountModal({
           <button
             type="submit"
             disabled={saving}
-            className="w-full px-4 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50 text-sm"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50 text-sm"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -489,7 +489,7 @@ function AccountRow({
   return (
     <div className="flex items-center gap-3 px-4 py-3">
       {/* Institution initials */}
-      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] flex items-center justify-center text-white text-xs font-bold shrink-0">
         {getInitials(account.institution)}
       </div>
       {/* Name + badges */}
@@ -683,7 +683,7 @@ export default function PortfolioPage() {
           {/* Header */}
           <div className="flex items-start justify-between mb-8 gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-lime-500 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] bg-clip-text text-transparent">
                 Portfolio Manager
               </h1>
               <p className="text-slate-500 text-sm mt-1">Your complete financial picture</p>
@@ -703,7 +703,7 @@ export default function PortfolioPage() {
               )}
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl hover:opacity-90 transition"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl hover:opacity-90 transition"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -715,14 +715,14 @@ export default function PortfolioPage() {
 
           {loading ? (
             <div className="flex items-center justify-center py-24">
-              <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <>
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 {/* Net Worth — gradient */}
-                <div className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl p-5 text-white">
+                <div className="bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-xl p-5 text-white">
                   <p className="text-xs text-white/70 uppercase tracking-wider font-medium mb-1">Net Worth</p>
                   <p className="text-3xl font-bold">{formatMoney(netWorth)}</p>
                   {delta !== null && (
@@ -753,7 +753,7 @@ export default function PortfolioPage() {
                     <h2 className="font-semibold text-slate-800 mb-4">Asset Allocation</h2>
                     {allocation.length > 0 ? (
                       <div className="h-52">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={256} minWidth={0}>
                           <PieChart>
                             <Pie
                               data={allocation}
@@ -792,7 +792,7 @@ export default function PortfolioPage() {
                     <h2 className="font-semibold text-slate-800 mb-4">Net Worth History</h2>
                     {chartData.length > 1 ? (
                       <div className="h-52">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={256} minWidth={0}>
                           <LineChart data={chartData} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
                             <XAxis
                               dataKey="date"
@@ -850,7 +850,7 @@ export default function PortfolioPage() {
                   <p className="text-sm text-slate-400 mt-1 mb-6">Connect your bank accounts or add them manually to track your net worth</p>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-lime-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white rounded-xl text-sm font-medium hover:opacity-90 transition"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

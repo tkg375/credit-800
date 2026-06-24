@@ -57,7 +57,7 @@ const PRODUCTS: CreditBuilderProduct[] = [
       "Automatic credit line review after 6 months",
       "Reports to all 3 bureaus",
     ],
-    link: "https://www.capitalone.com/credit-cards/platinum-secured/",
+    link: "https://www.capitalone.com/credit-cards/platinum/",
     recommended: true,
   },
   {
@@ -95,7 +95,7 @@ const PRODUCTS: CreditBuilderProduct[] = [
       "No hard credit pull",
       "Spending limit = amount transferred to account",
     ],
-    link: "https://www.chime.com/credit-builder-credit-card/",
+    link: "https://www.chime.com/credit/chime-card/",
     recommended: true,
   },
   {
@@ -133,7 +133,7 @@ const PRODUCTS: CreditBuilderProduct[] = [
     recommended: false,
   },
   {
-    name: "Secured Mastercard from Capital One",
+    name: "Capital One Quicksilver Secured",
     type: "secured_card",
     issuer: "Capital One",
     minScore: 580,
@@ -143,13 +143,13 @@ const PRODUCTS: CreditBuilderProduct[] = [
     depositRequired: 200,
     creditLimit: "$200+",
     benefits: [
+      "1.5% unlimited cash back on every purchase",
       "No annual fee",
-      "Upgrade path to unsecured card",
+      "Automatic credit line review",
       "Reports to all 3 bureaus",
-      "Access to CreditWise credit monitoring",
     ],
-    link: "https://www.capitalone.com/credit-cards/secured-mastercard/",
-    recommended: false,
+    link: "https://www.capitalone.com/credit-cards/quicksilver-secured/",
+    recommended: true,
   },
   {
     name: "Amazon Secured Card",
@@ -167,11 +167,11 @@ const PRODUCTS: CreditBuilderProduct[] = [
       "Good for Amazon shoppers",
       "Upgrade path available",
     ],
-    link: "https://www.amazon.com/credit-card-secured/",
+    link: "https://www.amazon.com/Synchrony-Bank-Amazon-com-Secured-Store/dp/B084KP3NG6",
     recommended: false,
   },
   {
-    name: "Petal 1 Visa Credit Card",
+    name: "Tilt Credit Card (formerly Petal 1)",
     type: "secured_card",
     issuer: "WebBank",
     minScore: 600,
@@ -184,7 +184,7 @@ const PRODUCTS: CreditBuilderProduct[] = [
       "Up to 1.5% cash back",
       "Reports to all 3 bureaus",
     ],
-    link: "https://www.petalcard.com/",
+    link: "https://apply.tilt.com/credit-card?redirect=registration.petalcard.com&utm_source=petal_organic&redirectVariant=5s",
     recommended: false,
   },
   {
@@ -263,7 +263,7 @@ export default function CreditBuilderPage() {
   if (authLoading || loadingScore) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#1a3fd4] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -279,7 +279,7 @@ export default function CreditBuilderPage() {
         </div>
 
         {/* Score Banner */}
-        <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white mb-8">
+        <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-6 text-white mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-sm text-cyan-100 mb-1">Your Current Score</p>
@@ -297,53 +297,15 @@ export default function CreditBuilderPage() {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap justify-center">
-          {(["all", "secured_card", "credit_builder_loan", "store_card"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-                filter === f
-                  ? "bg-gradient-to-r from-lime-500 to-teal-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
-              }`}
-            >
-              {f === "all" ? "All Products" : TYPE_LABELS[f]}
-            </button>
+        {/* All Products */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[...filtered].sort((a, b) => {
+            const order = { secured_card: 0, credit_builder_loan: 1, store_card: 2 };
+            return (order[a.type as keyof typeof order] ?? 3) - (order[b.type as keyof typeof order] ?? 3);
+          }).map((product) => (
+            <ProductCard key={product.name} product={product} highlight={score ? score >= product.minScore && score <= product.maxScore + 50 : false} />
           ))}
         </div>
-
-        {/* Best Matches */}
-        {eligible.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Best Matches for Your Score
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {eligible.map((product) => (
-                <ProductCard key={product.name} product={product} highlight />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Other Products */}
-        {other.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4 text-slate-600">
-              {eligible.length > 0 ? "Other Products" : "All Products"}
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {other.map((product) => (
-                <ProductCard key={product.name} product={product} highlight={false} />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Disclaimer */}
         <p className="mt-10 text-xs text-slate-400 text-center">
@@ -356,13 +318,13 @@ export default function CreditBuilderPage() {
 
 function ProductCard({ product, highlight }: { product: CreditBuilderProduct; highlight: boolean }) {
   return (
-    <div className={`bg-white border rounded-xl p-5 hover:shadow-md transition ${highlight ? "border-teal-200" : "border-slate-200"}`}>
+    <div className={`bg-white border rounded-xl p-5 hover:shadow-md transition flex flex-col ${highlight ? "border-teal-200" : "border-slate-200"}`}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="font-semibold text-base">{product.name}</h3>
             {product.recommended && highlight && (
-              <span className="text-xs px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-medium">Best Match</span>
+              <span className="text-xs px-2 py-0.5 bg-blue-50 text-[#1a3fd4] rounded-full font-medium">Best Match</span>
             )}
           </div>
           <p className="text-sm text-slate-500">{product.issuer}</p>
@@ -407,7 +369,7 @@ function ProductCard({ product, highlight }: { product: CreditBuilderProduct; hi
         </div>
       </div>
 
-      <ul className="mb-4 space-y-1">
+      <ul className="mb-4 space-y-1 flex-1">
         {product.benefits.map((b, i) => (
           <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
             <svg className="w-3.5 h-3.5 text-teal-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,7 +384,7 @@ function ProductCard({ product, highlight }: { product: CreditBuilderProduct; hi
         href={product.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full text-center py-2.5 rounded-xl text-sm font-medium transition bg-gradient-to-r from-lime-500 to-teal-600 text-white hover:opacity-90"
+        className="block w-full text-center py-2.5 rounded-xl text-sm font-medium transition bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white hover:opacity-90 mt-auto"
       >
         View & Apply →
       </a>

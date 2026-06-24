@@ -1,0 +1,42 @@
+# DEV ENVIRONMENT — use "npm run deploy:dev" to deploy, never "npm run deploy"
+# This file intentionally points to dev resources to prevent accidental prod deploys
+name = "credit-800-dev"
+main = "worker.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+account_id = "3869ffbbf462deee55a7a0b1880ffb84"
+workers_dev = true
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[ai]
+binding = "AI"
+
+[[queues.producers]]
+binding = "ANALYSIS_QUEUE"
+queue = "credit-800-analysis-dev"
+
+[[queues.consumers]]
+queue = "credit-800-analysis-dev"
+max_batch_size = 1
+max_concurrency = 1
+max_retries = 3
+
+[[d1_databases]]
+binding = "DB"
+database_name = "credit-800-dev-db"
+database_id = "a40402b1-58ee-4d9c-9faa-acd4cf3b25cd"
+
+[[r2_buckets]]
+binding = "CREDIT_REPORTS_BUCKET"
+bucket_name = "credit-800-dev-files"
+
+[vars]
+NEXT_PUBLIC_APP_URL = "https://credit-800-dev.workers.dev"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_51T3NnY6myrw18Ks6EZWV3bLcbAmvyEMGt8vtRFDzQi2QA7lS12ecjMUwVQtCPzzq2XhZBNcTWhbhx81zfnpfdpzd007XZERCHX"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+DYNAMODB_TABLE_PREFIX = "credit800dev"
+R2_BUCKET_NAME = "credit-800-dev-files"

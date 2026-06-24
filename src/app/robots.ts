@@ -16,7 +16,6 @@ export default function robots(): MetadataRoute.Robots {
           "/simulator",
           "/bureaus",
           "/scores",
-          "/upload",
           "/calendar",
           "/goals",
           "/payoff",

@@ -28,7 +28,7 @@ export async function POST() {
     }
 
     const code = generateOTP();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
     const now = new Date().toISOString();
 
     // Store a simple hash (SHA-256) of the code so we're not storing plaintext

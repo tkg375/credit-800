@@ -25,8 +25,17 @@ async function verifyAndCheckVersion(token: string): Promise<{ uid: string; emai
         return null;
       }
     } catch (dbErr) {
-      // Fail open to avoid locking users out during DB outages, but always log
-      console.error("[auth] tokenVersion DB check failed — failing open:", dbErr);
+      console.error("[auth] tokenVersion DB check failed:", dbErr);
+      // Fail open only for recently-issued tokens (< 60s old) to reduce blast radius.
+      // Tokens issued before a password-reset will be older and correctly rejected
+      // once the DB recovers. Tokens that are newer than 60s are almost certainly
+      // not revoked yet since revocation and re-login happen after the old token ages.
+      const tokenIssuedAt = (user as unknown as Record<string, unknown>).iat as number | undefined;
+      const tokenAgeSeconds = tokenIssuedAt ? Math.floor(Date.now() / 1000) - tokenIssuedAt : Infinity;
+      if (tokenAgeSeconds > 60) {
+        lastAuthError = "tokenVersion check unavailable and token is too old to trust";
+        return null;
+      }
     }
   }
 

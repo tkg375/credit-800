@@ -1,44 +1,15 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  PutCommand,
-  UpdateCommand,
-  DeleteCommand,
-  QueryCommand,
-  ScanCommand,
-  type ScanCommandInput,
-} from "@aws-sdk/lib-dynamodb";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// ── Client ────────────────────────────────────────────────────────────────────
+// ── D1 client ─────────────────────────────────────────────────────────────────
 
-function getClient(): DynamoDBDocumentClient {
-  const accessKeyId = process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+// Can be pre-set before waitUntil() to avoid re-fetching context after response
+let _injectedDb: D1Database | null = null;
+export function injectDb(db: D1Database) { _injectedDb = db; }
 
-  const raw = new DynamoDBClient({
-    region: process.env.S3_REGION || process.env.AWS_REGION || "us-east-1",
-    // Only pass explicit credentials when both values are present.
-    // On Amplify Lambda the function's IAM role is used automatically otherwise.
-    ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
-  });
-  return DynamoDBDocumentClient.from(raw, {
-    marshallOptions: { removeUndefinedValues: true },
-  });
-}
-
-let _client: DynamoDBDocumentClient | null = null;
-function db(): DynamoDBDocumentClient {
-  if (!_client) _client = getClient();
-  return _client;
-}
-
-// ── Table naming ──────────────────────────────────────────────────────────────
-
-const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || "credit800";
-
-function tbl(collection: string): string {
-  return `${TABLE_PREFIX}-${collection}`;
+async function getDb(): Promise<D1Database> {
+  if (_injectedDb) return _injectedDb;
+  const ctx = await getCloudflareContext({ async: true });
+  return (ctx.env as { DB: D1Database }).DB;
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -60,231 +31,174 @@ export interface FirestoreFilter {
   value: unknown;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Sensitive field stripping ─────────────────────────────────────────────────
 
-/** Strip sensitive fields so they're never accidentally returned to API callers */
 const SENSITIVE_FIELDS = new Set([
   "id", "passwordHash", "lastBreachCheck",
   "resetToken", "resetTokenExpiry",
   "twoFactorCode", "twoFactorCodeExpiry", "twoFactorAttempts",
   "tokenVersion",
-  // stripeCustomerId and stripeSubscriptionId are NOT stripped — server routes
-  // need them to resolve payment methods and create charges.
 ]);
 
-function stripSensitive(item: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(item).filter(([k]) => !SENSITIVE_FIELDS.has(k))
-  );
-}
-
-function buildFilterExpression(
-  filters: FirestoreFilter[],
-  nameOffset = 0
-): {
-  filterExpression: string | undefined;
-  expressionAttributeNames: Record<string, string>;
-  expressionAttributeValues: Record<string, unknown>;
-} {
-  if (filters.length === 0) {
-    return { filterExpression: undefined, expressionAttributeNames: {}, expressionAttributeValues: {} };
-  }
-  const names: Record<string, string> = {};
-  const values: Record<string, unknown> = {};
-  const parts: string[] = [];
-
-  filters.forEach((f, i) => {
-    const nk = `#f${nameOffset + i}`;
-    const vk = `:fv${nameOffset + i}`;
-    names[nk] = f.field;
-    values[vk] = f.value;
-    parts.push(`${nk} = ${vk}`);
-  });
-
-  return {
-    filterExpression: parts.join(" AND "),
-    expressionAttributeNames: names,
-    expressionAttributeValues: values,
-  };
+function stripSensitive(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([k]) => !SENSITIVE_FIELDS.has(k)));
 }
 
 // ── Firestore-compatible API ──────────────────────────────────────────────────
 
 export const firestore = {
-  async getDoc(collectionName: string, docId: string): Promise<DocResult> {
-    const result = await db().send(
-      new GetCommand({ TableName: tbl(collectionName), Key: { id: docId } })
-    );
-    if (!result.Item) {
-      return { exists: false, id: docId, data: {} };
-    }
-    return { exists: true, id: docId, data: stripSensitive(result.Item) };
+  async getDoc(collection: string, docId: string): Promise<DocResult> {
+    const db = await getDb();
+    const row = await db
+      .prepare("SELECT data FROM documents WHERE collection = ? AND id = ?")
+      .bind(collection, docId)
+      .first<{ data: string }>();
+    if (!row) return { exists: false, id: docId, data: {} };
+    const parsed = JSON.parse(row.data) as Record<string, unknown>;
+    return { exists: true, id: docId, data: stripSensitive(parsed) };
   },
 
-  async addDoc(collectionName: string, data: Record<string, unknown>): Promise<string> {
+  async addDoc(collection: string, data: Record<string, unknown>): Promise<string> {
+    const db = await getDb();
     const id = crypto.randomUUID();
-    const item = { ...data, id };
-    await db().send(new PutCommand({ TableName: tbl(collectionName), Item: item }));
+    const full: Record<string, unknown> = { ...data, id };
+    await db
+      .prepare(
+        "INSERT INTO documents (id, collection, user_id, email, referral_code, data) VALUES (?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        id,
+        collection,
+        (full.userId as string) ?? null,
+        (full.email as string) ?? null,
+        (full.referralCode as string) ?? null,
+        JSON.stringify(full)
+      )
+      .run();
     return id;
   },
 
-  async setDoc(collectionName: string, docId: string, data: Record<string, unknown>): Promise<void> {
-    const item = { ...data, id: docId };
-    await db().send(new PutCommand({ TableName: tbl(collectionName), Item: item }));
+  async setDoc(collection: string, docId: string, data: Record<string, unknown>): Promise<void> {
+    const db = await getDb();
+    const full: Record<string, unknown> = { ...data, id: docId };
+    await db
+      .prepare(
+        "INSERT OR REPLACE INTO documents (id, collection, user_id, email, referral_code, data) VALUES (?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        docId,
+        collection,
+        (full.userId as string) ?? null,
+        (full.email as string) ?? null,
+        (full.referralCode as string) ?? null,
+        JSON.stringify(full)
+      )
+      .run();
   },
 
   async updateDoc(
-    collectionName: string,
+    collection: string,
     docId: string,
-    data: Record<string, unknown>
+    updates: Record<string, unknown>
   ): Promise<void> {
-    const entries = Object.entries(data);
-    if (entries.length === 0) return;
+    const db = await getDb();
+    const row = await db
+      .prepare("SELECT data FROM documents WHERE collection = ? AND id = ?")
+      .bind(collection, docId)
+      .first<{ data: string }>();
 
-    const setEntries = entries.filter(([, v]) => v !== null && v !== undefined);
-    const removeEntries = entries.filter(([, v]) => v === null);
+    const existing = row ? (JSON.parse(row.data) as Record<string, unknown>) : { id: docId };
+    const merged: Record<string, unknown> = { ...existing };
 
-    const names: Record<string, string> = {};
-    const values: Record<string, unknown> = {};
-    const setParts: string[] = [];
-    const removeParts: string[] = [];
-
-    setEntries.forEach(([k, v], i) => {
-      const nk = `#u${i}`;
-      const vk = `:uv${i}`;
-      names[nk] = k;
-      values[vk] = v;
-      setParts.push(`${nk} = ${vk}`);
-    });
-
-    removeEntries.forEach(([k], i) => {
-      const nk = `#r${i}`;
-      names[nk] = k;
-      removeParts.push(nk);
-    });
-
-    let updateExpression = "";
-    if (setParts.length > 0) updateExpression += `SET ${setParts.join(", ")}`;
-    if (removeParts.length > 0) {
-      if (updateExpression) updateExpression += " ";
-      updateExpression += `REMOVE ${removeParts.join(", ")}`;
+    for (const [k, v] of Object.entries(updates)) {
+      if (v === null || v === undefined) {
+        delete merged[k];
+      } else {
+        merged[k] = v;
+      }
     }
 
-    await db().send(
-      new UpdateCommand({
-        TableName: tbl(collectionName),
-        Key: { id: docId },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
-        ExpressionAttributeValues: Object.keys(values).length > 0 ? values : undefined,
-      })
-    );
+    await db
+      .prepare(
+        "INSERT OR REPLACE INTO documents (id, collection, user_id, email, referral_code, data) VALUES (?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        docId,
+        collection,
+        (merged.userId as string) ?? null,
+        (merged.email as string) ?? null,
+        (merged.referralCode as string) ?? null,
+        JSON.stringify(merged)
+      )
+      .run();
   },
 
-  async deleteDoc(collectionName: string, docId: string): Promise<void> {
-    await db().send(new DeleteCommand({ TableName: tbl(collectionName), Key: { id: docId } }));
+  async deleteDoc(collection: string, docId: string): Promise<void> {
+    const db = await getDb();
+    await db
+      .prepare("DELETE FROM documents WHERE collection = ? AND id = ?")
+      .bind(collection, docId)
+      .run();
   },
 
   async query(
-    collectionName: string,
+    collection: string,
     filters: FirestoreFilter[],
     orderByField?: string,
     orderDirection?: "ASCENDING" | "DESCENDING",
     limitCount?: number
   ): Promise<QueryResult[]> {
-    const tableName = tbl(collectionName);
-    let items: Record<string, unknown>[] = [];
+    const db = await getDb();
 
-    // Determine primary filter for GSI lookup
     const userIdFilter = filters.find((f) => f.field === "userId" && f.op === "EQUAL");
     const referralCodeFilter =
-      collectionName === "referrals"
+      collection === "referrals"
         ? filters.find((f) => f.field === "referralCode" && f.op === "EQUAL")
         : undefined;
 
+    let rows: { id: string; data: string }[];
+
     if (userIdFilter) {
-      // Query the by-userId GSI
-      const remainingFilters = filters.filter((f) => f !== userIdFilter);
-      const { filterExpression, expressionAttributeNames, expressionAttributeValues } =
-        buildFilterExpression(remainingFilters);
-
-      const result = await db().send(
-        new QueryCommand({
-          TableName: tableName,
-          IndexName: "by-userId",
-          KeyConditionExpression: "#uid = :uid",
-          ExpressionAttributeNames: { "#uid": "userId", ...expressionAttributeNames },
-          ExpressionAttributeValues: { ":uid": userIdFilter.value, ...expressionAttributeValues },
-          FilterExpression: filterExpression,
-        })
-      );
-      items = (result.Items || []) as Record<string, unknown>[];
-
-      // Handle DynamoDB pagination
-      let lastKey = result.LastEvaluatedKey;
-      while (lastKey) {
-        const next = await db().send(
-          new QueryCommand({
-            TableName: tableName,
-            IndexName: "by-userId",
-            KeyConditionExpression: "#uid = :uid",
-            ExpressionAttributeNames: { "#uid": "userId", ...expressionAttributeNames },
-            ExpressionAttributeValues: { ":uid": userIdFilter.value, ...expressionAttributeValues },
-            FilterExpression: filterExpression,
-            ExclusiveStartKey: lastKey,
-          })
-        );
-        items = items.concat((next.Items || []) as Record<string, unknown>[]);
-        lastKey = next.LastEvaluatedKey;
-      }
+      const result = await db
+        .prepare("SELECT id, data FROM documents WHERE collection = ? AND user_id = ?")
+        .bind(collection, userIdFilter.value)
+        .all<{ id: string; data: string }>();
+      rows = result.results;
     } else if (referralCodeFilter) {
-      // Query the by-referralCode GSI
-      const result = await db().send(
-        new QueryCommand({
-          TableName: tableName,
-          IndexName: "by-referralCode",
-          KeyConditionExpression: "#rc = :rc",
-          ExpressionAttributeNames: { "#rc": "referralCode" },
-          ExpressionAttributeValues: { ":rc": referralCodeFilter.value },
-        })
-      );
-      items = (result.Items || []) as Record<string, unknown>[];
+      const result = await db
+        .prepare("SELECT id, data FROM documents WHERE collection = ? AND referral_code = ?")
+        .bind(collection, referralCodeFilter.value)
+        .all<{ id: string; data: string }>();
+      rows = result.results;
     } else {
-      // Scan (empty filters or unrecognized filter field)
-      const { filterExpression, expressionAttributeNames, expressionAttributeValues } =
-        buildFilterExpression(filters);
-
-      const scanParams: ScanCommandInput = { TableName: tableName };
-      if (filterExpression) {
-        scanParams.FilterExpression = filterExpression;
-        scanParams.ExpressionAttributeNames = expressionAttributeNames;
-        scanParams.ExpressionAttributeValues = expressionAttributeValues;
-      }
-
-      // Cap scans at 5000 items to prevent unbounded memory/time usage
-      const scanCap = limitCount ? Math.min(limitCount * 10, 5000) : 5000;
-
-      const result = await db().send(new ScanCommand(scanParams));
-      items = (result.Items || []) as Record<string, unknown>[];
-
-      // Paginate but stop at cap
-      let lastKey = result.LastEvaluatedKey;
-      while (lastKey && items.length < scanCap) {
-        const next = await db().send(
-          new ScanCommand({ ...scanParams, ExclusiveStartKey: lastKey })
-        );
-        items = items.concat((next.Items || []) as Record<string, unknown>[]);
-        lastKey = next.LastEvaluatedKey;
-      }
+      const result = await db
+        .prepare("SELECT id, data FROM documents WHERE collection = ?")
+        .bind(collection)
+        .all<{ id: string; data: string }>();
+      rows = result.results;
     }
 
-    // Map to QueryResult, stripping sensitive fields
-    let results: QueryResult[] = items.map((item) => ({
-      id: item.id as string,
-      data: stripSensitive(item),
-    }));
+    // Parse and apply remaining in-memory filters
+    const remainingFilters = filters.filter(
+      (f) => f !== userIdFilter && f !== referralCodeFilter
+    );
 
-    // In-memory sort
+    let results: QueryResult[] = rows
+      .map((r) => ({
+        id: r.id,
+        data: stripSensitive(JSON.parse(r.data) as Record<string, unknown>),
+      }))
+      .filter((r) =>
+        remainingFilters.every((f) => {
+          const val = r.data[f.field];
+          if (f.op === "EQUAL") return val === f.value;
+          if (f.op === "NOT_EQUAL") return val !== f.value;
+          if (f.op === "GREATER_THAN") return (val as number) > (f.value as number);
+          if (f.op === "LESS_THAN") return (val as number) < (f.value as number);
+          return true;
+        })
+      );
+
     if (orderByField) {
       results.sort((a, b) => {
         const av = a.data[orderByField] ?? "";
@@ -295,14 +209,35 @@ export const firestore = {
       });
     }
 
-    // In-memory limit
-    if (limitCount) {
-      results = results.slice(0, limitCount);
-    }
-
+    if (limitCount) results = results.slice(0, limitCount);
     return results;
   },
 };
+
+// ── Special: get user reset token (bypasses stripSensitive) ──────────────────
+
+export interface UserResetRecord {
+  uid: string;
+  resetToken: string | undefined;
+  resetTokenExpiry: string | undefined;
+  tokenVersion: number;
+}
+
+export async function getUserResetToken(uid: string): Promise<UserResetRecord | null> {
+  const db = await getDb();
+  const row = await db
+    .prepare("SELECT data FROM documents WHERE collection = 'users' AND id = ?")
+    .bind(uid)
+    .first<{ data: string }>();
+  if (!row) return null;
+  const item = JSON.parse(row.data) as Record<string, unknown>;
+  return {
+    uid: item.id as string,
+    resetToken: item.resetToken as string | undefined,
+    resetTokenExpiry: item.resetTokenExpiry as string | undefined,
+    tokenVersion: (item.tokenVersion as number) ?? 0,
+  };
+}
 
 // ── Special: get user with passwordHash for auth ──────────────────────────────
 
@@ -313,21 +248,77 @@ export interface UserAuthRecord {
 }
 
 export async function getUserForAuth(email: string): Promise<UserAuthRecord | null> {
-  const result = await db().send(
-    new QueryCommand({
-      TableName: tbl("users"),
-      IndexName: "by-email",
-      KeyConditionExpression: "#em = :em",
-      ExpressionAttributeNames: { "#em": "email" },
-      ExpressionAttributeValues: { ":em": email.toLowerCase().trim() },
-      Limit: 1,
-    })
-  );
-  const item = result.Items?.[0] as Record<string, unknown> | undefined;
-  if (!item) return null;
+  const db = await getDb();
+  const row = await db
+    .prepare("SELECT data FROM documents WHERE collection = 'users' AND email = ?")
+    .bind(email.toLowerCase().trim())
+    .first<{ data: string }>();
+  if (!row) return null;
+  const item = JSON.parse(row.data) as Record<string, unknown>;
   return {
     uid: item.id as string,
     email: item.email as string,
     passwordHash: item.passwordHash as string,
   };
+}
+
+// ── Special: get user 2FA fields (bypasses stripSensitive) ───────────────────
+
+export interface User2FARecord {
+  uid: string;
+  email: string;
+  fullName: string;
+  twoFactorCode: string | null;
+  twoFactorCodeExpiry: string | null;
+  twoFactorCodeSentAt: string | null;
+  twoFactorAttempts: number;
+}
+
+export async function getUserFor2FA(uid: string): Promise<User2FARecord | null> {
+  const db = await getDb();
+  const row = await db
+    .prepare("SELECT data FROM documents WHERE collection = 'users' AND id = ?")
+    .bind(uid)
+    .first<{ data: string }>();
+  if (!row) return null;
+  const item = JSON.parse(row.data) as Record<string, unknown>;
+  return {
+    uid: item.id as string,
+    email: item.email as string,
+    fullName: (item.fullName as string) || (item.displayName as string) || "",
+    twoFactorCode: (item.twoFactorCode as string) ?? null,
+    twoFactorCodeExpiry: (item.twoFactorCodeExpiry as string) ?? null,
+    twoFactorCodeSentAt: (item.twoFactorCodeSentAt as string) ?? null,
+    twoFactorAttempts: (item.twoFactorAttempts as number) ?? 0,
+  };
+}
+
+// ── Distributed lock (for serializing background work like AI analysis) ────────
+// Uses an atomic conditional upsert on the documents table. Returns true if the
+// caller acquired the lock. A lock auto-expires after ttlMs so a crashed holder
+// never blocks the queue permanently.
+
+export async function acquireLock(name: string, ttlMs: number): Promise<boolean> {
+  const db = await getDb();
+  const id = `lock:${name}`;
+  const now = Date.now();
+  const expires = now + ttlMs;
+  const res = await db
+    .prepare(
+      `INSERT INTO documents (id, collection, data) VALUES (?, 'locks', ?)
+       ON CONFLICT(id) DO UPDATE SET data = excluded.data
+       WHERE CAST(json_extract(documents.data, '$.expires') AS INTEGER) < ?`
+    )
+    .bind(id, JSON.stringify({ expires }), now)
+    .run();
+  const changes = Number((res.meta as { changes?: number } | undefined)?.changes ?? 0);
+  return changes > 0;
+}
+
+export async function releaseLock(name: string): Promise<void> {
+  const db = await getDb();
+  await db
+    .prepare("UPDATE documents SET data = ? WHERE id = ?")
+    .bind(JSON.stringify({ expires: 0 }), `lock:${name}`)
+    .run();
 }
