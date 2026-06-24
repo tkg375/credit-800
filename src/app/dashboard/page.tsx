@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { OnboardingModal } from "@/components/OnboardingModal";
-import { AutopilotDashboard } from "@/components/AutopilotDashboard";
 import { UploadModal } from "@/components/UploadModal";
 
 
@@ -85,7 +84,7 @@ async function checkDeadlines(
 
 function DashboardContent() {
   const { user, loading: authLoading } = useAuth();
-  const { isAutopilot, loading: subLoading } = useSubscription();
+  const { loading: subLoading } = useSubscription();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showWelcome, setShowWelcome] = useState(false);
@@ -249,14 +248,6 @@ function DashboardContent() {
           <p className="text-slate-500">Loading...</p>
         </div>
       </div>
-    );
-  }
-
-  if (isAutopilot) {
-    return (
-      <AuthenticatedLayout activeNav="dashboard">
-        <AutopilotDashboard />
-      </AuthenticatedLayout>
     );
   }
 

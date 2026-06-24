@@ -1,4 +1,3 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { getObject as getR2Object } from "@/lib/s3";
 import { AwsClient } from "aws4fetch";
@@ -28,15 +27,8 @@ async function getPdf(s3Key: string): Promise<Uint8Array> {
 
 // ── Cloudflare Workers AI analysis ────────────────────────────────────────────
 
-const AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-
-// Minimal type for the Workers AI binding (avoids depending on the global `Ai` type)
-type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
-
-// In a queue consumer there is no Next request context, so the AI binding is injected
-// directly from the queue handler's `env`. In normal requests it's read from context.
-let _injectedAi: AiBinding | null = null;
-export function injectAi(ai: AiBinding) { _injectedAi = ai; }
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_MODEL = "gpt-4o";
 
 const ANALYSIS_PROMPT = `You are a credit report analyzer. Your task is to extract ALL negative/derogatory items from this credit report with 100% accuracy.
 
@@ -207,39 +199,53 @@ function prefilterReportText(text: string): string {
   return filtered.length > 200 ? filtered : text;
 }
 
-async function analyzeWithAI(reportText: string, ai: AiBinding, bureau: string) {
-  // Pre-filter to relevant content. The fp8-fast model caps at 24k tokens total, so
-  // keep input well under that to leave room for the completion (~3.4 chars/token).
+async function analyzeWithOpenAI(reportText: string, bureau: string) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
+
   const filtered = prefilterReportText(reportText);
-  const truncated = filtered.slice(0, 52_000);
+  // GPT-4o supports ~128k context; keep well under to leave room for completion
+  const truncated = filtered.slice(0, 80_000);
 
   let lastErr: unknown;
   for (let attempt = 0; attempt <= 3; attempt++) {
     if (attempt > 0) {
-      const delay = Math.min(2000 * Math.pow(2, attempt - 1) + Math.random() * 1000, 20000);
+      const delay = Math.min(2000 * Math.pow(2, attempt - 1) + Math.random() * 1000, 30000);
       await new Promise((r) => setTimeout(r, delay));
     }
     try {
-      // Guard against a hung AI call leaving the report stuck forever
-      const aiCall = ai.run(AI_MODEL, {
-        temperature: 0,
-        max_tokens: 6000,
-        messages: [{ role: "user", content: ANALYSIS_PROMPT + truncated }],
-      }) as Promise<{ response?: unknown }>;
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Workers AI timed out")), 60_000)
-      );
-      const result = await Promise.race([aiCall, timeout]);
-      const raw = result?.response;
-      // Workers AI normally returns a string; some responses come back already-parsed.
-      const text = typeof raw === "string" ? raw : raw ? JSON.stringify(raw) : "";
-      if (!text) throw new Error("No response from Workers AI");
+      const res = await fetch(OPENAI_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: OPENAI_MODEL,
+          temperature: 0,
+          max_tokens: 8000,
+          messages: [{ role: "user", content: ANALYSIS_PROMPT + truncated }],
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as Record<string, unknown>;
+        if ([429, 500, 502, 503].includes(res.status) && attempt < 3) {
+          lastErr = new Error(`OpenAI ${res.status}: ${JSON.stringify(err)}`);
+          continue;
+        }
+        throw new Error(`OpenAI API error ${res.status}: ${JSON.stringify(err)}`);
+      }
+
+      const data = await res.json() as { choices?: { message?: { content?: string } }[] };
+      const text = data.choices?.[0]?.message?.content;
+      if (!text) throw new Error("No response from OpenAI");
       return parseAnalysisJson(text, bureau);
     } catch (err) {
       lastErr = err;
     }
   }
-  throw new Error(`Workers AI failed: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
+  throw new Error(`OpenAI failed: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
 // ── Action plan generation ────────────────────────────────────────────────────
@@ -301,7 +307,7 @@ async function generateActionPlan(userId: string, reportId: string) {
   });
 }
 
-// ── Main analysis function (replaces Lambda handler) ─────────────────────────
+// ── Main analysis function ────────────────────────────────────────────────────
 
 async function notifyAnalysisError(userId: string, reportId: string, message: string) {
   try {
@@ -340,20 +346,8 @@ export async function analyzeReport(reportId: string, userId: string, s3Key: str
       return;
     }
 
-    // 3. Run Workers AI analysis (injected binding in queue consumer, else from context)
-    let ai = _injectedAi;
-    if (!ai) {
-      const ctx = await getCloudflareContext({ async: true });
-      ai = (ctx.env as { AI: AiBinding }).AI;
-    }
-    if (!ai) {
-      const msg = "AI binding not configured";
-      await firestore.updateDoc(COLLECTIONS.creditReports, reportId, { status: "ERROR", errorMessage: msg });
-      await notifyAnalysisError(userId, reportId, msg);
-      return;
-    }
-
-    const analysis = await analyzeWithAI(reportText, ai, bureau);
+    // 3. Run OpenAI analysis
+    const analysis = await analyzeWithOpenAI(reportText, bureau);
     console.log(`[analyzer] found ${analysis.items.length} items`);
 
     // 4. Upsert report items (deduplicate by fingerprint within same bureau)

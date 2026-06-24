@@ -6,9 +6,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export const dynamic = "force-dynamic";
 
-const AI_TEXT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const AI_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
-type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
 const ANALYZE_PROMPT = `You are a consumer rights and credit law expert. A user has uploaded a letter received from a creditor, debt collector, or credit bureau.
 
@@ -70,13 +68,40 @@ Sincerely,
 
 Use \\n\\n between paragraphs and \\n between address/header lines. Return only the raw JSON, no markdown.`;
 
+async function callOpenAI(messages: unknown[]): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
+
+  const res = await fetch(OPENAI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      temperature: 0,
+      max_tokens: 6000,
+      messages,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`OpenAI error ${res.status}: ${JSON.stringify(err)}`);
+  }
+
+  const data = await res.json() as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Empty response from OpenAI");
+  return text;
+}
+
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { env, ctx } = await getCloudflareContext({ async: true });
-  const ai = (env as { AI: AiBinding }).AI;
-  if (!ai) return NextResponse.json({ error: "AI not configured" }, { status: 503 });
+  const { ctx } = await getCloudflareContext({ async: true });
 
   let body: { s3Key: string; fileName: string; mimeType: string };
   try {
@@ -92,8 +117,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Create the letter record immediately in a processing state, then analyze in the
-  // background so the client never waits. The user is notified + emailed when ready.
   const letterId = await firestore.addDoc(COLLECTIONS.creditorLetters, {
     userId: user.uid,
     fileName,
@@ -119,52 +142,33 @@ export async function POST(request: NextRequest) {
       const fileMime = mimeType || "application/pdf";
       const isPdf = fileMime === "application/pdf" || s3Key.toLowerCase().endsWith(".pdf");
 
-      let aiInputs: Record<string, unknown>;
-      let aiModel: string;
+      let messages: unknown[];
       if (isPdf) {
         const { extractText, getDocumentProxy } = await import("unpdf");
         const pdf = await getDocumentProxy(new Uint8Array(bytes));
         const { text: extracted } = await extractText(pdf, { mergePages: true });
-        const letterText = (Array.isArray(extracted) ? extracted.join("\n") : extracted).slice(0, 52_000);
+        const letterText = (Array.isArray(extracted) ? extracted.join("\n") : extracted).slice(0, 80_000);
         if (!letterText || letterText.trim().length < 30) {
           throw new Error("Could not extract text from PDF — it may be a scanned image");
         }
-        aiModel = AI_TEXT_MODEL;
-        aiInputs = {
-          temperature: 0,
-          max_tokens: 6000,
-          messages: [{ role: "user", content: `${ANALYZE_PROMPT}\n\nHere is the letter text:\n${letterText}` }],
-        };
+        messages = [{ role: "user", content: `${ANALYZE_PROMPT}\n\nHere is the letter text:\n${letterText}` }];
       } else {
-        aiModel = AI_VISION_MODEL;
-        aiInputs = {
-          prompt: ANALYZE_PROMPT,
-          image: Array.from(new Uint8Array(bytes)),
-          max_tokens: 6000,
-          temperature: 0,
-        };
+        const base64 = Buffer.from(bytes).toString("base64");
+        const mediaType = fileMime.startsWith("image/") ? fileMime : "image/jpeg";
+        messages = [{
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: `data:${mediaType};base64,${base64}` } },
+            { type: "text", text: ANALYZE_PROMPT },
+          ],
+        }];
       }
 
-      const aiCall = ai.run(aiModel, aiInputs) as Promise<{ response?: unknown }>;
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("AI timed out")), 60_000)
-      );
-      const result = await Promise.race([aiCall, timeout]);
-      const raw = result?.response;
-
-      // Workers AI usually returns `response` as a string, but some models return an
-      // already-parsed object. Handle both.
-      let analysis: Record<string, unknown>;
-      if (raw && typeof raw === "object") {
-        analysis = raw as Record<string, unknown>;
-      } else {
-        const text = typeof raw === "string" ? raw : "";
-        if (!text) throw new Error("AI service returned empty response");
-        const start = text.indexOf("{");
-        const end = text.lastIndexOf("}");
-        if (start === -1 || end === -1) throw new Error("AI service returned unexpected format");
-        analysis = JSON.parse(text.slice(start, end + 1));
-      }
+      const rawText = await callOpenAI(messages);
+      const start = rawText.indexOf("{");
+      const end = rawText.lastIndexOf("}");
+      if (start === -1 || end === -1) throw new Error("No JSON in OpenAI response");
+      const analysis = JSON.parse(rawText.slice(start, end + 1)) as Record<string, unknown>;
 
       await firestore.updateDoc(COLLECTIONS.creditorLetters, letterId, {
         status: "complete",
@@ -179,7 +183,6 @@ export async function POST(request: NextRequest) {
         draftResponseLetter: analysis.draftResponseLetter ?? "",
       });
 
-      // Notify + email
       const creditorName = typeof analysis.creditorName === "string" ? analysis.creditorName : null;
       await firestore.addDoc(COLLECTIONS.notifications, {
         userId: uid,
@@ -204,7 +207,7 @@ export async function POST(request: NextRequest) {
       await firestore.updateDoc(COLLECTIONS.creditorLetters, letterId, {
         status: "error",
         errorMessage: msg,
-      }).catch((err) => console.error("[email] fire-and-forget error:", err));
+      }).catch((e) => console.error("[letter] update error:", e));
     }
   }
 

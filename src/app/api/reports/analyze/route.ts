@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { getUserSubscription } from "@/lib/subscription";
 import { getLimiters } from "@/lib/ratelimit";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
@@ -22,12 +21,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const { reportId, simulateData } = await req.json();
-
-    const sub = await getUserSubscription(user.uid);
-
-    if (simulateData && !sub.isPro) {
-      return NextResponse.json({ error: "Active subscription required" }, { status: 403 });
-    }
 
     // Rate limit real PDF analysis to 5/day per user
     if (!simulateData) {

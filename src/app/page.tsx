@@ -1,6 +1,5 @@
 import { MarketingNav } from "@/components/MarketingNav";
 import { MarketingFooter } from "@/components/MarketingFooter";
-import { AutopilotHero } from "@/components/AutopilotHero";
 import { HeroDataStream } from "@/components/HeroDataStream";
 import { GetStartedButton } from "@/components/AuthModalButtons";
 
@@ -46,9 +45,8 @@ const jsonLd = {
       url: "https://credit-800.com",
       offers: {
         "@type": "Offer",
-        price: "5.00",
+        price: "0",
         priceCurrency: "USD",
-        billingIncrement: "P1M",
         availability: "https://schema.org/InStock",
       },
       aggregateRating: {
@@ -66,32 +64,27 @@ const jsonLd = {
       "@id": "https://credit-800.com/#howto",
       name: "How to Repair Your Credit with Credit 800",
       description:
-        "Fix your credit, manage your finances, and get loan ready — all in one platform.",
+        "Fix your credit, manage your finances, and get loan ready — all in one free platform.",
       totalTime: "PT30M",
-      estimatedCost: {
-        "@type": "MonetaryAmount",
-        currency: "USD",
-        value: "5",
-      },
       step: [
         {
           "@type": "HowToStep",
-          name: "Fix Your Credit",
-          text: "Upload your credit report. Credit 800 finds disputable inaccuracies, generates FCRA-compliant letters citing specific legal sections, and builds a personalized action plan to raise your score.",
+          name: "Upload Your Credit Report",
+          text: "Upload your credit report PDF. Credit 800 finds disputable inaccuracies and builds a personalized action plan.",
           url: "https://credit-800.com/#how-it-works",
           position: 1,
         },
         {
           "@type": "HowToStep",
-          name: "Manage Your Finances",
-          text: "Track your monthly budget, set financial goals, monitor your net worth, and plan your debt payoff — all from one dashboard.",
+          name: "Generate Dispute Letters",
+          text: "Get FCRA-compliant dispute letters citing specific legal sections for every negative item found.",
           url: "https://credit-800.com/#how-it-works",
           position: 2,
         },
         {
           "@type": "HowToStep",
-          name: "Get Loan Ready",
-          text: "See exactly how ready you are for a mortgage, auto loan, or credit card. Know your DTI, what's holding you back, and what to fix first.",
+          name: "Track Your Progress",
+          text: "Monitor your score, track disputes, and manage your finances all from one dashboard.",
           url: "https://credit-800.com/#how-it-works",
           position: 3,
         },
@@ -107,19 +100,29 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Nav + Hero with gradient background */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <MarketingNav />
       </header>
 
+      {/* Hero */}
       <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] relative overflow-hidden">
-        {/* Data stream background */}
         <HeroDataStream />
-        {/* Hero */}
-        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-16 pb-16 sm:pb-20">
-          <AutopilotHero />
+        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-20 sm:pb-28 text-center">
+          <div className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6 bg-white/20 text-white">
+            100% Free — No Subscription Required
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-black text-white mb-6 leading-tight">
+            Fix Your Credit.<br />
+            <span className="text-white/80">Reach 800.</span>
+          </h1>
+          <p className="text-white/80 text-lg sm:text-xl max-w-2xl mx-auto mb-10">
+            Upload your credit report. Get AI-powered dispute letters, a personalized action plan, and the tools to manage your finances — completely free.
+          </p>
+          <GetStartedButton className="px-10 py-4 rounded-xl font-bold text-[#1a3fd4] bg-white hover:bg-white/90 transition text-lg shadow-xl">
+            Get Started Free →
+          </GetStartedButton>
+          <p className="text-white/50 text-sm mt-4">No credit card. No subscription. Just results.</p>
 
-          {/* Scroll indicator */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce">
             <span className="text-white/50 text-xs tracking-widest uppercase">Scroll</span>
             <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,13 +137,13 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">
-              How Autopilot Works
+              How It Works
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Set it up once. Let it run.
+              Three steps to a better score.
             </h2>
             <p className="text-slate-500 text-lg max-w-xl mx-auto">
-              Autopilot handles the full dispute cycle for you — no manual work, no follow-up.
+              Upload your report, get your letters, send them yourself — all the tools are free.
             </p>
           </div>
 
@@ -150,11 +153,11 @@ export default function Home() {
                 step: "01",
                 icon: (
                   <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                   </svg>
                 ),
-                title: "Authorize Autopilot",
-                desc: "Give one-time FCRA authorization. Autopilot pulls your credit report and begins working on your behalf — no uploads needed.",
+                title: "Upload Your Report",
+                desc: "Upload your credit report PDF from any bureau. Our AI scans every line and identifies every disputable negative item.",
               },
               {
                 step: "02",
@@ -163,8 +166,8 @@ export default function Home() {
                     <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                   </svg>
                 ),
-                title: "Letters Generated & Mailed",
-                desc: "Autopilot finds every disputable item, generates FCRA-compliant letters citing specific legal sections, and physically mails them to the bureaus.",
+                title: "Get Your Letters",
+                desc: "Download FCRA-compliant dispute letters for each negative item, citing the exact legal sections that apply to your situation.",
               },
               {
                 step: "03",
@@ -173,8 +176,8 @@ export default function Home() {
                     <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                   </svg>
                 ),
-                title: "Watch Your Score Climb",
-                desc: "Track every dispute, monitor your score progress, and let Autopilot repeat the cycle monthly until you hit 800.",
+                title: "Track Your Progress",
+                desc: "Log your disputes, track bureau responses, monitor your score over time, and manage your full financial picture.",
               },
             ].map((item, i) => {
               const gradients = [
@@ -201,7 +204,7 @@ export default function Home() {
 
           <div className="text-center mt-12">
             <GetStartedButton className="px-8 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] hover:opacity-90 transition">
-              Start Now →
+              Start Now — It&apos;s Free →
             </GetStartedButton>
           </div>
         </div>
@@ -211,18 +214,18 @@ export default function Home() {
       <section className="bg-slate-50 py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">What Autopilot Does</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Everything. Every Month. Automatically.</h2>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto">No uploads. No manual letters. No follow-up. Autopilot runs the full dispute cycle for you.</p>
+            <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">Everything Included Free</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">All the tools. Zero cost.</h2>
+            <p className="text-slate-500 text-lg max-w-xl mx-auto">Every feature is free for every user. No upgrades, no paywalls.</p>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {[
-              { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", title: "Soft-Pull Credit Report", desc: "Autopilot pulls your TransUnion report every 30 days using a soft inquiry — no impact to your score." },
-              { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", title: "FCRA-Compliant Letters", desc: "Each dispute letter cites the specific FCRA and FDCPA sections that apply — not generic templates." },
-              { icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", title: "Physical USPS Mailing", desc: "Letters are printed and mailed via USPS with delivery confirmation — the same way the bureaus require." },
-              { icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6", title: "Score Tracking", desc: "Every point gained is logged. See your score trend over time and exactly what changed after each run." },
-              { icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", title: "Automatic Escalation", desc: "If a bureau doesn't respond or denies a dispute, Autopilot generates escalation letters in the next cycle." },
-              { icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", title: "Full Audit Trail", desc: "Every pull, letter, and mailing is logged with timestamps — complete compliance documentation." },
+              { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", title: "AI Credit Report Analysis", desc: "Upload any bureau's PDF and our AI identifies every disputable item with removal strategy recommendations." },
+              { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", title: "FCRA-Compliant Dispute Letters", desc: "Each letter cites the specific FCRA and FDCPA sections that apply — not generic form letters." },
+              { icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", title: "CFPB Complaint Generator", desc: "Escalate unresolved disputes to the Consumer Financial Protection Bureau with pre-filled complaint letters." },
+              { icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6", title: "Score Tracker", desc: "Log your scores from all three bureaus and watch your progress on a chart over time." },
+              { icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", title: "Action Plan", desc: "Get a personalized, ordered list of exactly what to do next — tailored to your specific report." },
+              { icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", title: "Budget & Financial Tools", desc: "Track your budget, set goals, calculate debt payoff, and monitor your net worth — all in one place." },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-6 border border-slate-200 flex gap-4">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
@@ -240,52 +243,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Comparison */}
-      <section className="bg-white py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">Why Credit 800</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">vs. Traditional Credit Repair</h2>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto">Same process. A fraction of the cost. Full transparency.</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="text-left py-3 px-4 text-slate-400 font-medium w-1/3"></th>
-                  <th className="py-3 px-4 text-center">
-                    <span className="inline-block bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] text-white text-xs font-bold px-3 py-1.5 rounded-lg">Credit 800 Autopilot</span>
-                  </th>
-                  <th className="py-3 px-4 text-center text-slate-400 font-medium">Credit Repair Companies</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  ["Monthly Cost", "$49/mo", "$79–$149/mo"],
-                  ["Setup Fee", "None", "$99–$199"],
-                  ["Contract Required", "No — cancel anytime", "Often 6–12 months"],
-                  ["Credit Report Pull", "Automatic (soft pull)", "You provide it"],
-                  ["Letter Generation", "AI-powered, FCRA-compliant", "Generic templates"],
-                  ["USPS Mailing", "Included", "Extra or manual"],
-                  ["Transparency", "Full dashboard + audit log", "Often none"],
-                  ["Escalation Letters", "Automatic", "Extra charge"],
-                ].map(([feature, us, them]) => (
-                  <tr key={feature} className="hover:bg-slate-50 transition">
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">{feature}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="text-teal-700 font-semibold">{us}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center text-slate-400">{them}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
       {/* Trust / Legal */}
-      <section className="bg-slate-50 py-20 px-4">
+      <section className="bg-white py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">Your Rights</span>
@@ -314,7 +273,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-white py-20 px-4">
+      <section className="bg-slate-50 py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
             <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-[#1a3fd4] bg-blue-50">FAQ</span>
@@ -322,10 +281,10 @@ export default function Home() {
           </div>
           <div className="space-y-3">
             {[
-              { q: "Does Autopilot hurt my credit score?", a: "No. Autopilot uses a soft inquiry to pull your credit report, which has zero impact on your score. Only hard inquiries (from new credit applications) affect your score." },
-              { q: "How long before I see results?", a: "Credit bureaus are required by law to respond within 30 days. Most users see their first removals within 30–60 days of their first run. Results depend on your specific situation — unverifiable collections and outdated accounts tend to resolve fastest." },
-              { q: "Can I cancel anytime?", a: "Yes, always. Cancel from your profile page or by contacting support — no cancellation fees, no contracts. Your data stays accessible." },
-              { q: "What if a bureau denies my dispute?", a: "Autopilot automatically generates escalation letters in the next cycle, citing Method of Verification requirements under FCRA § 611. Persistent non-compliance can also be escalated to the CFPB." },
+              { q: "Is Credit 800 really free?", a: "Yes, completely. All features — credit report analysis, dispute letter generation, score tracking, budget tools, action plans — are free for every registered user. No credit card required." },
+              { q: "How long before I see results?", a: "Credit bureaus are required by law to respond within 30 days. Most users see their first removals within 30–60 days of sending their first letters. Results depend on your specific situation — unverifiable collections and outdated accounts tend to resolve fastest." },
+              { q: "Do I need to mail the letters myself?", a: "Yes — Credit 800 generates your letters and you send them. We recommend certified mail with return receipt so you have proof of delivery." },
+              { q: "What if a bureau denies my dispute?", a: "Generate an escalation letter citing Method of Verification requirements under FCRA § 611, or file a CFPB complaint using our built-in generator. Persistent non-compliance can be escalated to the Consumer Financial Protection Bureau." },
               { q: "Is my personal information safe?", a: "Yes. All data is encrypted in transit and at rest. We don't sell your data, don't use it to train AI models, and you can delete your account at any time." },
             ].map((item, i) => (
               <details key={i} className="group border border-slate-200 rounded-xl overflow-hidden">

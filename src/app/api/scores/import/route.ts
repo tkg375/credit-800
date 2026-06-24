@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export const dynamic = "force-dynamic";
 
-const AI_VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
-type AiBinding = { run: (model: string, inputs: Record<string, unknown>) => Promise<unknown> };
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const ctx = await getCloudflareContext({ async: true });
-  const ai = (ctx.env as { AI: AiBinding }).AI;
-  if (!ai) return NextResponse.json({ error: "AI not configured" }, { status: 503 });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "AI not configured" }, { status: 503 });
 
-  const MAX_BASE64_LENGTH = 1_400_000; // ~1MB decoded
+  const MAX_BASE64_LENGTH = 1_400_000;
 
   const { imageBase64 } = await req.json();
   if (!imageBase64) return NextResponse.json({ error: "imageBase64 is required" }, { status: 400 });
@@ -36,21 +33,37 @@ Return ONLY a JSON object like:
 If you cannot find a score, return: {"score": null}
 Return only the raw JSON, no markdown.`;
 
-  // Workers AI vision takes the image as an array of byte values
-  const imageBytes = Array.from(Buffer.from(imageBase64, "base64"));
-
   let text = "";
   try {
-    const result = await ai.run(AI_VISION_MODEL, {
-      prompt,
-      image: imageBytes,
-      max_tokens: 256,
-      temperature: 0,
-    }) as { response?: unknown };
-    const raw = result?.response;
-    text = typeof raw === "string" ? raw : raw ? JSON.stringify(raw) : "";
+    const res = await fetch(OPENAI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0,
+        max_tokens: 256,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
+            { type: "text", text: prompt },
+          ],
+        }],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`OpenAI error ${res.status}: ${JSON.stringify(err)}`);
+    }
+
+    const data = await res.json() as { choices?: { message?: { content?: string } }[] };
+    text = data.choices?.[0]?.message?.content ?? "";
   } catch (err) {
-    console.error("[scores/import] Workers AI error:", err);
+    console.error("[scores/import] OpenAI error:", err);
     return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
   }
 
