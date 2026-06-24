@@ -212,14 +212,8 @@ function DashboardContent() {
           setLetters((lettersData.letters ?? []).slice(0, 5));
         }
 
-        // Fire-and-forget: health report trigger
-        fetch("/api/users/health-report", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${user!.idToken}` },
-        }).catch(() => {});
-
-        // Fire-and-forget: weekly progress email
-        fetch("/api/users/weekly-report", {
+        // Fire-and-forget: monthly checkup email
+        fetch("/api/users/monthly-checkup", {
           method: "POST",
           headers: { Authorization: `Bearer ${user!.idToken}` },
         }).catch(() => {});
@@ -299,37 +293,8 @@ function DashboardContent() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
         <h1 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-10">Dashboard</h1>
 
-        {/* Bureau Score Cards */}
-        <Link href="/scores" className="block bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition mb-6">
-          <div className="grid grid-cols-3 divide-x divide-slate-100">
-            {(["Equifax", "Experian", "TransUnion"] as const).map((bureau, i) => {
-              const score = bureauScores[bureau];
-              const colors = ["text-[#1a3fd4]", "text-[#0e7fd4]", "text-[#00d4aa]"];
-              return (
-                <div key={bureau} className="flex flex-col items-center px-2">
-                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${colors[i]}`}>{bureau}</p>
-                  <p className={`text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
-                </div>
-              );
-            })}
-          </div>
-        </Link>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-10 sm:mb-14">
-          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
-            <p className="text-sm text-slate-500 mb-2">Disputable Items</p>
-            <p className="text-5xl font-bold text-amber-500">{disputableCount}</p>
-          </Link>
-          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
-            <p className="text-sm text-slate-500 mb-2">Active Disputes</p>
-            <p className="text-5xl font-bold text-emerald-500">{activeDisputes}</p>
-          </Link>
-        </div>
-
-
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-10 sm:mb-14">
+        {/* Upload Cards — top of page */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
           <button onClick={() => setUploadModalType("report")} className="bg-blue-50 border border-blue-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition flex items-center gap-5 text-left w-full">
             <div className="w-12 h-12 bg-gradient-to-br from-[#1a3fd4] to-[#00d4aa] rounded-xl flex items-center justify-center shrink-0">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,6 +321,33 @@ function DashboardContent() {
         {uploadModalType && (
           <UploadModal type={uploadModalType} onClose={() => setUploadModalType(null)} />
         )}
+
+        {/* Bureau Score Cards */}
+        <Link href="/scores" className="block bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition mb-6">
+          <div className="grid grid-cols-3 divide-x divide-slate-100">
+            {(["Equifax", "Experian", "TransUnion"] as const).map((bureau, i) => {
+              const score = bureauScores[bureau];
+              const colors = ["text-[#1a3fd4]", "text-[#0e7fd4]", "text-[#00d4aa]"];
+              return (
+                <div key={bureau} className="flex flex-col items-center px-2">
+                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${colors[i]}`}>{bureau}</p>
+                  <p className={`text-3xl font-black ${score ? "text-slate-900" : "text-slate-300"}`}>{score ?? "---"}</p>
+                </div>
+              );
+            })}
+          </div>
+        </Link>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-10 sm:mb-14">
+          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
+            <p className="text-sm text-slate-500 mb-2">Disputable Items</p>
+            <p className="text-5xl font-bold text-amber-500">{disputableCount}</p>
+          </Link>
+          <Link href="/disputes" className="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm hover:shadow-lg transition block">
+            <p className="text-sm text-slate-500 mb-2">Active Disputes</p>
+            <p className="text-5xl font-bold text-emerald-500">{activeDisputes}</p>
+          </Link>
+        </div>
 
         {/* Changes Since Last Report */}
         {latestChanges && (
