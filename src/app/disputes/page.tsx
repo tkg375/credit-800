@@ -185,7 +185,10 @@ function DisputesPage() {
               lastActivityDate: (item.lastActivityDate as string) || null,
               isDisputable: item.isDisputable as boolean,
               disputeReason: item.disputeReason as string | null,
-              removalStrategies: (item.removalStrategies as RemovalStrategy[]) || [],
+              removalStrategies: ((item.removalStrategies as RemovalStrategy[]) || []).sort((a, b) => {
+                const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+                return (order[a.priority] ?? 3) - (order[b.priority] ?? 3);
+              }),
               bureau: item.bureau as string,
             }))
         );
