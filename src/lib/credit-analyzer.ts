@@ -30,44 +30,105 @@ async function getPdf(s3Key: string): Promise<Uint8Array> {
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 const OPENAI_MODEL = "gpt-4o";
 
-const ANALYSIS_PROMPT = `You are a credit report analyzer. Your task is to extract ALL negative/derogatory items from this credit report with 100% accuracy.
+const TODAY = new Date().toISOString().split("T")[0];
 
-STEP 1: Identify the credit bureau (Equifax, Experian, or TransUnion) from the report header/branding.
-STEP 2: Find the credit score if displayed in the report.
-STEP 3: Extract EVERY account that has ANY of these negative indicators:
-- Status contains: Collection, Charge-off, Charged off, Past due, Delinquent, Late, Written off, Sold, Transferred, Closed negative, Settled, Repossession, Foreclosure, Bankruptcy, Judgment, Tax lien
-- Payment status shows any late payments (30, 60, 90, 120+ days)
-- Account is marked as derogatory or adverse
-- Balance owed on collection accounts
-- Any account with negative remarks
+const ANALYSIS_PROMPT = `You are an expert credit report analyst and consumer credit law specialist (FCRA, FDCPA, HIPAA). Today's date is ${TODAY}.
 
-STEP 4: For EACH negative account found, extract:
-- creditorName: The company name
-- accountNumber: Full or partial account number shown
-- accountType: Collection, Credit Card, Auto Loan, Mortgage, Student Loan, Medical, Personal Loan, Utility, etc.
-- balance: Current balance owed (number only, no $ or commas)
-- status: The account status (COLLECTION, CHARGE_OFF, LATE, DELINQUENT, etc.)
-- dateOpened: Date opened or date of first delinquency (YYYY-MM-DD format)
-- disputeReason: Why this item may be disputable
+Your task: extract ALL negative/derogatory items from this credit report and generate specific, legally-grounded removal strategies for each.
 
-Return a JSON object:
+STEP 1: Identify the credit bureau (Equifax, Experian, or TransUnion).
+STEP 2: Find the credit score if displayed.
+STEP 3: Extract EVERY account with ANY of these negative indicators:
+  - Status: Collection, Charge-off, Charged off, Past due, Delinquent, Late, Written off, Sold, Transferred, Settled, Repossession, Foreclosure, Bankruptcy, Judgment, Tax lien
+  - Any late payment notation (30/60/90/120+ days)
+  - Derogatory, adverse, or negative remarks
+  - Balance owed on collection or charged-off accounts
+
+STEP 4: For EACH negative account, extract AND generate:
+  - creditorName: The company name
+  - originalCreditor: Original creditor name if this is a collection/sold debt (null if same as creditorName)
+  - accountNumber: Full or partial account number
+  - accountType: Collection, Credit Card, Auto Loan, Mortgage, Student Loan, Medical, Personal Loan, Utility, etc.
+  - balance: Current balance owed (number, no $ or commas; 0 if paid)
+  - originalBalance: Original amount if shown (number or null)
+  - creditLimit: Credit limit if shown (number or null)
+  - status: COLLECTION, CHARGE_OFF, LATE, DELINQUENT, PAST_DUE, SETTLED, WRITTEN_OFF, etc.
+  - dateOpened: Date account opened (YYYY-MM-DD or null)
+  - dateOfFirstDelinquency: Date of first missed payment / first delinquency (YYYY-MM-DD or null) — critical for 7-year rule
+  - lastActivityDate: Most recent activity date (YYYY-MM-DD or null)
+  - isDisputable: true if there is any legal or factual basis to dispute
+  - disputeReason: Specific reason this item may be inaccurate, unverifiable, or illegal
+  - removalStrategies: Array of 2–4 specific strategies (see format below)
+
+REMOVAL STRATEGY RULES — generate strategies specific to THIS item's facts:
+
+  Priority guidance:
+  - HIGH: Strong legal basis, high success rate, time-sensitive, or low effort
+  - MEDIUM: Moderate success rate or requires negotiation
+  - LOW: Difficult but worth attempting; last resort
+
+  Always consider:
+  1. STATUTE OF LIMITATIONS on 7-year reporting: If dateOfFirstDelinquency is 6+ years ago, flag as near-expiry (HIGH priority). If 7+ years ago from today (${TODAY}), it must be deleted — cite FCRA § 605(a)(4) and mark as HIGH with ~95% success.
+  2. DEBT VALIDATION (FDCPA § 809): For ANY collection or third-party debt buyer, this is always viable. Demand original creditor name, signed contract, chain of title proving ownership, payment history, and proof collector is licensed to collect in the consumer's state.
+  3. PAY FOR DELETE: For collections under $2,500, offer 40–60% settlement in exchange for complete deletion. Above $2,500, offer 25–40%. Must be in writing before any payment.
+  4. FCRA DISPUTE (§ 611): Always available. Bureau must investigate within 30 days or delete. Cite specific inaccuracies if any (wrong balance, wrong dates, wrong status, re-aged debt, duplicate entry).
+  5. GOODWILL DELETION: For late payments on otherwise good accounts with long history, write to original creditor's executive/CEO office citing hardship and perfect history otherwise.
+  6. HIPAA VIOLATION: For medical collections, demand proof of HIPAA-compliant authorization for release of PHI to the collection agency. Many medical debts are reportable only with proper authorization.
+  7. ORIGINAL CREDITOR vs COLLECTOR: If debt was sold, the original creditor can no longer collect or report — only the current owner can. Any reporting by both is a violation.
+  8. RE-AGING: If the date of first delinquency appears to have been reset to a more recent date, this is illegal re-aging under FCRA § 605. Dispute immediately.
+  9. IDENTITY/MIXED FILE: If the account does not match the consumer's known accounts, may be identity theft or a mixed credit file — dispute with FTC identity theft affidavit.
+  10. ZOMBIE DEBT: If the debt is past the state statute of limitations for collections, any collection attempt (including credit reporting beyond 7 years) may violate FDCPA.
+
+Each strategy object:
+{
+  "method": "Short strategy name (e.g. 'Debt Validation Letter — FDCPA § 809')",
+  "description": "Specific actionable steps for THIS account. Reference the actual creditor name, balance, dates. Explain exactly what to demand or offer and what the likely outcome is.",
+  "priority": "HIGH" | "MEDIUM" | "LOW",
+  "successRate": "Estimated range, e.g. '65–80%'"
+}
+
+Return ONLY this JSON object — no markdown fences, no explanations:
 {
   "bureau": "Equifax",
   "score": 650,
   "items": [
     {
-      "creditorName": "Example Collections",
+      "creditorName": "LVNV Funding LLC",
+      "originalCreditor": "Capital One",
       "accountNumber": "****1234",
       "accountType": "Collection",
-      "balance": 1500,
+      "balance": 1847,
+      "originalBalance": 2100,
+      "creditLimit": null,
       "status": "COLLECTION",
-      "dateOpened": "2020-01-15",
-      "disputeReason": "Debt validation required - verify debt ownership"
+      "dateOpened": "2019-03-01",
+      "dateOfFirstDelinquency": "2018-11-15",
+      "lastActivityDate": "2021-06-01",
+      "isDisputable": true,
+      "disputeReason": "Third-party debt buyer must validate ownership with signed contract and chain of title",
+      "removalStrategies": [
+        {
+          "method": "Debt Validation Letter — FDCPA § 809",
+          "description": "Send a certified debt validation letter to LVNV Funding LLC demanding: (1) proof they legally own or are authorized to collect this Capital One debt, (2) a copy of the original signed contract, (3) complete payment history from Capital One, (4) proof LVNV is licensed to collect in your state, (5) the exact amount owed and how it was calculated. LVNV is a known debt buyer — if they cannot produce the original contract, they must cease reporting.",
+          "priority": "HIGH",
+          "successRate": "60–75%"
+        },
+        {
+          "method": "Pay for Delete — Offer 40% Settlement",
+          "description": "Contact LVNV Funding LLC and offer $739 (40% of $1,847) as a lump-sum settlement in exchange for complete deletion from all three bureaus. LVNV purchased this debt at pennies on the dollar so any payment above their acquisition cost is profitable. Get the deletion agreement in writing before sending any payment. Use a cashier's check.",
+          "priority": "HIGH",
+          "successRate": "45–65%"
+        },
+        {
+          "method": "FCRA § 611 Credit Bureau Dispute",
+          "description": "File disputes with Equifax, Experian, and TransUnion disputing this collection as unverifiable. Request that LVNV Funding prove ownership and accuracy of the $1,847 balance. Each bureau has 30 days to complete its investigation. If LVNV does not respond to the bureau's verification request in time, the item must be deleted.",
+          "priority": "MEDIUM",
+          "successRate": "30–45%"
+        }
+      ]
     }
   ]
 }
-
-Return ONLY the JSON object. No markdown, no explanations.
 
 Here is the credit report text to analyze:
 `;
@@ -134,7 +195,7 @@ function parseAnalysisJson(text: string, fallbackBureau: string) {
       latePayments: Array.isArray(item.latePayments) ? item.latePayments.slice(0, 24) : [],
       isDisputable: item.isDisputable !== undefined ? Boolean(item.isDisputable) : true,
       disputeReason: safeStr(item.disputeReason, 500, "Request validation of debt"),
-      removalStrategies: item.removalStrategies || generateRemovalStrategies(status, accountType, balance),
+      removalStrategies: item.removalStrategies || generateRemovalStrategies(status, accountType, balance, safeDate(item.dateOfFirstDelinquency), safeStr(item.creditorName, 256)),
       bureau: item.bureau || bureau,
     };
   });
@@ -145,27 +206,106 @@ function parseAnalysisJson(text: string, fallbackBureau: string) {
   };
 }
 
-function generateRemovalStrategies(status: string, accountType: string, balance: number) {
+function generateRemovalStrategies(
+  status: string,
+  accountType: string,
+  balance: number,
+  dateOfFirstDelinquency?: string | null,
+  creditorName?: string,
+) {
   const strategies = [];
-  const isCollection = status.includes("COLLECTION") || accountType.toLowerCase().includes("collection");
+  const type = accountType.toLowerCase();
+  const isCollection = status.includes("COLLECTION") || type.includes("collection");
   const isChargeOff = status.includes("CHARGE") || status.includes("WRITTEN");
-  const isMedical = accountType.toLowerCase().includes("medical");
+  const isMedical = type.includes("medical") || type.includes("hospital") || type.includes("health");
   const isLate = status.includes("LATE") || status.includes("DELINQUENT") || status.includes("PAST");
+  const isStudentLoan = type.includes("student");
+  const isMortgage = type.includes("mortgage") || type.includes("home");
+  const name = creditorName || "the creditor";
+
+  // 7-year rule check
+  if (dateOfFirstDelinquency) {
+    const daysOld = (Date.now() - new Date(dateOfFirstDelinquency).getTime()) / 86400000;
+    if (daysOld >= 2557) { // 7 years
+      strategies.push({
+        method: "Mandatory Deletion — FCRA § 605(a)(4)",
+        description: `This account's date of first delinquency (${dateOfFirstDelinquency}) is over 7 years ago. Under FCRA § 605(a)(4), it must be deleted from your credit report immediately. File disputes with all three bureaus citing the exact delinquency date and demanding deletion. Success rate is near-certain if date is accurate.`,
+        priority: "HIGH",
+        successRate: "90–98%",
+      });
+    } else if (daysOld >= 2192) { // 6 years
+      strategies.push({
+        method: "Near 7-Year Expiration — Monitor for Deletion",
+        description: `This account from ${name} first went delinquent on ${dateOfFirstDelinquency} — it will reach the 7-year mandatory deletion date in less than a year. Dispute now citing that the reporting period is nearly expired. Also verify the date of first delinquency hasn't been illegally re-aged.`,
+        priority: "HIGH",
+        successRate: "60–75%",
+      });
+    }
+  }
+
+  if (isMedical) {
+    strategies.push({
+      method: "HIPAA Authorization Dispute",
+      description: `Demand proof from ${name} that a valid HIPAA authorization was signed allowing the medical provider to release your protected health information (PHI) to the collection agency. If no authorization exists, the collection violates HIPAA and must be removed. Send the dispute to the collection agency and the original medical provider.`,
+      priority: "HIGH",
+      successRate: "50–70%",
+    });
+  }
 
   if (isCollection) {
-    strategies.push({ method: "Debt Validation Letter (FDCPA Section 809)", description: "Send within 30 days. Demand original creditor name, account number, amount breakdown, and proof collector owns the debt.", priority: "HIGH", successRate: "65-75%" });
+    strategies.push({
+      method: "Debt Validation Letter — FDCPA § 809",
+      description: `Send a certified debt validation letter to ${name} demanding: (1) proof they legally own or are authorized to collect this debt, (2) the original signed contract bearing your signature, (3) complete payment history showing how the balance was calculated, (4) proof they are licensed to collect in your state, and (5) the name and address of the original creditor. If ${name} cannot produce these documents, they must cease all collection activity and remove the tradeline.`,
+      priority: "HIGH",
+      successRate: "60–75%",
+    });
   }
+
   if (isCollection || isChargeOff) {
-    strategies.push({ method: "Pay for Delete Negotiation", description: `Offer to pay ${balance < 500 ? "full amount" : "30-50% of balance"} in exchange for complete removal. Always get the agreement in writing first.`, priority: balance < 1000 ? "HIGH" : "MEDIUM", successRate: "40-60%" });
+    const offerPct = balance < 500 ? "100%" : balance < 2500 ? "40–60%" : "25–40%";
+    const offerAmt = balance > 0 ? ` ($${Math.round(balance * (balance < 500 ? 1 : balance < 2500 ? 0.5 : 0.33)).toLocaleString()} estimated)` : "";
+    strategies.push({
+      method: "Pay for Delete Negotiation",
+      description: `Offer ${name} ${offerPct} of the $${balance.toLocaleString()} balance${offerAmt} as a lump-sum settlement in exchange for complete deletion from all three credit bureaus. Debt buyers typically purchased this account for 3–10 cents on the dollar, so any settlement is profitable for them. Always get the deletion agreement in writing on company letterhead before sending any payment. Never pay by personal check — use a cashier's check or money order.`,
+      priority: balance < 2500 ? "HIGH" : "MEDIUM",
+      successRate: "40–60%",
+    });
   }
-  if (isMedical) {
-    strategies.push({ method: "HIPAA Privacy Violation Dispute", description: "Demand proof of HIPAA-compliant authorization. Many medical collections violate HIPAA.", priority: "HIGH", successRate: "50-70%" });
+
+  strategies.push({
+    method: "FCRA § 611 Credit Bureau Dispute",
+    description: `File formal disputes with Equifax, Experian, and TransUnion disputing this ${name} account. Cite specific inaccuracies if any (incorrect balance, wrong status, re-aged date, duplicate entry, wrong account number). Each bureau must complete its investigation within 30 days and notify ${name}. If ${name} does not respond to the bureau's verification request in time, the item must be deleted.`,
+    priority: "HIGH",
+    successRate: "30–45%",
+  });
+
+  if (isLate && !isCollection && !isChargeOff) {
+    strategies.push({
+      method: "Goodwill Deletion Letter",
+      description: `Write a goodwill letter directly to ${name}'s executive or CEO office (not customer service). Explain any hardship that caused the late payment, emphasize your otherwise positive payment history with them, and request a one-time goodwill deletion as a courtesy. Be specific: name the date and amount of the late payment. This works best with long-standing accounts and a single late payment.`,
+      priority: "MEDIUM",
+      successRate: "15–30%",
+    });
   }
-  strategies.push({ method: "Credit Bureau Dispute (FCRA Section 611)", description: "File disputes with Equifax, Experian, and TransUnion citing specific inaccuracies. Bureau has 30 days to investigate or must delete.", priority: "HIGH", successRate: "30-40%" });
-  if (isLate) {
-    strategies.push({ method: "Goodwill Adjustment Letter", description: "Write to original creditor's executive office requesting removal as a goodwill gesture.", priority: "MEDIUM", successRate: "15-25%" });
+
+  if (isStudentLoan) {
+    strategies.push({
+      method: "Loan Rehabilitation / Income-Driven Repayment",
+      description: `Federal student loan delinquencies can be removed via loan rehabilitation — make 9 on-time payments in 10 months and the default notation is removed from your credit report. Contact your loan servicer to enroll. For private student loans, negotiate directly with the lender for settlement or payment plan with derogatory mark removal.`,
+      priority: "MEDIUM",
+      successRate: "70–85% for federal loans",
+    });
   }
-  strategies.push({ method: "7-Year Reporting Limit (FCRA Section 605)", description: "Verify reported date is accurate. If date has been re-aged, dispute as FCRA violation.", priority: "MEDIUM", successRate: "35-45%" });
+
+  if (isMortgage && isLate) {
+    strategies.push({
+      method: "Mortgage Servicer Goodwill / Loss Mitigation",
+      description: `Contact ${name}'s loss mitigation department and request a goodwill deletion for the late payment(s). Mortgage servicers are bound by CFPB mortgage servicing rules and often respond better to formal written requests citing hardship. You can also file a CFPB complaint to escalate — servicers are highly motivated to resolve CFPB complaints quickly.`,
+      priority: "MEDIUM",
+      successRate: "20–35%",
+    });
+  }
+
   return strategies;
 }
 

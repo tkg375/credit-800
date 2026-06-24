@@ -34,3 +34,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 3869ffbbf462deee55a7a0b1880ffb84
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_live_51T3NnY6myrw18Ks6skmFDpJmyiiYrQw0xtcrp54tQOqMVXdMhckO3IdPzChgBmeTajvIdhaGgmjQGKTEdKXlJyy8006KqBuWbV
+          NEXT_PUBLIC_APP_URL: https://credit-800-dev.tgordo03.workers.dev
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
