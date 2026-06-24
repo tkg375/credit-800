@@ -42,14 +42,14 @@ const features = [
       "Credit 800 analyzes your credit report against FCRA requirements and generates dispute letters that cite the specific legal sections relevant to each item — not boilerplate templates.",
   },
   {
-    title: "Autopilot — Fully Automated",
+    title: "AI That Writes Real Letters",
     description:
-      "Our Autopilot plan pulls your credit report, generates FCRA-compliant dispute letters, and mails them to the bureaus every month — automatically. No uploads, no manual steps.",
+      "GPT-4o writes every dispute letter from scratch — personalized to your account details, creditor name, balance, and the specific legal argument that applies. Not templates.",
   },
   {
-    title: "Free to Start",
+    title: "Free — No Subscription",
     description:
-      "The Self Service plan is free for everyone — no subscription, no credit card required. Upgrade to Autopilot at $49/month when you want us to handle everything for you.",
+      "Every feature in Credit 800 is free. No credit card required, no tiers, no paywall. Optional USPS physical mailing is $2/letter if you want us to send it for you.",
   },
   {
     title: "Your Data, Your Control",
@@ -60,9 +60,9 @@ const features = [
 
 const stats = [
   { value: "22+", label: "Tools included" },
-  { value: "Autopilot", label: "Now live" },
+  { value: "GPT-4o", label: "AI letter writer" },
   { value: "FCRA", label: "Legally grounded" },
-  { value: "Free", label: "To get started" },
+  { value: "Free", label: "No subscription" },
 ];
 
 export default function AboutPage() {
@@ -150,7 +150,7 @@ export default function AboutPage() {
             </div>
             <div className="flex items-start gap-2">
               <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
-              <span>Autopilot acts on your behalf under written FCRA authorization — pulling your report, generating letters, and mailing them automatically</span>
+              <span>We offer optional USPS physical mailing at $2/letter so you never have to find a stamp or visit a post office</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span>
@@ -175,9 +175,9 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="bg-gradient-to-r from-[#1a3fd4] to-[#00d4aa] rounded-2xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Ready to Put Your Credit on Autopilot?</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Start Fixing Your Credit Today</h2>
           <p className="text-lime-100 text-sm mb-6 max-w-md mx-auto">
-            Start free or activate Autopilot and let us handle the entire dispute process every month.
+            Upload your report, get AI-written dispute letters, and start your path to 800 — completely free.
           </p>
           <GetStartedButton className="px-8 py-3 bg-white text-[#1a3fd4] hover:bg-blue-50 rounded-lg font-medium transition">
             Start Now →

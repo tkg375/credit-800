@@ -97,10 +97,7 @@ export default function PrivacyPolicy() {
               We use automated AI technology to analyze your credit report data, generate dispute letters, and parse bureau response documents. This processing occurs on secure Cloudflare infrastructure. We do not use your credit report data to train AI models.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              <strong>Self Service users:</strong> Generated content is presented for your review before any action is taken. You are responsible for submitting dispute letters yourself.
-            </p>
-            <p className="text-slate-600 leading-relaxed mt-3">
-              <strong>Autopilot users:</strong> With your written FCRA authorization, we automatically pull your credit report, generate dispute letters, and mail them on your behalf via USPS — without requiring your manual intervention each cycle.
+              Generated content is presented for your review before any action is taken. You are responsible for submitting dispute letters yourself, or you can use our optional USPS mailing service ($2/letter) to send them directly from the app.
             </p>
           </section>
 
@@ -136,12 +133,11 @@ export default function PrivacyPolicy() {
               We do not sell your personal information. We may share your information with:
             </p>
             <ul className="list-disc list-inside text-slate-600 space-y-2 ml-4">
-              <li><strong>Stripe:</strong> For payment processing and subscription management</li>
+              <li><strong>Stripe:</strong> For payment processing (card-on-file for USPS mailing)</li>
               <li><strong>PostGrid:</strong> For physical USPS mailing and mail tracking of dispute letters (name and mailing address only)</li>
               <li><strong>Cloudflare:</strong> For hosting, edge infrastructure, and file storage</li>
               <li><strong>AWS:</strong> For transactional email delivery</li>
-              <li><strong>Cloudflare AI:</strong> For AI-powered credit report analysis and dispute letter generation — your report data is processed solely to generate your dispute content and is not used for model training</li>
-              <li><strong>Credit Bureaus (Autopilot only):</strong> When you authorize Autopilot, we submit dispute letters to Equifax, Experian, and/or TransUnion on your behalf</li>
+              <li><strong>OpenAI:</strong> For AI-powered credit report analysis and dispute letter generation — your report data is processed solely to generate your dispute content and is not used for model training</li>
               <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
               <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
             </ul>

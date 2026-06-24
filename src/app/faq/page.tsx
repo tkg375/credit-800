@@ -30,36 +30,15 @@ const sections = [
     faqs: [
       {
         q: "Is Credit 800 really free?",
-        a: "The Self Service plan is completely free — no credit card required. You get unlimited dispute letters, the full financial toolkit, and optional USPS mailing for $2/letter. We also offer Autopilot at $49/month, which pulls your credit report and handles the entire dispute process for you automatically every month.",
+        a: "Yes — completely free. No credit card required, no subscription, no hidden fees. You get unlimited AI-written dispute letters, the full financial toolkit, and every feature in the platform at no cost. Optional USPS physical mailing is $2/letter if you want us to send it for you.",
       },
       {
         q: "What's included in Credit 800?",
-        a: "Self Service (free): unlimited dispute letters, budget tracker, debt payoff optimizer, credit score simulator, loan readiness calculator, goals tracker, document vault, CFPB complaint generator, letter templates library, creditor letter analyzer, and smart notifications. Autopilot ($49/mo): everything in Self Service plus automatic monthly credit pulls, auto-generated dispute letters, and USPS mailing of up to 10 letters per month — hands-free.",
+        a: "Everything: AI dispute letter writer, credit report analyzer, debt collector letter analyzer, bureau response analyzer, budget tracker, debt payoff optimizer, credit score simulator, loan readiness calculator, goals tracker, document vault, CFPB complaint generator, letter templates library, score tracker, and smart notifications — all free.",
       },
       {
         q: "How is Credit 800 different from hiring a credit repair company?",
-        a: "Traditional credit repair companies charge $79–$149/month and do the same thing you can do yourself — disputing items under the FCRA. Credit 800's Self Service plan gives you the same tools for free. Our Autopilot plan at $49/month fully automates the process — pulling your report, generating letters, and mailing them — at a fraction of what other companies charge.",
-      },
-    ],
-  },
-  {
-    title: "Autopilot",
-    faqs: [
-      {
-        q: "What is Autopilot?",
-        a: "Autopilot is our fully automated credit repair plan. Once you activate it, we pull your credit report each month, identify every disputable item, generate FCRA-compliant dispute letters, and physically mail them to the credit bureaus — all without you lifting a finger. It runs every 30 days until your credit is clean.",
-      },
-      {
-        q: "How does Autopilot pull my credit report?",
-        a: "Autopilot uses a soft inquiry (which does not affect your credit score) to pull your TransUnion report each cycle. You provide one-time written FCRA authorization during setup — this is your legal permission for us to act on your behalf under FCRA § 604(a)(2).",
-      },
-      {
-        q: "Can I cancel Autopilot?",
-        a: "Yes, anytime. Cancel from your profile page or by contacting support. There are no contracts and no cancellation fees. Your remaining access continues through the end of your current billing period.",
-      },
-      {
-        q: "What happens after Autopilot mails my letters?",
-        a: "You can track every dispute, letter, and mailing status from your dashboard. When bureaus respond, you'll be notified and can view the response. If items aren't removed, Autopilot can generate escalation letters in the next cycle.",
+        a: "Traditional credit repair companies charge $79–$149/month to do exactly what you can do yourself — disputing items under the FCRA. Credit 800 gives you the same tools for free, powered by AI that writes legally-cited letters specific to your accounts. You stay in full control — no contracts, no monthly fees.",
       },
     ],
   },
@@ -68,7 +47,7 @@ const sections = [
     faqs: [
       {
         q: "Is this legit? I've been burned by credit repair scams before.",
-        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different. On Self Service, you're in full control. On Autopilot, we act on your behalf under a written FCRA authorization you can revoke at any time. No shady contracts, no hidden fees, and no promises we can't keep.",
+        a: "We understand the skepticism — the credit repair industry is full of companies that charge hundreds of dollars and deliver nothing. Credit 800 is different: you're always in control, there are no monthly fees, and we don't make promises we can't keep. The letters we generate are based on real federal law — FCRA, FDCPA, and HIPAA. No shady contracts.",
       },
       {
         q: "How fast will I see results?",
@@ -76,11 +55,11 @@ const sections = [
       },
       {
         q: "Do I need to send letters myself?",
-        a: "On Self Service, you submit letters yourself — either directly on the bureau's website, via certified mail, or using our $2/letter USPS service. On Autopilot, we handle all mailing automatically — nothing for you to do.",
+        a: "You can send them yourself — via certified mail, directly on the bureau's website, or by email. Or use our one-click USPS mailing for $2/letter and we'll send it for you via certified mail.",
       },
       {
         q: "What if the bureau doesn't respond or denies my dispute?",
-        a: "If a bureau denies your dispute, the next step is a Method of Verification letter demanding they explain exactly how they verified the item. If they still fail to respond within 30 days, the item must be removed by law. Credit 800 includes escalation letter templates for Self Service users, and Autopilot handles escalation automatically.",
+        a: "If a bureau denies your dispute, the next step is a Method of Verification letter (FCRA § 611(a)(6)) demanding they explain exactly how they verified the item — the name and contact of the person at the furnisher they spoke with. If they still can't verify within 30 days, the item must be removed by law. Credit 800 includes escalation letter templates for this exact scenario.",
       },
       {
         q: "Does disputing items hurt my credit score?",
@@ -93,11 +72,11 @@ const sections = [
     faqs: [
       {
         q: "What is the FCRA and how does it protect me?",
-        a: "The Fair Credit Reporting Act (FCRA) is a federal law that gives you the right to dispute any inaccurate, incomplete, or unverifiable information on your credit report. Credit bureaus are required by law to investigate your disputes within 30 days and remove anything they cannot verify. Credit 800 generates dispute letters that cite specific FCRA sections so your disputes carry legal weight.",
+        a: "The Fair Credit Reporting Act (FCRA) is a federal law that gives you the right to dispute any inaccurate, incomplete, or unverifiable information on your credit report. Credit bureaus must investigate your disputes within 30 days and remove anything they cannot verify. Credit 800 generates dispute letters that cite specific FCRA sections so your disputes carry legal weight.",
       },
       {
         q: "What is the FDCPA and what rights do I have with debt collectors?",
-        a: "The Fair Debt Collection Practices Act (FDCPA) protects you from abusive, deceptive, or unfair debt collection practices. Under the FDCPA, you have the right to request debt validation (proof the debt is yours and the amount is correct), dispute the debt in writing, and demand collectors stop contacting you. Our letter templates include FDCPA-compliant cease & desist and debt validation letters.",
+        a: "The Fair Debt Collection Practices Act (FDCPA) protects you from abusive, deceptive, or unfair debt collection practices. You have the right to request debt validation (proof the debt is yours and the amount is correct), dispute the debt in writing, and demand collectors stop contacting you. Our AI-written letters include FDCPA-compliant debt validation and cease & desist language.",
       },
     ],
   },
@@ -106,13 +85,12 @@ const sections = [
     faqs: [
       {
         q: "Is my personal information safe?",
-        a: "Yes. All data is encrypted in transit and at rest using 256-bit encryption. We never sell your data or share it with third parties. Your uploaded documents are stored securely and only accessible by you.",
+        a: "Yes. All data is encrypted in transit and at rest. We never sell your data or share it with third parties. Your uploaded documents are stored securely and only accessible by you.",
       },
       {
         q: "Do I need my SSN to use Credit 800?",
-        a: "It depends on your plan. Self Service users upload their own credit report — no SSN required. Autopilot users provide identity verification (including SSN) so we can pull your credit report on your behalf each month under FCRA authorization. Your SSN is used solely for the credit pull and is never stored in plain text or shared with third parties.",
+        a: "No. You upload your own credit report — no SSN required to use any feature of the platform.",
       },
-
     ],
   },
 ];

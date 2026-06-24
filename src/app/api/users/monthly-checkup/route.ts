@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
-import { sendWeeklyProgressEmail } from "@/lib/email";
+import { sendMonthlyCheckupEmail } from "@/lib/email";
 
 export async function POST() {
   const user = await getAuthUser();
@@ -9,45 +9,39 @@ export async function POST() {
 
   try {
     const userDoc = await firestore.getDoc(COLLECTIONS.users, user.uid);
-    // Don't email new users until they've had the app for at least 7 days
+
+    // Don't email new users until they've been on the platform for at least 30 days
     const accountCreatedAt = userDoc.data.createdAt as string | null;
     if (!accountCreatedAt) return NextResponse.json({ skipped: true });
     const accountAgeDays = (Date.now() - new Date(accountCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
-    if (accountAgeDays < 7) return NextResponse.json({ skipped: true });
+    if (accountAgeDays < 30) return NextResponse.json({ skipped: true });
 
-    const lastSent = userDoc.data.lastWeeklyEmailSentAt as string | null;
+    // Check if checkup email was sent within the last 30 days
+    const lastSent = userDoc.data.lastMonthlyCheckupAt as string | null;
     if (lastSent) {
       const daysSince = (Date.now() - new Date(lastSent).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSince < 7) {
-        return NextResponse.json({ skipped: true });
-      }
+      if (daysSince < 30) return NextResponse.json({ skipped: true });
     }
 
-    const name = (userDoc.data.fullName as string) || (userDoc.data.displayName as string) || "";
+    const name = (userDoc.data.fullName as string) || "";
 
-    // Stamp the timestamp first to prevent duplicate sends on concurrent calls
+    // Stamp timestamp before sending to prevent duplicate sends
     await firestore.updateDoc(COLLECTIONS.users, user.uid, {
-      lastWeeklyEmailSentAt: new Date().toISOString(),
+      lastMonthlyCheckupAt: new Date().toISOString(),
     });
 
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const [scores, disputes, goals] = await Promise.all([
+    const [scores, disputes, disputableItems] = await Promise.all([
       firestore.query(COLLECTIONS.creditScores, [
         { field: "userId", op: "EQUAL", value: user.uid },
       ]),
       firestore.query(COLLECTIONS.disputes, [
         { field: "userId", op: "EQUAL", value: user.uid },
       ]),
-      firestore.query(COLLECTIONS.goals, [
+      firestore.query(COLLECTIONS.reportItems, [
         { field: "userId", op: "EQUAL", value: user.uid },
+        { field: "isDisputable", op: "EQUAL", value: true },
       ]),
     ]);
-
-    const scoresThisWeek = scores.filter((s) => {
-      const at = s.data.recordedAt as string;
-      return at && at > oneWeekAgo;
-    }).length;
 
     const sortedScores = scores.sort((a, b) => {
       const aTime = a.data.recordedAt ? new Date(a.data.recordedAt as string).getTime() : 0;
@@ -55,21 +49,16 @@ export async function POST() {
       return bTime - aTime;
     });
     const latestScore = sortedScores.length > 0 ? (sortedScores[0].data.score as number) : null;
+    const oldestScore = sortedScores.length > 1 ? (sortedScores[sortedScores.length - 1].data.score as number) : null;
+    const scoreChange = latestScore !== null && oldestScore !== null ? latestScore - oldestScore : null;
 
-    const disputesSentThisWeek = disputes.filter((d) => {
-      const at = (d.data.mailedAt as string) || (d.data.createdAt as string);
-      return d.data.status === "SENT" && at && at > oneWeekAgo;
-    }).length;
+    const openDisputes = disputes.filter(d => d.data.status === "SENT" || d.data.status === "UNDER_INVESTIGATION").length;
+    const resolvedDisputes = disputes.filter(d => d.data.status === "RESOLVED" || d.data.status === "won").length;
 
-    const goalsCompletedThisWeek = goals.filter((g) => {
-      const completedAt = g.data.completedAt as string | null;
-      return g.data.isCompleted && completedAt && completedAt > oneWeekAgo;
-    }).length;
-
-    // Upcoming deadlines: SENT disputes with response due in next 7 days
+    // Upcoming bureau deadlines: SENT disputes with response due in next 10 days
     const now = Date.now();
     const upcomingDeadlines = disputes
-      .filter((d) => {
+      .filter(d => {
         if (d.data.status !== "SENT") return false;
         const ref = (d.data.mailedAt as string) || (d.data.createdAt as string);
         if (!ref) return false;
@@ -77,7 +66,7 @@ export async function POST() {
         const daysLeft = 30 - daysSince;
         return daysLeft >= 0 && daysLeft <= 10;
       })
-      .map((d) => {
+      .map(d => {
         const ref = (d.data.mailedAt as string) || (d.data.createdAt as string);
         const daysSince = (now - new Date(ref).getTime()) / (1000 * 60 * 60 * 24);
         return {
@@ -87,17 +76,18 @@ export async function POST() {
       })
       .slice(0, 5);
 
-    await sendWeeklyProgressEmail(user.email, name, {
-      scoresThisWeek,
+    await sendMonthlyCheckupEmail(user.email, name, {
       latestScore,
-      disputesSentThisWeek,
-      goalsCompletedThisWeek,
+      scoreChange,
+      openDisputes,
+      resolvedDisputes,
+      disputableItems: disputableItems.length,
       upcomingDeadlines,
     });
 
     return NextResponse.json({ sent: true });
   } catch (err) {
-    console.error("weekly-report error:", err);
+    console.error("monthly-checkup error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -3,10 +3,8 @@ import { getAuthUser } from "@/lib/auth";
 import { firestore, COLLECTIONS } from "@/lib/db";
 import { resolveCreditorAddressAsync, formatAddress, type CreditorAddress } from "@/lib/creditor-addresses";
 
-function isBureauDispute(reason: string): boolean {
-  const r = reason.toLowerCase();
-  return r.includes("credit bureau dispute") || r.includes("fcra section 611") || r.includes("fcra 611");
-}
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const TODAY = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
 interface UserProfile {
   fullName: string;
@@ -24,151 +22,140 @@ function formatUserAddress(profile: UserProfile): string {
   return `${profile.address}${line2}\n${profile.city}, ${profile.state} ${profile.zip}`;
 }
 
-function generateBureauDisputeLetterContent(params: {
-  creditorName: string;
-  bureauAddress: CreditorAddress | null;
-  bureauName: string;
-  accountNumber: string;
-  reason: string;
-  userName: string;
-  balance?: number;
-  profile?: UserProfile | null;
-}): string {
-  const { creditorName, bureauAddress, bureauName, accountNumber, reason, userName, balance, profile } = params;
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  const balanceStr = balance !== undefined ? `$${balance.toLocaleString()}` : "Unknown";
-
-  const addressBlock = bureauAddress
-    ? `${bureauAddress.name}\n${formatAddress(bureauAddress)}`
-    : `${bureauName}\n[Insert Bureau Address]\n[City, State ZIP]`;
-
-  return `${today}
-
-${addressBlock}
-
-Re: Formal Dispute Under FCRA Section 611 — ${creditorName}, Acct #${accountNumber}, Balance: ${balanceStr}
-
-To Whom It May Concern:
-
-I am formally disputing the above account on my credit report pursuant to the Fair Credit Reporting Act (FCRA), 15 U.S.C. § 1681i (Section 611).
-
-REASON FOR DISPUTE:
-${reason}
-
-INVESTIGATION REQUEST:
-Under FCRA § 1681i, I request that you: (1) contact ${creditorName} to verify the accuracy of every element of this account; (2) verify the balance, payment history, dates, and account status; (3) verify the account belongs to me; and (4) review any enclosed documentation.
-
-REQUIRED ACTIONS (FCRA § 1681i):
-- Complete your investigation within 30 days
-- Forward all relevant information to the furnisher
-- Provide written results within 5 business days of completion
-- Delete or correct any information that cannot be verified
-- Notify me of my right to add a consumer statement
-
-If the furnisher cannot verify this information, it must be promptly deleted. Failure to investigate or continued reporting of inaccurate information may result in complaints to the CFPB and legal action under FCRA § 1681n/§ 1681o.
-
-Please send investigation results to the address below.
-
-Sincerely,
-
-${profile?.fullName || userName}
-${profile ? formatUserAddress(profile) : "[Your Address]\n[City, State ZIP]"}
-${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}${profile?.ssnLast4 ? `\nSSN (last 4): XXX-XX-${profile.ssnLast4}` : ""}
-
-`;
+function isBureauDispute(reason: string): boolean {
+  const r = reason.toLowerCase();
+  return r.includes("credit bureau dispute") || r.includes("fcra section 611") || r.includes("fcra 611");
 }
 
-function generateDisputeLetterContent(params: {
+async function generateLetterWithAI(params: {
   creditorName: string;
-  creditorAddress?: CreditorAddress | null;
   accountNumber: string;
-  bureau: string;
-  reason: string;
-  userName: string;
   balance?: number;
-  profile?: UserProfile | null;
-}): string {
-  const { creditorName, creditorAddress, accountNumber, reason, userName, balance, profile } = params;
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  status: string;
+  accountType: string;
+  dateOfFirstDelinquency?: string | null;
+  bureau: string;
+  disputeReason: string;
+  isBureauDispute: boolean;
+  recipientAddress: string;
+  userProfile: UserProfile | null;
+  userName: string;
+}): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
+
+  const {
+    creditorName, accountNumber, balance, status, accountType,
+    dateOfFirstDelinquency, bureau, disputeReason, isBureauDispute: isBureau,
+    recipientAddress, userProfile, userName,
+  } = params;
+
+  const balanceStr = balance !== undefined ? `$${balance.toLocaleString()}` : "unknown";
+  const senderBlock = userProfile
+    ? `${userProfile.fullName}\n${formatUserAddress(userProfile)}${userProfile.dateOfBirth ? `\nDate of Birth: ${userProfile.dateOfBirth}` : ""}${userProfile.ssnLast4 ? `\nSSN (last 4): XXX-XX-${userProfile.ssnLast4}` : ""}`
+    : `${userName}\n[YOUR ADDRESS]\n[CITY, STATE ZIP]`;
+
+  const sevenYearNote = dateOfFirstDelinquency
+    ? (() => {
+        const daysOld = (Date.now() - new Date(dateOfFirstDelinquency).getTime()) / 86400000;
+        if (daysOld >= 2557) return `IMPORTANT: The date of first delinquency (${dateOfFirstDelinquency}) is over 7 years ago — this item must be deleted under FCRA § 605(a)(4). Make this the primary argument.`;
+        if (daysOld >= 2192) return `NOTE: The date of first delinquency (${dateOfFirstDelinquency}) is over 6 years ago — the 7-year reporting limit under FCRA § 605 is approaching. Mention this.`;
+        return `Date of first delinquency: ${dateOfFirstDelinquency}`;
+      })()
+    : "";
+
+  const letterContext = isBureau
+    ? `This is a CREDIT BUREAU DISPUTE letter to ${bureau || "a credit bureau"} under FCRA § 611. The consumer is disputing an item reported by ${creditorName} on their ${bureau} credit report.`
+    : `This is a DEBT VALIDATION / DISPUTE letter sent directly to ${creditorName} (a ${accountType} ${status.toLowerCase().includes("collection") ? "collection account" : "account"}) under FDCPA § 809 and FCRA § 623.`;
+
+  const prompt = `You are an expert consumer credit attorney. Write a professional, assertive dispute letter for a consumer to send.
+
+TODAY'S DATE: ${TODAY}
+
+LETTER CONTEXT: ${letterContext}
+
+ACCOUNT DETAILS:
+- Creditor/Agency: ${creditorName}
+- Account Number: ${accountNumber}
+- Balance: ${balanceStr}
+- Account Type: ${accountType}
+- Status: ${status}
+- Bureau: ${bureau || "All Bureaus"}
+${sevenYearNote ? `- ${sevenYearNote}` : ""}
+
+DISPUTE REASON: ${disputeReason}
+
+RECIPIENT ADDRESS:
+${recipientAddress}
+
+SENDER:
+${senderBlock}
+
+INSTRUCTIONS:
+1. Write the complete letter — ready to sign and mail. No placeholders except [YOUR SIGNATURE].
+2. Open with a clear statement of the dispute and the specific account.
+3. ${isBureau
+  ? "Cite FCRA § 611 demanding a 30-day investigation. If 7-year rule applies, lead with FCRA § 605(a)(4) mandatory deletion. Request that every element of the account be verified including balance, dates, account ownership, and payment history."
+  : "Cite FDCPA § 809 demanding full debt validation: original creditor name, signed contract, complete payment history, proof of ownership/chain of title, and collector's state license. Cite FCRA § 623 — inaccurate reporting is illegal."}
+4. If the date of first delinquency indicates 7-year expiry or re-aging, make this argument prominently.
+5. State consequences: if they cannot verify/validate, the item must be deleted and all collection activity must cease.
+6. Keep a firm but professional tone. No threats of violence or inappropriate language.
+7. Format as a real business letter with proper spacing. Use actual line breaks between sections.
+8. End with a deadline: "Please respond within 30 days of receipt of this letter."
+
+Return ONLY the letter text — no JSON, no markdown, no preamble. Start with the date.`;
+
+  const res = await fetch(OPENAI_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      temperature: 0.3,
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    }),
   });
 
-  const balanceStr = balance !== undefined ? `$${balance.toLocaleString()}` : "Unknown";
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`OpenAI error ${res.status}: ${JSON.stringify(err)}`);
+  }
 
-  const addressBlock = creditorAddress
-    ? formatAddress(creditorAddress)
-    : "[Insert Creditor/Collection Agency Address]\n[City, State ZIP]";
-
-  return `${today}
-
-${creditorName}
-${addressBlock}
-
-Re: Debt Validation and Dispute — Acct #${accountNumber}, Alleged Balance: ${balanceStr}
-
-To Whom It May Concern:
-
-I am formally disputing the above-referenced account and requesting debt validation pursuant to the Fair Debt Collection Practices Act (FDCPA), 15 U.S.C. § 1692g.
-
-REASON FOR DISPUTE:
-${reason}
-
-VALIDATION REQUEST:
-Under the FDCPA, please provide: (1) the amount owed and how it was calculated; (2) the name and address of the original creditor; (3) proof you are licensed to collect in my state; (4) a copy of the original signed agreement; (5) complete payment history; (6) proof the statute of limitations has not expired; and (7) proof you own or are authorized to collect this debt.
-
-LEGAL NOTICE:
-Until you provide proper validation, you must cease all collection activity, including credit reporting. Under FCRA § 623, reporting information you cannot validate constitutes a violation of federal law.
-
-You have 30 days to respond. If you cannot validate this debt, you must immediately cease collection efforts, remove all negative reporting from Equifax, Experian, and TransUnion, and notify me in writing. Failure to comply may result in complaints to the CFPB, FTC, and my state Attorney General.
-
-Sincerely,
-
-${profile?.fullName || userName}
-${profile ? formatUserAddress(profile) : "[Your Address]\n[City, State ZIP]"}
-${profile?.dateOfBirth ? `DOB: ${profile.dateOfBirth}` : ""}${profile?.ssnLast4 ? `\nSSN (last 4): XXX-XX-${profile.ssnLast4}` : ""}
-
-`;
+  const data = await res.json() as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Empty response from OpenAI");
+  return text.trim();
 }
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const raw = await req.json();
     const { itemId } = raw;
 
-    // Validate and sanitize user-supplied letter fields
-    const creditorName = typeof raw.creditorName === "string"
-      ? raw.creditorName.trim().slice(0, 256)
-      : "Unknown";
+    const creditorName = typeof raw.creditorName === "string" ? raw.creditorName.trim().slice(0, 256) : "Unknown";
     const accountNumber = typeof raw.accountNumber === "string"
       ? raw.accountNumber.replace(/[^a-zA-Z0-9\-*#\s]/g, "").slice(0, 50)
       : "****";
-    const bureau: string = ["Equifax", "Experian", "TransUnion"].includes(raw.bureau)
-      ? (raw.bureau as string)
-      : "";
+    const bureau: string = ["Equifax", "Experian", "TransUnion"].includes(raw.bureau) ? raw.bureau : "";
     const reason = typeof raw.reason === "string"
       ? raw.reason.trim().replace(/[\x00-\x1f\x7f]/g, " ").slice(0, 1000)
       : undefined;
-    const balance =
-      typeof raw.balance === "number" && isFinite(raw.balance) && raw.balance >= 0 && raw.balance <= 9_999_999
-        ? raw.balance
-        : undefined;
+    const balance = typeof raw.balance === "number" && isFinite(raw.balance) && raw.balance >= 0 && raw.balance <= 9_999_999
+      ? raw.balance : undefined;
+    const status = typeof raw.status === "string" ? raw.status.slice(0, 50) : "UNKNOWN";
+    const accountType = typeof raw.accountType === "string" ? raw.accountType.slice(0, 100) : "Unknown";
+    const dateOfFirstDelinquency = typeof raw.dateOfFirstDelinquency === "string" ? raw.dateOfFirstDelinquency : null;
 
     const disputeReason = reason || "Information is inaccurate or unverifiable";
     const bureauDispute = isBureauDispute(disputeReason);
 
-    // Fetch user profile for letter personalization
+    // Fetch user profile
     let userProfile: UserProfile | null = null;
     try {
       const profileDoc = await firestore.getDoc(COLLECTIONS.users, user.uid);
@@ -184,49 +171,43 @@ export async function POST(req: NextRequest) {
           zip: profileDoc.data.zip as string,
         };
       }
-    } catch (profileError) {
-      console.error("Profile lookup failed (non-blocking):", profileError);
+    } catch (e) {
+      console.error("Profile lookup failed:", e);
     }
 
-    // Look up address: bureau address for bureau disputes, creditor address otherwise
+    // Resolve recipient address
     let creditorAddress: CreditorAddress | null = null;
     try {
-      if (bureauDispute && bureau) {
-        creditorAddress = await resolveCreditorAddressAsync(bureau);
-      } else {
-        creditorAddress = await resolveCreditorAddressAsync(creditorName);
-      }
-    } catch (addrError) {
-      console.error("Address lookup failed (non-blocking):", addrError);
+      creditorAddress = await resolveCreditorAddressAsync(bureauDispute && bureau ? bureau : creditorName);
+    } catch (e) {
+      console.error("Address lookup failed:", e);
     }
 
-    // Generate the appropriate dispute letter
-    let letterContent: string;
-    if (bureauDispute) {
-      letterContent = generateBureauDisputeLetterContent({
-        creditorName,
-        bureauAddress: creditorAddress,
-        bureauName: bureau || "Credit Bureau",
-        accountNumber,
-        reason: disputeReason,
-        userName: userProfile?.fullName || user.email?.split("@")[0] || "Consumer",
-        balance,
-        profile: userProfile,
-      });
-    } else {
-      letterContent = generateDisputeLetterContent({
-        creditorName,
-        creditorAddress,
-        accountNumber,
-        bureau,
-        reason: disputeReason,
-        userName: userProfile?.fullName || user.email?.split("@")[0] || "Consumer",
-        balance,
-        profile: userProfile,
-      });
-    }
+    const recipientAddress = creditorAddress
+      ? `${creditorAddress.name}\n${formatAddress(creditorAddress)}`
+      : bureauDispute
+        ? `${bureau || "Credit Bureau"}\n[Insert Bureau Address]\n[City, State ZIP]`
+        : `${creditorName}\n[Insert Address]\n[City, State ZIP]`;
 
-    // Verify item ownership BEFORE creating any records
+    const userName = userProfile?.fullName || user.email?.split("@")[0] || "Consumer";
+
+    // Generate letter with GPT-4o
+    const letterContent = await generateLetterWithAI({
+      creditorName,
+      accountNumber,
+      balance,
+      status,
+      accountType,
+      dateOfFirstDelinquency,
+      bureau,
+      disputeReason,
+      isBureauDispute: bureauDispute,
+      recipientAddress,
+      userProfile,
+      userName,
+    });
+
+    // Verify item ownership
     if (itemId) {
       if (typeof itemId !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(itemId)) {
         return NextResponse.json({ error: "Invalid itemId" }, { status: 400 });
@@ -237,13 +218,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Deduplicate: check for an existing active dispute for the same creditor/account/bureau
+    // Deduplicate
     const existingDisputes = await firestore.query(COLLECTIONS.disputes, [
       { field: "userId", op: "EQUAL", value: user.uid },
       { field: "creditorName", op: "EQUAL", value: creditorName },
     ]);
     const activeDupe = existingDisputes.find((d) => {
-      if (["won", "denied"].includes(d.data.status as string)) return false; // resolved — allow re-dispute
+      if (["won", "denied"].includes(d.data.status as string)) return false;
       const sameBureau = !bureau || !d.data.bureau || d.data.bureau === bureau;
       const sameAccount = !accountNumber || accountNumber === "****" || !d.data.accountNumber || d.data.accountNumber === accountNumber;
       return sameBureau && sameAccount;
@@ -255,7 +236,6 @@ export async function POST(req: NextRequest) {
       }, { status: 409 });
     }
 
-    // Create dispute record with address metadata
     const disputeId = await firestore.addDoc(COLLECTIONS.disputes, {
       userId: user.uid,
       itemId,
@@ -264,23 +244,20 @@ export async function POST(req: NextRequest) {
       reason: disputeReason,
       status: "DRAFT",
       letterContent,
-      creditorAddress: creditorAddress
-        ? {
-            name: creditorAddress.name,
-            address: creditorAddress.address,
-            city: creditorAddress.city,
-            state: creditorAddress.state,
-            zip: creditorAddress.zip,
-            department: creditorAddress.department || null,
-            source: creditorAddress.source,
-            confidence: creditorAddress.confidence || null,
-          }
-        : null,
+      creditorAddress: creditorAddress ? {
+        name: creditorAddress.name,
+        address: creditorAddress.address,
+        city: creditorAddress.city,
+        state: creditorAddress.state,
+        zip: creditorAddress.zip,
+        department: creditorAddress.department || null,
+        source: creditorAddress.source,
+        confidence: creditorAddress.confidence || null,
+      } : null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
-    // Update the report item to mark it's been disputed
     if (itemId) {
       const reportItem = await firestore.getDoc(COLLECTIONS.reportItems, itemId);
       if (reportItem.exists) {
@@ -301,9 +278,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Generate dispute error:", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

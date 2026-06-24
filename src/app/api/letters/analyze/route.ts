@@ -8,65 +8,62 @@ export const dynamic = "force-dynamic";
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
-const ANALYZE_PROMPT = `You are a consumer rights and credit law expert. A user has uploaded a letter received from a creditor, debt collector, or credit bureau.
+const ANALYZE_PROMPT = `You are an expert consumer credit attorney and FDCPA/FCRA specialist. A consumer has uploaded a letter from a creditor, debt collector, or credit bureau. Today is ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}.
 
-Carefully analyze the letter and extract the following information. Return ONLY valid JSON in this exact format:
+Analyze the letter thoroughly and return ONLY valid JSON in this exact format — no markdown, no preamble:
 
 {
   "creditorName": "string or null",
   "letterDate": "YYYY-MM-DD or null",
-  "letterType": "collection_notice" | "demand_letter" | "settlement_offer" | "judgment_notice" | "debt_validation_response" | "cease_and_desist_response" | "other",
-  "keyClaimsAndDemands": ["claim or demand 1", "claim or demand 2"],
+  "letterType": "collection_notice" | "demand_letter" | "settlement_offer" | "judgment_notice" | "debt_validation_response" | "cease_and_desist_response" | "bureau_dispute_response" | "other",
+  "keyClaimsAndDemands": ["Every specific claim, amount, threat, or demand made in the letter"],
   "amountClaimed": number or null,
   "deadline": "YYYY-MM-DD or null",
+  "fdcpaViolations": ["List any FDCPA violations found in this letter, e.g. 'Threatening lawsuit without intent to sue (FDCPA § 807)', 'Failing to include mini-Miranda warning (FDCPA § 807(11))', 'Contacting consumer after cease-and-desist'. Empty array if none."],
   "yourLegalRights": [
-    "Right 1 under FCRA/FDCPA/CFPB (specific and actionable)",
-    "Right 2 under FCRA/FDCPA/CFPB (specific and actionable)"
+    "Specific right with law citation, e.g. 'Right to request debt validation within 30 days under FDCPA § 809(a)'"
   ],
   "recommendedActions": [
     {
       "action": "Short action title",
       "priority": "HIGH" | "MEDIUM" | "LOW",
-      "description": "Detailed explanation of what to do and why"
+      "description": "Specific actionable steps. Name the creditor. Cite the law. Explain the likely outcome."
     }
   ],
-  "draftResponseLetter": "Full formatted letter text with real line breaks (\\n)"
+  "draftResponseLetter": "Full formatted response letter — ready to sign and send. Use \\n for line breaks, \\n\\n between paragraphs."
 }
 
-Guidelines:
-- keyClaimsAndDemands: List every specific claim, debt amount, demand, or threat in the letter
-- amountClaimed: Extract the exact dollar amount if stated, otherwise null
-- deadline: Extract any response deadline or due date if mentioned, otherwise null
-- yourLegalRights: List 3-6 specific legal rights applicable under FCRA, FDCPA, or other consumer protection laws based on the letter type
-- recommendedActions: Provide 3-5 prioritized actions the consumer should take, ordered by urgency
-- draftResponseLetter: Write a professional, legally-informed response letter the consumer can customize and send. Include appropriate legal citations (FDCPA Section 809, FCRA Section 611, etc.) where relevant.
+ANALYSIS GUIDELINES:
 
-CRITICAL — the draftResponseLetter MUST be formatted as a real business letter using newline (\\n) characters, NOT one run-on paragraph. Follow this exact structure, each part separated by line breaks:
+fdcpaViolations — check for ALL of these:
+- Missing mini-Miranda warning ("This is an attempt to collect a debt") — FDCPA § 807(11)
+- False or misleading statements about the debt amount, legal status, or consequences — FDCPA § 807
+- Threatening legal action the collector cannot or does not intend to take — FDCPA § 807(5)
+- Failing to provide the collector's name and address — FDCPA § 809
+- Contacting third parties about the debt — FDCPA § 805(b)
+- Attempting to collect a time-barred (statute of limitations expired) debt without disclosure — CFPB guidance
+- Re-aging the debt (reporting a new date of first delinquency) — FCRA § 605
 
-[YOUR NAME]
-[YOUR ADDRESS]
-[CITY, STATE ZIP]
+yourLegalRights — always include:
+- Right to request debt validation within 30 days (FDCPA § 809)
+- Right to dispute inaccuracies with credit bureaus (FCRA § 611)
+- Right to request cease-and-desist (FDCPA § 805(c))
+- Any additional rights specific to this letter type
 
-[DATE]
+recommendedActions — ordered by urgency:
+- If the 30-day FDCPA validation window is open: send validation letter IMMEDIATELY (HIGH)
+- If FDCPA violations found: document violations and consider CFPB complaint (HIGH)
+- If settlement offer: advise on negotiation (get pay-for-delete in writing first)
+- Always: dispute with credit bureaus if the item appears on the credit report
 
-[Recipient name]
-[Recipient address]
+draftResponseLetter — write a complete, assertive response letter:
+- If collection notice: demand full validation (FDCPA § 809) — original signed contract, chain of title, payment history, collector's state license
+- If settlement offer: counter with pay-for-delete language
+- If judgment notice: recommend consulting an attorney immediately but provide interim response
+- If any FDCPA violations found: reference the specific violations in the letter and state consequences
+- Proper business letter format with sender placeholder, date, recipient, Re: line, body, signature
 
-Re: Account Number XXXX
-
-Dear [Recipient],
-
-(First body paragraph.)
-
-(Second body paragraph.)
-
-(Closing paragraph.)
-
-Sincerely,
-
-[YOUR NAME]
-
-Use \\n\\n between paragraphs and \\n between address/header lines. Return only the raw JSON, no markdown.`;
+Use \\n\\n between paragraphs and \\n between address/header lines.`;
 
 async function callOpenAI(messages: unknown[]): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -80,8 +77,8 @@ async function callOpenAI(messages: unknown[]): Promise<string> {
     },
     body: JSON.stringify({
       model: "gpt-4o",
-      temperature: 0,
-      max_tokens: 6000,
+      temperature: 0.2,
+      max_tokens: 8000,
       messages,
     }),
   });

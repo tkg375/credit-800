@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { stripe } from "@/lib/stripe";
 import { firestore, signToken } from "@/lib/db";
 import { getUserForAuth } from "@/lib/dynamodb";
-import { sendAutopilotWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail } from "@/lib/email";
 import { logAuditEvent } from "@/lib/audit-log";
 import { getLimiters, getRateLimitKey } from "@/lib/ratelimit";
 
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     const token = await signToken({ uid, email, tokenVersion: 0 });
 
-    sendAutopilotWelcomeEmail(email, body.fullName || "").catch((err) => console.error("[email] fire-and-forget error:", err));
+    sendWelcomeEmail(email, body.fullName || "").catch((err) => console.error("[email] fire-and-forget error:", err));
 
     await logAuditEvent({
       userId: uid,

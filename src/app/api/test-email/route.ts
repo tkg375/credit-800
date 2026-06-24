@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
   sendWelcomeEmail,
-  sendAutopilotWelcomeEmail,
   sendOTPEmail,
   sendPasswordResetEmail,
+  sendMonthlyCheckupEmail,
 } from "@/lib/email";
 
 // GET /api/test-email?type=welcome&to=you@example.com
@@ -19,8 +19,15 @@ export async function GET(request: Request) {
       case "welcome":
         await sendWelcomeEmail(to, "Tyler");
         break;
-      case "autopilot":
-        await sendAutopilotWelcomeEmail(to, "Tyler");
+      case "monthly":
+        await sendMonthlyCheckupEmail(to, "Tyler", {
+          latestScore: 672,
+          scoreChange: 14,
+          openDisputes: 3,
+          resolvedDisputes: 2,
+          disputableItems: 5,
+          upcomingDeadlines: [{ creditorName: "Midland Credit", daysLeft: 4 }],
+        });
         break;
       case "otp":
         await sendOTPEmail(to, "Tyler", "482917");
@@ -29,7 +36,7 @@ export async function GET(request: Request) {
         await sendPasswordResetEmail(to, "https://credit-800-dev.tgordo03.workers.dev/reset-password?token=test123");
         break;
       default:
-        return NextResponse.json({ error: "Unknown type. Use: welcome, autopilot, otp, reset" }, { status: 400 });
+        return NextResponse.json({ error: "Unknown type. Use: welcome, monthly, otp, reset" }, { status: 400 });
     }
     return NextResponse.json({ sent: true, type, to });
   } catch (err) {

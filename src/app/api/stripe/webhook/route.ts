@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { firestore } from "@/lib/db";
-import { sendNewSubscriberNotification, sendProUpgradeEmail, sendAutopilotUpgradeEmail, sendPaymentFailedEmail } from "@/lib/email";
+import { sendNewSubscriberNotification, sendPaymentFailedEmail } from "@/lib/email";
 import Stripe from "stripe";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
@@ -94,14 +94,6 @@ export async function POST(req: NextRequest) {
         }
         const subscriberEmail = session.customer_details?.email || "unknown";
         const amount = session.amount_total ?? 500;
-        // Email the customer the correct plan confirmation
-        if (session.customer_details?.email) {
-          if (planTier === "autopilot") {
-            await sendAutopilotUpgradeEmail(session.customer_details.email, amount);
-          } else {
-            await sendProUpgradeEmail(session.customer_details.email, amount);
-          }
-        }
         // Notify owner with plan info
         await sendNewSubscriberNotification(subscriberEmail, amount, planTier);
         break;
