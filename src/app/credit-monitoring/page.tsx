@@ -22,7 +22,7 @@ export default function CreditMonitoringPage() {
   }
 
   return (
-    <AuthenticatedLayout activeNav="credit-monitoring">
+    <AuthenticatedLayout activeNav="scores">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         {/* Header */}
         <div className="mb-10">
