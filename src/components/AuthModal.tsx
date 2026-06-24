@@ -369,7 +369,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("creditai_user", JSON.stringify({ uid: data.uid, email: data.email, displayName: null }));
 
       closeModal();
-      window.location.href = "/dashboard?welcome=1&plan=autopilot";
+      window.location.href = "/dashboard";
     } finally {
       setPaymentLoading(false);
     }

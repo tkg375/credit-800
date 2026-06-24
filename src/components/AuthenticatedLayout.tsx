@@ -94,7 +94,7 @@ function ReportIssueModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-type NavItem = "dashboard" | "upload" | "tools" | "disputes" | "plan" | "scores" | "simulator" | "education" | "vault" | "payoff" | "recommendations" | "cfpb" | "pricing" | "bureaus" | "profile" | "calendar" | "investing" | "portfolio" | "budget" | "goals" | "readiness" | "templates" | "freeze" | "credit-builder" | "monitoring" | "credit-monitoring" | "analyze-letter" | "autopilot";
+type NavItem = "dashboard" | "upload" | "tools" | "disputes" | "plan" | "scores" | "simulator" | "education" | "vault" | "payoff" | "recommendations" | "cfpb" | "pricing" | "bureaus" | "profile" | "calendar" | "investing" | "budget" | "goals" | "readiness" | "templates" | "freeze" | "credit-builder" | "monitoring" | "credit-monitoring" | "analyze-letter" | "autopilot";
 
 interface NavEntry {
   href: string;
