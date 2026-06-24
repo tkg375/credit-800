@@ -2129,7 +2129,7 @@ function DisputesPage() {
           </div>
         </div>
       )}
-      <UploadModal type={uploadModalType} onClose={() => setUploadModalType(null)} />
+      {uploadModalType && <UploadModal type={uploadModalType} onClose={() => setUploadModalType(null)} />}
     </AuthenticatedLayout>
   );
 }

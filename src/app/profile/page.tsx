@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
+import { BillingModal } from "@/components/BillingModal";
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
@@ -28,7 +29,16 @@ export default function ProfilePage() {
   const [state, setState] = useState("");
   const [zip, setZip] = useState("");
   const [ssnLast4, setSsnLast4] = useState("");
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string; expMonth: number; expYear: number; pmId: string } | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  const fetchCardInfo = () => {
+    if (!user) return;
+    fetch("/api/billing/card", { headers: { Authorization: `Bearer ${user.idToken}` } })
+      .then((r) => r.json())
+      .then((d) => setCardInfo(d.card || null))
+      .catch(() => {});
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,6 +67,8 @@ export default function ProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetchCardInfo();
   }, [user, authLoading, router]);
 
   const handleSave = async () => {
@@ -291,6 +303,45 @@ export default function ProfilePage() {
           <p className="text-sm text-slate-500">All features are free. No subscription required.</p>
         </div>
 
+        {/* Payment Method */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h2 className="font-semibold">Payment Method</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Used for the $2 USPS mailing fee</p>
+            </div>
+          </div>
+          {cardInfo ? (
+            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-200 mt-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-7 bg-white border border-slate-200 rounded flex items-center justify-center text-xs font-bold text-slate-600 uppercase">
+                  {cardInfo.brand}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-800">•••• {cardInfo.last4}</p>
+                  <p className="text-xs text-slate-400">Expires {cardInfo.expMonth}/{cardInfo.expYear}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="text-sm text-teal-600 hover:text-teal-700 font-medium transition"
+              >
+                Manage
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-200 mt-3">
+              <p className="text-sm text-slate-500">No card on file</p>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="text-sm text-teal-600 hover:text-teal-700 font-medium transition"
+              >
+                Add Card
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Reset All Data */}
         <div className="bg-white rounded-2xl border border-orange-200 p-6">
           <h2 className="font-semibold text-orange-600 mb-1">Reset All Data</h2>
@@ -371,6 +422,14 @@ export default function ProfilePage() {
         </div>{/* end grid */}
       </main>
 
+      {showPaymentModal && user && (
+        <BillingModal
+          cardInfo={cardInfo}
+          idToken={user.idToken}
+          onClose={() => setShowPaymentModal(false)}
+          onCardUpdated={() => { fetchCardInfo(); setShowPaymentModal(false); }}
+        />
+      )}
     </AuthenticatedLayout>
   );
 }
