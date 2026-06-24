@@ -7,7 +7,6 @@ import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
 import { useSubscription } from "@/lib/use-subscription";
 import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
-import { OnboardingModal } from "@/components/OnboardingModal";
 import { UploadModal } from "@/components/UploadModal";
 
 
@@ -87,7 +86,6 @@ function DashboardContent() {
   const { loading: subLoading } = useSubscription();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showWelcome, setShowWelcome] = useState(false);
   const [scoreHistory, setScoreHistory] = useState<{ score: number; recordedAt: string; bureau: string }[]>([]);
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [bureauScores, setBureauScores] = useState<Record<string, number | null>>({ Equifax: null, Experian: null, TransUnion: null });
@@ -101,7 +99,6 @@ function DashboardContent() {
   const [letters, setLetters] = useState<{ id: string; creditorName: string | null; fileName: string; status: string; createdAt?: string; uploadedAt?: string }[]>([]);
 
   useEffect(() => {
-    if (searchParams.get("welcome") === "1") setShowWelcome(true);
   }, [searchParams]);
 
   useEffect(() => {
@@ -299,25 +296,7 @@ function DashboardContent() {
 
   return (
     <AuthenticatedLayout activeNav="dashboard">
-      <OnboardingModal />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
-        {showWelcome && (
-          <div className="mb-8 bg-gradient-to-r from-blue-50 to-blue-50 border border-blue-200 rounded-2xl p-6 flex items-start justify-between gap-4">
-            <div>
-              <p className="font-semibold text-teal-800 mb-1">Welcome to Credit 800!</p>
-              <p className="text-sm text-teal-700">Your account is active. Start by uploading your credit report or adding your current score to get personalized recommendations.</p>
-            </div>
-            <button
-              onClick={() => setShowWelcome(false)}
-              className="text-[#1a3fd4] hover:text-[#0e7fd4] shrink-0 mt-0.5 transition"
-              aria-label="Dismiss"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
         <h1 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-10">Dashboard</h1>
 
         {/* Bureau Score Cards */}
